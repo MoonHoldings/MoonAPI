@@ -1,5 +1,8 @@
 import { DataSource } from "typeorm"
-import { User } from "../entities/User"
+import { Loan } from "../entities/Loan"
+import { OrderBook } from "../entities/OrderBook"
+import { NftList } from "../entities/NftList"
+
 import "dotenv-safe/config"
 
 export const AppDataSource = new DataSource({
@@ -9,7 +12,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER,
   password: process.env.DB_PASS,
   port: 5432,
-  entities: [User],
+  entities: [Loan, OrderBook, NftList],
   synchronize: true,
   logging: process.env.NODE_ENV === "development",
 })

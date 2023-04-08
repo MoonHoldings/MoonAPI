@@ -3,14 +3,12 @@ import { ApolloServer } from "apollo-server-express"
 import express, { Request, Response } from "express"
 import session from "express-session"
 import { buildSchema } from "type-graphql"
-import { createClient } from "redis"
+// import { createClient } from "redis"
 import cors from "cors"
 
 import { __prod__ } from "./constants"
-import { UserResolver } from "./resolvers/User"
 import { AppDataSource } from "./utils/db"
-import { NestFactory } from "@nestjs/core"
-import { AppModule } from "./app.module"
+import { LoanResolver } from "./resolvers/Loan"
 
 export type IContext = {
   req: Request<any> & { session: any }
@@ -20,10 +18,7 @@ export type IContext = {
 const main = async () => {
   // EXPRESS
   const app = express()
-  const whitelist = [
-    "http://localhost:3000",
-    "https://studio.apollographql.com",
-  ]
+  const whitelist = ["http://localhost:3000", "https://studio.apollographql.com"]
   const corsOptions = {
     origin: function (origin: any, callback: any) {
       if (whitelist.indexOf(origin) !== -1) {
@@ -37,17 +32,17 @@ const main = async () => {
   app.use(cors(corsOptions))
 
   // REDIS
-  let RedisStore = require("connect-redis")(session)
-  const redisClient = createClient({ legacyMode: true })
-  redisClient.connect().catch(console.error)
+  // let RedisStore = require("connect-redis")(session)
+  // const redisClient = createClient({ legacyMode: true })
+  // redisClient.connect().catch(console.error)
 
   app.use(
     session({
       name: "qid",
-      store: new RedisStore({
-        client: redisClient,
-        disableTouch: true,
-      }),
+      // store: new RedisStore({
+      //   client: redisClient,
+      //   disableTouch: true,
+      // }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 Years
         httpOnly: true,
@@ -63,7 +58,7 @@ const main = async () => {
   // APOLLO
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [UserResolver],
+      resolvers: [LoanResolver],
       validate: false,
     }),
     csrfPrevention: false,
@@ -83,12 +78,7 @@ const main = async () => {
   apolloServer.applyMiddleware({ app, cors: false })
 
   app.listen(8000, () => {
-    console.log("server started at localhost:8000")
-  })
-
-  const nest = await NestFactory.create(AppModule)
-  nest.listen(8001, () => {
-    console.log("nest started at localhost:8001")
+    console.log("server started at http://localhost:8000/graphql")
   })
 }
 
