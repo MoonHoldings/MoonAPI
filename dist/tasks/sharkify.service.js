@@ -78,19 +78,24 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
         return __awaiter(this, void 0, void 0, function* () {
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveNftList start:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveNftList start:' MMMM d, yyyy hh:mma"));
-            const { program } = sharkyClient_1.default;
-            const currentNftList = yield this.nftListRepository.find();
-            const newNftList = (yield sharkyClient_1.default.fetchAllNftLists({ program })).filter((nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined);
-            if (newNftList.length > 0) {
-                const collectionEntities = newNftList.map((collection) => {
-                    return this.nftListRepository.create({
-                        collectionName: collection.collectionName,
-                        pubKey: collection.pubKey.toBase58(),
-                        version: collection.version.toString(),
-                        nftMint: collection.mints[collection.mints.length - 1].toBase58(),
+            try {
+                const { program } = sharkyClient_1.default;
+                const currentNftList = yield this.nftListRepository.find();
+                const newNftList = (yield sharkyClient_1.default.fetchAllNftLists({ program })).filter((nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined);
+                if (newNftList.length > 0) {
+                    const collectionEntities = newNftList.map((collection) => {
+                        return this.nftListRepository.create({
+                            collectionName: collection.collectionName,
+                            pubKey: collection.pubKey.toBase58(),
+                            version: collection.version.toString(),
+                            nftMint: collection.mints[collection.mints.length - 1].toBase58(),
+                        });
                     });
-                });
-                yield this.nftListRepository.save(collectionEntities);
+                    yield this.nftListRepository.save(collectionEntities);
+                }
+            }
+            catch (e) {
+                console.log("ERROR", e);
             }
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"));
@@ -98,7 +103,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
     }
 };
 __decorate([
-    (0, schedule_1.Interval)(1000),
+    (0, schedule_1.Interval)(3600000),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)

@@ -28,16 +28,18 @@ let SharkifyCommands = class SharkifyCommands {
     }
     saveLoans() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.sharkifyService.saveLoans();
+            yield this.sharkifyService.saveLoans();
         });
     }
     saveOrderBooks() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.sharkifyService.saveOrderBooks();
+            yield this.sharkifyService.saveOrderBooks();
         });
     }
     saveNftList() {
-        return __awaiter(this, void 0, void 0, function* () { });
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.sharkifyService.saveNftList();
+        });
     }
 };
 __decorate([

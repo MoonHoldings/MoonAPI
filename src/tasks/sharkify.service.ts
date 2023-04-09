@@ -18,7 +18,7 @@ export class SharkifyService {
     private readonly orderBookRepository: Repository<OrderBook>
   ) {}
 
-  @Interval(1000)
+  @Interval(3600000)
   saveLoans() {
     this.logger.debug(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
@@ -69,24 +69,28 @@ export class SharkifyService {
     this.logger.debug(format(new Date(), "'saveNftList start:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveNftList start:' MMMM d, yyyy hh:mma"))
 
-    const { program } = sharkyClient
+    try {
+      const { program } = sharkyClient
 
-    const currentNftList = await this.nftListRepository.find()
-    const newNftList = (await sharkyClient.fetchAllNftLists({ program })).filter(
-      (nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined
-    )
+      const currentNftList = await this.nftListRepository.find()
+      const newNftList = (await sharkyClient.fetchAllNftLists({ program })).filter(
+        (nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined
+      )
 
-    if (newNftList.length > 0) {
-      const collectionEntities = newNftList.map((collection) => {
-        return this.nftListRepository.create({
-          collectionName: collection.collectionName,
-          pubKey: collection.pubKey.toBase58(),
-          version: collection.version.toString(),
-          nftMint: collection.mints[collection.mints.length - 1].toBase58(),
+      if (newNftList.length > 0) {
+        const collectionEntities = newNftList.map((collection) => {
+          return this.nftListRepository.create({
+            collectionName: collection.collectionName,
+            pubKey: collection.pubKey.toBase58(),
+            version: collection.version.toString(),
+            nftMint: collection.mints[collection.mints.length - 1].toBase58(),
+          })
         })
-      })
 
-      await this.nftListRepository.save(collectionEntities)
+        await this.nftListRepository.save(collectionEntities)
+      }
+    } catch (e) {
+      console.log("ERROR", e)
     }
 
     this.logger.debug(format(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"))

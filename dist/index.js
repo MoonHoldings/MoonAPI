@@ -16,12 +16,11 @@ const apollo_server_express_1 = require("apollo-server-express");
 const express_1 = __importDefault(require("express"));
 const express_session_1 = __importDefault(require("express-session"));
 const type_graphql_1 = require("type-graphql");
-const core_1 = require("@nestjs/core");
-const app_module_1 = require("./app.module");
 const cors_1 = __importDefault(require("cors"));
 const constants_1 = require("./constants");
 const db_1 = require("./utils/db");
 const Loan_1 = require("./resolvers/Loan");
+const OrderBook_1 = require("./resolvers/OrderBook");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -53,7 +52,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
         schema: yield (0, type_graphql_1.buildSchema)({
-            resolvers: [Loan_1.LoanResolver],
+            resolvers: [Loan_1.LoanResolver, OrderBook_1.OrderBookResolver],
             validate: false,
         }),
         csrfPrevention: false,
@@ -73,10 +72,6 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     app.listen(process.env.PORT || 80, () => {
         var _a;
         console.log(`server started at http://localhost:${(_a = process.env.PORT) !== null && _a !== void 0 ? _a : ""}/graphql`);
-    });
-    const nest = yield core_1.NestFactory.create(app_module_1.AppModule);
-    nest.listen(8001, () => {
-        console.log("nest started at localhost:8001");
     });
 });
 main().catch((err) => {

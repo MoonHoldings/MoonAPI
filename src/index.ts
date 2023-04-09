@@ -2,12 +2,13 @@ import { ApolloServer } from "apollo-server-express"
 import express, { Request, Response } from "express"
 import session from "express-session"
 import { buildSchema } from "type-graphql"
-import { NestFactory } from "@nestjs/core"
-import { AppModule } from "./app.module"
+// import { NestFactory } from "@nestjs/core"
+// import { AppModule } from "./app.module"
 import cors from "cors"
 import { __prod__ } from "./constants"
 import { AppDataSource } from "./utils/db"
 import { LoanResolver } from "./resolvers/Loan"
+import { OrderBookResolver } from "./resolvers/OrderBook"
 
 import dotenv from "dotenv"
 dotenv.config()
@@ -60,7 +61,7 @@ const main = async () => {
   // APOLLO
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [LoanResolver],
+      resolvers: [LoanResolver, OrderBookResolver],
       validate: false,
     }),
     csrfPrevention: false,
@@ -83,11 +84,11 @@ const main = async () => {
     console.log(`server started at http://localhost:${process.env.PORT ?? ""}/graphql`)
   })
 
-  const nest = await NestFactory.create(AppModule)
+  // const nest = await NestFactory.create(AppModule)
 
-  nest.listen(8001, () => {
-    console.log("nest started at localhost:8001")
-  })
+  // nest.listen(8001, () => {
+  //   console.log("nest started at localhost:8001")
+  // })
 }
 
 main().catch((err) => {

@@ -11,7 +11,7 @@ export class SharkifyCommands {
     describe: "Fetches all loans using sharkify client and saves in our database",
   })
   async saveLoans() {
-    this.sharkifyService.saveLoans()
+    await this.sharkifyService.saveLoans()
   }
 
   @Command({
@@ -19,12 +19,14 @@ export class SharkifyCommands {
     describe: "Fetches all order books using sharkify client and saves in our database",
   })
   async saveOrderBooks() {
-    this.sharkifyService.saveOrderBooks()
+    await this.sharkifyService.saveOrderBooks()
   }
 
   @Command({
     command: "save:nftlist",
     describe: "Fetches all nft list using sharkify client and saves in our database",
   })
-  async saveNftList() {}
+  async saveNftList() {
+    await this.sharkifyService.saveNftList()
+  }
 }
