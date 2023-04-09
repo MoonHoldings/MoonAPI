@@ -18,7 +18,7 @@ export class SharkifyService {
     private readonly orderBookRepository: Repository<OrderBook>
   ) {}
 
-  // @Interval(10000)
+  @Interval(1000)
   saveLoans() {
     this.logger.debug(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))

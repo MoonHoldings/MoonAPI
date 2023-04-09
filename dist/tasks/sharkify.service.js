@@ -98,6 +98,12 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
     }
 };
 __decorate([
+    (0, schedule_1.Interval)(1000),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], SharkifyService.prototype, "saveLoans", null);
+__decorate([
     (0, schedule_1.Interval)(3600000),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
