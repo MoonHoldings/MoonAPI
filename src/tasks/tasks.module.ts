@@ -8,6 +8,9 @@ import { Loan } from "../entities/Loan"
 import { OrderBook } from "../entities/OrderBook"
 import { NftList } from "../entities/NftList"
 
+import dotenv from "dotenv"
+dotenv.config()
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),

@@ -12,7 +12,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv-safe/config");
 const apollo_server_express_1 = require("apollo-server-express");
 const express_1 = __importDefault(require("express"));
 const express_session_1 = __importDefault(require("express-session"));
@@ -23,6 +22,8 @@ const cors_1 = __importDefault(require("cors"));
 const constants_1 = require("./constants");
 const db_1 = require("./utils/db");
 const Loan_1 = require("./resolvers/Loan");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
     const whitelist = ["http://localhost:3000", "https://studio.apollographql.com"];

@@ -5,6 +5,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TasksModule = void 0;
 const common_1 = require("@nestjs/common");
@@ -16,6 +19,8 @@ const sharkify_commands_1 = require("../commands/sharkify.commands");
 const Loan_1 = require("../entities/Loan");
 const OrderBook_1 = require("../entities/OrderBook");
 const NftList_1 = require("../entities/NftList");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 let TasksModule = class TasksModule {
 };
 TasksModule = __decorate([

@@ -1,4 +1,3 @@
-import "dotenv-safe/config"
 import { ApolloServer } from "apollo-server-express"
 import express, { Request, Response } from "express"
 import session from "express-session"
@@ -9,6 +8,9 @@ import cors from "cors"
 import { __prod__ } from "./constants"
 import { AppDataSource } from "./utils/db"
 import { LoanResolver } from "./resolvers/Loan"
+
+import dotenv from "dotenv"
+dotenv.config()
 
 export type IContext = {
   req: Request<any> & { session: any }
