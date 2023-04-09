@@ -80,7 +80,7 @@ const main = async () => {
   apolloServer.applyMiddleware({ app, cors: false })
 
   app.listen(process.env.PORT || 80, () => {
-    console.log("server started at http://localhost:8000/graphql")
+    console.log(`server started at http://localhost:${process.env.PORT ?? ""}/graphql`)
   })
 
   const nest = await NestFactory.create(AppModule)

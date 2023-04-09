@@ -71,7 +71,8 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     yield apolloServer.start();
     apolloServer.applyMiddleware({ app, cors: false });
     app.listen(process.env.PORT || 80, () => {
-        console.log("server started at http://localhost:8000/graphql");
+        var _a;
+        console.log(`server started at http://localhost:${(_a = process.env.PORT) !== null && _a !== void 0 ? _a : ""}/graphql`);
     });
     const nest = yield core_1.NestFactory.create(app_module_1.AppModule);
     nest.listen(8001, () => {
