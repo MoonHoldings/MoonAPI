@@ -4,8 +4,6 @@ import Wallet from "@project-serum/anchor/dist/cjs/nodewallet"
 import { Connection, Keypair } from "@solana/web3.js"
 import { RPC_URL } from "../constants"
 
-console.log(process.env.RPC_URL)
-
 export const connection = new Connection(RPC_URL as string, "confirmed")
 // export const connection = new Connection(RPC_URL, {
 //   httpHeaders: {

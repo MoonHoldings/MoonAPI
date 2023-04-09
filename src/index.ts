@@ -3,9 +3,9 @@ import { ApolloServer } from "apollo-server-express"
 import express, { Request, Response } from "express"
 import session from "express-session"
 import { buildSchema } from "type-graphql"
-// import { createClient } from "redis"
+import { NestFactory } from "@nestjs/core"
+import { AppModule } from "./app.module"
 import cors from "cors"
-
 import { __prod__ } from "./constants"
 import { AppDataSource } from "./utils/db"
 import { LoanResolver } from "./resolvers/Loan"
@@ -79,6 +79,12 @@ const main = async () => {
 
   app.listen(8000, () => {
     console.log("server started at http://localhost:8000/graphql")
+  })
+
+  const nest = await NestFactory.create(AppModule)
+
+  nest.listen(8001, () => {
+    console.log("nest started at localhost:8001")
   })
 }
 

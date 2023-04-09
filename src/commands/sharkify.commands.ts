@@ -1,4 +1,4 @@
-import { Command, Option } from "nestjs-command"
+import { Command } from "nestjs-command"
 import { Injectable } from "@nestjs/common"
 import { SharkifyService } from "../tasks/sharkify.service"
 
