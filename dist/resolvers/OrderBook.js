@@ -34,7 +34,7 @@ let OrderBookResolver = class OrderBookResolver {
     }
 };
 __decorate([
-    (0, type_graphql_1.Query)(() => [OrderBook_1.OrderBook]),
+    (0, type_graphql_1.Query)(() => OrderBook_1.OrderBook),
     __param(0, (0, type_graphql_1.Arg)("id", () => Number)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),

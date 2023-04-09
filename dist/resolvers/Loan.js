@@ -34,7 +34,7 @@ let LoanResolver = class LoanResolver {
     }
 };
 __decorate([
-    (0, type_graphql_1.Query)(() => [Loan_1.Loan]),
+    (0, type_graphql_1.Query)(() => Loan_1.Loan),
     __param(0, (0, type_graphql_1.Arg)("id", () => Number)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
