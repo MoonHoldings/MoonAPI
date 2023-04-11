@@ -14,9 +14,9 @@ export class OrderBook extends BaseEntity {
   @Column("text", { unique: true })
   pubKey!: string
 
-  @Field(() => String)
-  @Column("text")
-  version!: string
+  @Field(() => Int)
+  @Column("integer")
+  version!: number
 
   @Field(() => Int, { nullable: true })
   @Column("integer", { nullable: true })
