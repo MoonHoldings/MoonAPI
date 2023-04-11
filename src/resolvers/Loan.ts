@@ -1,4 +1,4 @@
-import { Loan } from "../entities/Loan"
+import { Loan } from "../entities"
 import { Resolver, Query, Arg } from "type-graphql"
 
 @Resolver()
