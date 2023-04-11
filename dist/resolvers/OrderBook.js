@@ -22,19 +22,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderBookResolver = void 0;
-const OrderBook_1 = require("../entities/OrderBook");
+const entities_1 = require("../entities");
 const type_graphql_1 = require("type-graphql");
 let OrderBookResolver = class OrderBookResolver {
     getOrderBook(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield OrderBook_1.OrderBook.findOneOrFail({
+            return yield entities_1.OrderBook.findOneOrFail({
                 where: { id },
             });
         });
     }
 };
 __decorate([
-    (0, type_graphql_1.Query)(() => OrderBook_1.OrderBook),
+    (0, type_graphql_1.Query)(() => entities_1.OrderBook),
     __param(0, (0, type_graphql_1.Arg)("id", () => Number)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),

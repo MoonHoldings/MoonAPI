@@ -19,8 +19,7 @@ const type_graphql_1 = require("type-graphql");
 const cors_1 = __importDefault(require("cors"));
 const constants_1 = require("./constants");
 const db_1 = require("./utils/db");
-const Loan_1 = require("./resolvers/Loan");
-const OrderBook_1 = require("./resolvers/OrderBook");
+const resolvers_1 = require("./resolvers");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -52,7 +51,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
         schema: yield (0, type_graphql_1.buildSchema)({
-            resolvers: [Loan_1.LoanResolver, OrderBook_1.OrderBookResolver],
+            resolvers: [resolvers_1.LoanResolver, resolvers_1.OrderBookResolver],
             validate: false,
         }),
         csrfPrevention: false,

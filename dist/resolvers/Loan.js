@@ -22,19 +22,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LoanResolver = void 0;
-const Loan_1 = require("../entities/Loan");
+const entities_1 = require("../entities");
 const type_graphql_1 = require("type-graphql");
 let LoanResolver = class LoanResolver {
     getLoan(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield Loan_1.Loan.findOneOrFail({
+            return yield entities_1.Loan.findOneOrFail({
                 where: { id },
             });
         });
     }
 };
 __decorate([
-    (0, type_graphql_1.Query)(() => Loan_1.Loan),
+    (0, type_graphql_1.Query)(() => entities_1.Loan),
     __param(0, (0, type_graphql_1.Arg)("id", () => Number)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),

@@ -7,8 +7,7 @@ import { buildSchema } from "type-graphql"
 import cors from "cors"
 import { __prod__ } from "./constants"
 import { AppDataSource } from "./utils/db"
-import { LoanResolver } from "./resolvers/Loan"
-import { OrderBookResolver } from "./resolvers/OrderBook"
+import { LoanResolver, OrderBookResolver } from "./resolvers"
 
 import dotenv from "dotenv"
 dotenv.config()
@@ -68,7 +67,7 @@ const main = async () => {
     context: async ({ req, res }: IContext) => {
       try {
         await AppDataSource.initialize()
-      } catch (_) {}
+      } catch (_) { }
 
       return {
         req,

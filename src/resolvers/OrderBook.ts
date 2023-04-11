@@ -1,4 +1,4 @@
-import { OrderBook } from "../entities/OrderBook"
+import { OrderBook } from "../entities"
 import { Resolver, Query, Arg } from "type-graphql"
 
 @Resolver()
