@@ -35,9 +35,11 @@ export class SharkifyService {
     const { program } = sharkyClient
 
     const currentOrderBooks = await this.orderBookRepository.find()
-    const newOrderBooks = (await sharkyClient.fetchAllOrderBooks({ program })).filter(
-      (orderBook) => currentOrderBooks.find((n) => n.pubKey === orderBook.pubKey.toBase58()) === undefined
-    )
+    let newOrderBooks = await sharkyClient.fetchAllOrderBooks({ program })
+
+    if (currentOrderBooks.length > 0) {
+      newOrderBooks = newOrderBooks.filter((orderBook) => currentOrderBooks.find((n) => n.pubKey === orderBook.pubKey.toBase58()) === undefined)
+    }
 
     if (newOrderBooks.length > 0) {
       const orderBookEntities = await Promise.all(
@@ -73,9 +75,11 @@ export class SharkifyService {
       const { program } = sharkyClient
 
       const currentNftList = await this.nftListRepository.find()
-      const newNftList = (await sharkyClient.fetchAllNftLists({ program })).filter(
-        (nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined
-      )
+      let newNftList = await sharkyClient.fetchAllNftLists({ program })
+
+      if (currentNftList.length > 0) {
+        newNftList = newNftList.filter((nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined)
+      }
 
       if (newNftList.length > 0) {
         const collectionEntities = newNftList.map((collection) => {

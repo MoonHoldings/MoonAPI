@@ -52,7 +52,10 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             console.log((0, date_fns_1.format)(new Date(), "'saveOrderBooks start:' MMMM d, yyyy hh:mma"));
             const { program } = sharkyClient_1.default;
             const currentOrderBooks = yield this.orderBookRepository.find();
-            const newOrderBooks = (yield sharkyClient_1.default.fetchAllOrderBooks({ program })).filter((orderBook) => currentOrderBooks.find((n) => n.pubKey === orderBook.pubKey.toBase58()) === undefined);
+            let newOrderBooks = yield sharkyClient_1.default.fetchAllOrderBooks({ program });
+            if (currentOrderBooks.length > 0) {
+                newOrderBooks = newOrderBooks.filter((orderBook) => currentOrderBooks.find((n) => n.pubKey === orderBook.pubKey.toBase58()) === undefined);
+            }
             if (newOrderBooks.length > 0) {
                 const orderBookEntities = yield Promise.all(newOrderBooks.map((orderBook) => __awaiter(this, void 0, void 0, function* () {
                     var _a, _b, _c, _d, _e;
@@ -81,7 +84,10 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             try {
                 const { program } = sharkyClient_1.default;
                 const currentNftList = yield this.nftListRepository.find();
-                const newNftList = (yield sharkyClient_1.default.fetchAllNftLists({ program })).filter((nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined);
+                let newNftList = yield sharkyClient_1.default.fetchAllNftLists({ program });
+                if (currentNftList.length > 0) {
+                    newNftList = newNftList.filter((nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined);
+                }
                 if (newNftList.length > 0) {
                     const collectionEntities = newNftList.map((collection) => {
                         return this.nftListRepository.create({
