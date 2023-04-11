@@ -27,10 +27,6 @@ export class SharkifyService {
     console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
 
     const { program } = sharkyClient
-
-    await this.loanRepository.query("ALTER SEQUENCE loan_id_seq RESTART WITH 1")
-    await this.loanRepository.delete({})
-
     let newLoans = await sharkyClient.fetchAllLoans({ program })
 
     if (newLoans.length > 0) {
@@ -72,6 +68,8 @@ export class SharkifyService {
         })
       )
 
+      await this.loanRepository.query("ALTER SEQUENCE loan_id_seq RESTART WITH 1")
+      await this.loanRepository.delete({})
       await this.loanRepository.save(loanEntities, { chunk: 50 })
     }
 

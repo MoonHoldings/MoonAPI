@@ -47,8 +47,6 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"));
             const { program } = sharkyClient_1.default;
-            yield this.loanRepository.query("ALTER SEQUENCE loan_id_seq RESTART WITH 1");
-            yield this.loanRepository.delete({});
             let newLoans = yield sharkyClient_1.default.fetchAllLoans({ program });
             if (newLoans.length > 0) {
                 const queriedOrderBooks = [];
@@ -83,6 +81,8 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                         orderBook: orderBook || undefined,
                     });
                 })));
+                yield this.loanRepository.query("ALTER SEQUENCE loan_id_seq RESTART WITH 1");
+                yield this.loanRepository.delete({});
                 yield this.loanRepository.save(loanEntities, { chunk: 50 });
             }
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"));
