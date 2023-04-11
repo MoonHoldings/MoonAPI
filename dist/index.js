@@ -51,7 +51,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
         schema: yield (0, type_graphql_1.buildSchema)({
-            resolvers: [resolvers_1.LoanResolver, resolvers_1.OrderBookResolver],
+            resolvers: [resolvers_1.LoanResolver, resolvers_1.OrderBookResolver, resolvers_1.UserResolver],
             validate: false,
         }),
         csrfPrevention: false,

@@ -10,6 +10,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const schedule_1 = require("@nestjs/schedule");
 const tasks_module_1 = require("./tasks/tasks.module");
+require("reflect-metadata");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([

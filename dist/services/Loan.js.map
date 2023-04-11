@@ -1,0 +1,1 @@
+{"version":3,"file":"Loan.js","sourceRoot":"","sources":["../../src/services/Loan.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;AAAA,0CAAmC;AACnC,mCAAiC;AAGjC,IAAa,WAAW,GAAxB,MAAa,WAAW;IAEf,gBAAgB,CAAC,EAAU;;YAC9B,OAAO,MAAM,eAAI,CAAC,aAAa,CAAC,EAAE,KAAK,EAAE,EAAE,EAAE,EAAE,GAAG,CAAC,CAAC;QACvD,CAAC;KAAA;CACH,CAAA;AALY,WAAW;IADvB,IAAA,gBAAO,GAAE;GACG,WAAW,CAKvB;AALY,kCAAW"}
