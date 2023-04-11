@@ -57,7 +57,7 @@ __decorate([
     __metadata("design:type", String)
 ], OrderBook.prototype, "feeAuthority", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => [Loan_1.Loan]),
+    (0, type_graphql_1.Field)(() => [Loan_1.Loan], { nullable: true }),
     (0, typeorm_1.OneToMany)(() => Loan_1.Loan, (loan) => loan.orderBook, {
         cascade: true,
     }),

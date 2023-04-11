@@ -38,7 +38,7 @@ export class OrderBook extends BaseEntity {
   @Column("text")
   feeAuthority!: string
 
-  @Field(() => [Loan])
+  @Field(() => [Loan], { nullable: true })
   @OneToMany(() => Loan, (loan) => loan.orderBook, {
     cascade: true,
   })
