@@ -21,7 +21,7 @@ export class SharkifyService {
     private readonly loanRepository: Repository<Loan>
   ) {}
 
-  @Interval(3600000)
+  @Interval(300000) // Every 5 mins
   async saveLoans() {
     this.logger.debug(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))

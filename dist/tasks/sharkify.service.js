@@ -152,7 +152,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
     }
 };
 __decorate([
-    (0, schedule_1.Interval)(3600000),
+    (0, schedule_1.Interval)(300000),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
