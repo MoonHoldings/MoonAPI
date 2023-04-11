@@ -25,6 +25,10 @@ export class NftList extends BaseEntity {
   @Column("text")
   collectionName!: string
 
+  @Field(() => String, { nullable: true })
+  @Column("text", { nullable: true })
+  collectionImage?: string
+
   @OneToOne(() => OrderBook, (orderBook) => orderBook.nftList, { cascade: true })
   orderBook: OrderBook
 }

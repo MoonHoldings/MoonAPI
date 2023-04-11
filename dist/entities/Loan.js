@@ -19,6 +19,7 @@ let Loan = class Loan extends typeorm_1.BaseEntity {
         this.supportsFreezingCollateral = true;
         this.isCollateralFrozen = false;
         this.isHistorical = false;
+        this.isForeclosable = false;
     }
 };
 __decorate([
@@ -66,6 +67,11 @@ __decorate([
     (0, typeorm_1.Column)({ type: "boolean", default: false }),
     __metadata("design:type", Boolean)
 ], Loan.prototype, "isHistorical", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Boolean, { defaultValue: false }),
+    (0, typeorm_1.Column)({ type: "boolean", default: false }),
+    __metadata("design:type", Boolean)
+], Loan.prototype, "isForeclosable", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
     (0, typeorm_1.Column)("text"),

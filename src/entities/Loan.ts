@@ -41,6 +41,10 @@ export class Loan extends BaseEntity {
   @Column({ type: "boolean", default: false })
   isHistorical: boolean = false
 
+  @Field(() => Boolean, { defaultValue: false })
+  @Column({ type: "boolean", default: false })
+  isForeclosable: boolean = false
+
   @Field(() => String)
   @Column("text")
   state!: string
