@@ -27,9 +27,9 @@ __decorate([
     __metadata("design:type", String)
 ], OrderBook.prototype, "pubKey", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
-    __metadata("design:type", String)
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    (0, typeorm_1.Column)("integer"),
+    __metadata("design:type", Number)
 ], OrderBook.prototype, "version", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),

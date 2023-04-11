@@ -13,13 +13,13 @@ export class Loan extends BaseEntity {
   @Column("text")
   pubKey!: string
 
-  @Field(() => String)
-  @Column("text")
-  version!: string
+  @Field(() => Int)
+  @Column("integer")
+  version!: number
 
-  @Field(() => String)
-  @Column("text")
-  principalLamports!: string
+  @Field(() => Int)
+  @Column("bigint")
+  principalLamports!: number
 
   @Field(() => OrderBook)
   @ManyToOne(() => OrderBook, (orderBook) => orderBook.loans)
@@ -50,7 +50,7 @@ export class Loan extends BaseEntity {
   state!: string
 
   @Field(() => Int, { nullable: true })
-  @Column("integer", { nullable: true })
+  @Column("bigint", { nullable: true })
   duration?: number | null
 
   // Offered loan attributes
@@ -59,7 +59,7 @@ export class Loan extends BaseEntity {
   lenderWallet?: string
 
   @Field(() => Int, { nullable: true })
-  @Column("integer", { nullable: true })
+  @Column("bigint", { nullable: true })
   offerTime?: number | null
 
   // Taken loan attributes
@@ -80,10 +80,10 @@ export class Loan extends BaseEntity {
   apy?: number | null
 
   @Field(() => Int, { nullable: true })
-  @Column("integer", { nullable: true })
+  @Column("bigint", { nullable: true })
   start?: number | null
 
   @Field(() => Int, { nullable: true })
-  @Column("integer", { nullable: true })
+  @Column("bigint", { nullable: true })
   totalOwedLamports?: number | null
 }

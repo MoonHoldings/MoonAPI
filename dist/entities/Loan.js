@@ -33,14 +33,14 @@ __decorate([
     __metadata("design:type", String)
 ], Loan.prototype, "pubKey", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
-    __metadata("design:type", String)
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    (0, typeorm_1.Column)("integer"),
+    __metadata("design:type", Number)
 ], Loan.prototype, "version", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
-    __metadata("design:type", String)
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    (0, typeorm_1.Column)("bigint"),
+    __metadata("design:type", Number)
 ], Loan.prototype, "principalLamports", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => OrderBook_1.OrderBook),
@@ -79,7 +79,7 @@ __decorate([
 ], Loan.prototype, "state", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)("integer", { nullable: true }),
+    (0, typeorm_1.Column)("bigint", { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "duration", void 0);
 __decorate([
@@ -89,7 +89,7 @@ __decorate([
 ], Loan.prototype, "lenderWallet", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)("integer", { nullable: true }),
+    (0, typeorm_1.Column)("bigint", { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "offerTime", void 0);
 __decorate([
@@ -114,12 +114,12 @@ __decorate([
 ], Loan.prototype, "apy", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)("integer", { nullable: true }),
+    (0, typeorm_1.Column)("bigint", { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "start", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)("integer", { nullable: true }),
+    (0, typeorm_1.Column)("bigint", { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "totalOwedLamports", void 0);
 Loan = __decorate([

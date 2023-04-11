@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from "type-graphql"
+import { Field, ID, ObjectType, Int } from "type-graphql"
 import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm"
 import { OrderBook } from "./OrderBook"
 
@@ -13,9 +13,9 @@ export class NftList extends BaseEntity {
   @Column("text", { unique: true })
   pubKey!: string
 
-  @Field(() => String)
-  @Column("text")
-  version!: string
+  @Field(() => Int)
+  @Column("integer")
+  version!: number
 
   @Field(() => String)
   @Column("text")
