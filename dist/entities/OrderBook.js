@@ -64,9 +64,10 @@ __decorate([
     __metadata("design:type", Array)
 ], OrderBook.prototype, "loans", void 0);
 __decorate([
+    (0, type_graphql_1.Field)(() => NftList_1.NftList, { nullable: true }),
     (0, typeorm_1.OneToOne)(() => NftList_1.NftList, (nftList) => nftList.orderBook, { nullable: true }),
     (0, typeorm_1.JoinColumn)(),
-    __metadata("design:type", NftList_1.NftList)
+    __metadata("design:type", Object)
 ], OrderBook.prototype, "nftList", void 0);
 OrderBook = __decorate([
     (0, type_graphql_1.ObjectType)(),

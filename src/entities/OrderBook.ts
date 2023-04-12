@@ -1,5 +1,5 @@
 import { Field, ID, Int, ObjectType } from "type-graphql"
-import { BaseEntity, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm"
+import { BaseEntity, Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation, JoinColumn } from "typeorm"
 import { Loan } from "./Loan"
 import { NftList } from "./NftList"
 
@@ -44,7 +44,8 @@ export class OrderBook extends BaseEntity {
   })
   loans!: Relation<Loan>[]
 
+  @Field(() => NftList, { nullable: true })
   @OneToOne(() => NftList, (nftList) => nftList.orderBook, { nullable: true })
   @JoinColumn()
-  nftList?: NftList
+  nftList?: Relation<NftList>
 }

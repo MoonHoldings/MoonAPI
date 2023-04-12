@@ -45,47 +45,41 @@ export class SharkifyService {
         newlyAddedLoans.push(newLoan)
       }
     }
+    const newlyAddedLoansOrderBookPubKeys = newlyAddedLoans.map((loan) => loan.data.orderBook.toBase58())
+    const uniqueOrderBookPubKeys = newlyAddedLoansOrderBookPubKeys.filter((value, index, self) => {
+      return self.indexOf(value) === index
+    })
 
     if (newlyAddedLoans.length > 0) {
-      const queriedOrderBooks = new Map<string, OrderBook>()
+      const orderBooks = await this.orderBookRepository.find({ where: { pubKey: In(uniqueOrderBookPubKeys) } })
 
-      const loanEntities = await Promise.all(
-        newlyAddedLoans.map(async (loan) => {
-          let orderBook = queriedOrderBooks.get(loan.data.orderBook.toBase58()) || null
+      const loanEntities = newlyAddedLoans.map((loan) => {
+        const orderBook = orderBooks.find((orderBook) => loan.data.orderBook.toBase58() === orderBook.pubKey)
 
-          if (!orderBook) {
-            orderBook = await this.orderBookRepository.findOne({ where: { pubKey: loan.data.orderBook.toBase58() } })
-
-            if (orderBook) {
-              queriedOrderBooks.set(orderBook.pubKey, orderBook)
-            }
-          }
-
-          return this.loanRepository.create({
-            pubKey: loan.pubKey.toBase58(),
-            version: loan.data.version,
-            principalLamports: loan.data.principalLamports.toNumber(),
-            valueTokenMint: loan.data.valueTokenMint.toBase58(),
-            supportsFreezingCollateral: loan.supportsFreezingCollateral,
-            isCollateralFrozen: loan.isCollateralFrozen,
-            isHistorical: loan.isHistorical,
-            isForeclosable: loan.isForeclosable("mainnet"),
-            state: loan.state,
-            duration: loan.data.loanState?.offer?.offer.termsSpec.time?.duration?.toNumber() || loan.data.loanState.taken?.taken.terms.time?.duration?.toNumber(),
-            lenderWallet: loan.data.loanState.offer?.offer.lenderWallet.toBase58(),
-            offerTime: loan.data.loanState.offer?.offer.offerTime?.toNumber(),
-            nftCollateralMint: loan.data.loanState.taken?.taken.nftCollateralMint.toBase58(),
-            lenderNoteMint: loan.data.loanState.taken?.taken.lenderNoteMint.toBase58(),
-            borrowerNoteMint: loan.data.loanState.taken?.taken.borrowerNoteMint.toBase58(),
-            apy: loan.data.loanState.taken?.taken.apy.fixed?.apy,
-            start: loan.data.loanState.taken?.taken.terms.time?.start?.toNumber(),
-            totalOwedLamports: loan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber(),
-            orderBook: orderBook || undefined,
-          })
+        return this.loanRepository.create({
+          pubKey: loan.pubKey.toBase58(),
+          version: loan.data.version,
+          principalLamports: loan.data.principalLamports.toNumber(),
+          valueTokenMint: loan.data.valueTokenMint.toBase58(),
+          supportsFreezingCollateral: loan.supportsFreezingCollateral,
+          isCollateralFrozen: loan.isCollateralFrozen,
+          isHistorical: loan.isHistorical,
+          isForeclosable: loan.isForeclosable("mainnet"),
+          state: loan.state,
+          duration: loan.data.loanState?.offer?.offer.termsSpec.time?.duration?.toNumber() || loan.data.loanState.taken?.taken.terms.time?.duration?.toNumber(),
+          lenderWallet: loan.data.loanState.offer?.offer.lenderWallet.toBase58(),
+          offerTime: loan.data.loanState.offer?.offer.offerTime?.toNumber(),
+          nftCollateralMint: loan.data.loanState.taken?.taken.nftCollateralMint.toBase58(),
+          lenderNoteMint: loan.data.loanState.taken?.taken.lenderNoteMint.toBase58(),
+          borrowerNoteMint: loan.data.loanState.taken?.taken.borrowerNoteMint.toBase58(),
+          apy: loan.data.loanState.taken?.taken.apy.fixed?.apy,
+          start: loan.data.loanState.taken?.taken.terms.time?.start?.toNumber(),
+          totalOwedLamports: loan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber(),
+          orderBook: orderBook,
         })
-      )
+      })
 
-      await this.loanRepository.save(loanEntities)
+      await this.loanRepository.save(loanEntities, { chunk: Math.ceil(loanEntities.length / 10) })
     }
 
     this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"))

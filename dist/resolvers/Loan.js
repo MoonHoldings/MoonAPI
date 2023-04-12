@@ -25,10 +25,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LoanResolver = void 0;
-const services_1 = require("../services");
-const entities_1 = require("../entities");
 const type_graphql_1 = require("type-graphql");
 const typedi_1 = __importDefault(require("typedi"));
+const services_1 = require("../services");
+const entities_1 = require("../entities");
+const types_1 = require("../types");
 let LoanResolver = class LoanResolver {
     constructor() {
         this.loanService = typedi_1.default.get(services_1.LoanService);
@@ -36,6 +37,11 @@ let LoanResolver = class LoanResolver {
     getLoan(id) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.loanService.getLoanById(id);
+        });
+    }
+    getLoans(args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.loanService.getLoans(args);
         });
     }
 };
@@ -46,6 +52,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], LoanResolver.prototype, "getLoan", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => types_1.LoansPaginatedResponse),
+    __param(0, (0, type_graphql_1.Arg)("args", { nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [types_1.GetLoansArgs]),
+    __metadata("design:returntype", Promise)
+], LoanResolver.prototype, "getLoans", null);
 LoanResolver = __decorate([
     (0, type_graphql_1.Resolver)()
 ], LoanResolver);

@@ -60,17 +60,15 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                     newlyAddedLoans.push(newLoan);
                 }
             }
+            const newlyAddedLoansOrderBookPubKeys = newlyAddedLoans.map((loan) => loan.data.orderBook.toBase58());
+            const uniqueOrderBookPubKeys = newlyAddedLoansOrderBookPubKeys.filter((value, index, self) => {
+                return self.indexOf(value) === index;
+            });
             if (newlyAddedLoans.length > 0) {
-                const queriedOrderBooks = new Map();
-                const loanEntities = yield Promise.all(newlyAddedLoans.map((loan) => __awaiter(this, void 0, void 0, function* () {
+                const orderBooks = yield this.orderBookRepository.find({ where: { pubKey: (0, typeorm_2.In)(uniqueOrderBookPubKeys) } });
+                const loanEntities = newlyAddedLoans.map((loan) => {
                     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
-                    let orderBook = queriedOrderBooks.get(loan.data.orderBook.toBase58()) || null;
-                    if (!orderBook) {
-                        orderBook = yield this.orderBookRepository.findOne({ where: { pubKey: loan.data.orderBook.toBase58() } });
-                        if (orderBook) {
-                            queriedOrderBooks.set(orderBook.pubKey, orderBook);
-                        }
-                    }
+                    const orderBook = orderBooks.find((orderBook) => loan.data.orderBook.toBase58() === orderBook.pubKey);
                     return this.loanRepository.create({
                         pubKey: loan.pubKey.toBase58(),
                         version: loan.data.version,
@@ -90,10 +88,10 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                         apy: (_q = (_p = loan.data.loanState.taken) === null || _p === void 0 ? void 0 : _p.taken.apy.fixed) === null || _q === void 0 ? void 0 : _q.apy,
                         start: (_t = (_s = (_r = loan.data.loanState.taken) === null || _r === void 0 ? void 0 : _r.taken.terms.time) === null || _s === void 0 ? void 0 : _s.start) === null || _t === void 0 ? void 0 : _t.toNumber(),
                         totalOwedLamports: (_w = (_v = (_u = loan.data.loanState.taken) === null || _u === void 0 ? void 0 : _u.taken.terms.time) === null || _v === void 0 ? void 0 : _v.totalOwedLamports) === null || _w === void 0 ? void 0 : _w.toNumber(),
-                        orderBook: orderBook || undefined,
+                        orderBook: orderBook,
                     });
-                })));
-                yield this.loanRepository.save(loanEntities);
+                });
+                yield this.loanRepository.save(loanEntities, { chunk: Math.ceil(loanEntities.length / 10) });
             }
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"));
