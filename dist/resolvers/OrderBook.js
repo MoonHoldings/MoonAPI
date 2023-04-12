@@ -20,16 +20,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderBookResolver = void 0;
+const services_1 = require("../services");
 const entities_1 = require("../entities");
 const type_graphql_1 = require("type-graphql");
+const typedi_1 = __importDefault(require("typedi"));
 let OrderBookResolver = class OrderBookResolver {
+    constructor() {
+        this.orderBookService = typedi_1.default.get(services_1.OrderBookService);
+    }
     getOrderBook(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield entities_1.OrderBook.findOneOrFail({
-                where: { id },
-            });
+            return yield this.orderBookService.getOrderBookById(id);
         });
     }
 };

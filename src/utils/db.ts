@@ -1,8 +1,6 @@
 import { DataSource } from "typeorm"
-import { Loan } from "../entities/Loan"
-import { OrderBook } from "../entities/OrderBook"
-import { NftList } from "../entities/NftList"
 
+import { User, NftList, Loan, OrderBook } from "../entities"
 import dotenv from "dotenv"
 dotenv.config()
 
@@ -13,7 +11,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER,
   password: process.env.DB_PASS,
   port: 5432,
-  entities: [Loan, OrderBook, NftList],
+  entities: [Loan, OrderBook, NftList, User],
   synchronize: true,
   logging: process.env.NODE_ENV === "development",
 })

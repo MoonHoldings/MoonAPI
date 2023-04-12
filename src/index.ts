@@ -7,9 +7,10 @@ import { buildSchema } from "type-graphql"
 import cors from "cors"
 import { __prod__ } from "./constants"
 import { AppDataSource } from "./utils/db"
-import { LoanResolver, OrderBookResolver } from "./resolvers"
+import { LoanResolver, OrderBookResolver, UserResolver } from "./resolvers"
 
 import dotenv from "dotenv"
+
 dotenv.config()
 
 export type IContext = {
@@ -60,7 +61,7 @@ const main = async () => {
   // APOLLO
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [LoanResolver, OrderBookResolver],
+      resolvers: [LoanResolver, OrderBookResolver, UserResolver],
       validate: false,
     }),
     csrfPrevention: false,
