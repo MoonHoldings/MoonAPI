@@ -4,6 +4,7 @@ import { Service } from 'typedi';
 
 import { passwordStrength } from 'check-password-strength'
 import * as utils from '../utils';
+import { SignupType } from 'src/enums';
 
 @Service()
 export class UserService {
@@ -25,6 +26,7 @@ export class UserService {
       user = new User();
       user.email = email;
       user.password = hashedPassword;
+      user.signupType = SignupType.EMAIL;
 
       return await User.save(user);
    }

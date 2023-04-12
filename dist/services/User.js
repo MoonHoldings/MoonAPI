@@ -44,6 +44,7 @@ const entities_1 = require("../entities");
 const typedi_1 = require("typedi");
 const check_password_strength_1 = require("check-password-strength");
 const utils = __importStar(require("../utils"));
+const enums_1 = require("src/enums");
 let UserService = class UserService {
     register(email, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -60,6 +61,7 @@ let UserService = class UserService {
             user = new entities_1.User();
             user.email = email;
             user.password = hashedPassword;
+            user.signupType = enums_1.SignupType.EMAIL;
             return yield entities_1.User.save(user);
         });
     }

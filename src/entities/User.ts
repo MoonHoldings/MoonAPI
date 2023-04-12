@@ -1,3 +1,4 @@
+import { SignupType } from "../enums";
 import { Field, ID, ObjectType } from "type-graphql"
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
@@ -13,10 +14,13 @@ export class User extends BaseEntity {
     @Column({ nullable: false })
     email: string;
 
-
     @Field(() => Boolean, { defaultValue: false })
     @Column({ type: 'boolean', default: 'false' })
     isVerified: boolean;
+
+    @Field(() => SignupType, { nullable: false })
+    @Column({ type: 'varchar', nullable: false, })
+    signupType: string;
 
     @Column({ nullable: false })
     password: string;
@@ -24,11 +28,11 @@ export class User extends BaseEntity {
     @Column({ nullable: true })
     lastLoginTimestamp: Date;
 
-    @Field(() => String, { nullable: true })
-    accessToken: string;
-
     @Column({ type: 'int', default: 0 })
     tokenVersion: number
+
+    @Field(() => String, { nullable: true })
+    accessToken: string;
 
     static async incrementTokenVersion(id: number) {
         await this.createQueryBuilder()
