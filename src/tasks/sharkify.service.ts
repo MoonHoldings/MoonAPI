@@ -6,7 +6,9 @@ import { NftList } from "../entities/NftList"
 import { Loan } from "./../entities/Loan"
 import { OrderBook } from "../entities/OrderBook"
 import sharkyClient from "../utils/sharkyClient"
-import { Repository } from "typeorm"
+import { In, IsNull, Not, Repository } from "typeorm"
+import axios from "axios"
+import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL, AXIOS_CONFIG_SHYFT_KEY, SHYFT_URL } from "../constants"
 
 @Injectable()
 export class SharkifyService {
@@ -21,30 +23,41 @@ export class SharkifyService {
     private readonly loanRepository: Repository<Loan>
   ) {}
 
-  @Interval(3600000)
+  @Interval(60000) // Every 1 min
   async saveLoans() {
     this.logger.debug(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
 
     const { program } = sharkyClient
-
-    await this.loanRepository.query("ALTER SEQUENCE loan_id_seq RESTART WITH 1")
-    await this.loanRepository.delete({})
-
     let newLoans = await sharkyClient.fetchAllLoans({ program })
+    let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
 
-    if (newLoans.length > 0) {
-      const queriedOrderBooks: [OrderBook] = [] as any
+    // Delete loans that are not in the new loans
+    await this.loanRepository.delete({ pubKey: Not(In(newLoansPubKeys)) })
 
-      let loanEntities = await Promise.all(
-        newLoans.map(async (loan) => {
-          let orderBook: OrderBook | null | undefined = queriedOrderBooks.find((orderBook) => orderBook.pubKey === loan.data.orderBook.toBase58())
+    // Create new loans that are not yet created
+    const existingLoans = await this.loanRepository.find({ where: { pubKey: In(newLoansPubKeys) } })
+    const existingLoansPubKeys = new Set(existingLoans.map((loan) => loan.pubKey))
+
+    const newlyAddedLoans = []
+    for (const newLoan of newLoans) {
+      if (!existingLoansPubKeys.has(newLoan.pubKey.toBase58())) {
+        newlyAddedLoans.push(newLoan)
+      }
+    }
+
+    if (newlyAddedLoans.length > 0) {
+      const queriedOrderBooks = new Map<string, OrderBook>()
+
+      const loanEntities = await Promise.all(
+        newlyAddedLoans.map(async (loan) => {
+          let orderBook = queriedOrderBooks.get(loan.data.orderBook.toBase58()) || null
 
           if (!orderBook) {
             orderBook = await this.orderBookRepository.findOne({ where: { pubKey: loan.data.orderBook.toBase58() } })
 
             if (orderBook) {
-              queriedOrderBooks.push(orderBook)
+              queriedOrderBooks.set(orderBook.pubKey, orderBook)
             }
           }
 
@@ -72,7 +85,7 @@ export class SharkifyService {
         })
       )
 
-      await this.loanRepository.save(loanEntities, { chunk: 50 })
+      await this.loanRepository.save(loanEntities)
     }
 
     this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"))
@@ -86,16 +99,26 @@ export class SharkifyService {
 
     const { program } = sharkyClient
 
-    const currentOrderBooks = await this.orderBookRepository.find()
     let newOrderBooks = await sharkyClient.fetchAllOrderBooks({ program })
+    let newOrderBooksPubKeys = newOrderBooks.map((orderBook) => orderBook.pubKey.toBase58())
 
-    if (currentOrderBooks.length > 0) {
-      newOrderBooks = newOrderBooks.filter((orderBook) => currentOrderBooks.find((n) => n.pubKey === orderBook.pubKey.toBase58()) === undefined)
+    // Delete order books that are not in the new order books
+    await this.orderBookRepository.delete({ pubKey: Not(In(newOrderBooksPubKeys)) })
+
+    // Create new order books that are not yet created
+    const existingOrderBooks = await this.orderBookRepository.find({ where: { pubKey: In(newOrderBooksPubKeys) } })
+    const existingOrderBooksPubKeys = new Set(existingOrderBooks.map((orderBook) => orderBook.pubKey))
+
+    const newlyAddedOrderBooks = []
+    for (const newOrderBook of newOrderBooks) {
+      if (!existingOrderBooksPubKeys.has(newOrderBook.pubKey.toBase58())) {
+        newlyAddedOrderBooks.push(newOrderBook)
+      }
     }
 
-    if (newOrderBooks.length > 0) {
+    if (newlyAddedOrderBooks.length > 0) {
       const orderBookEntities = await Promise.all(
-        newOrderBooks.map(async (orderBook) => {
+        newlyAddedOrderBooks.map(async (orderBook) => {
           const nftList = await this.nftListRepository.findOne({ where: { pubKey: orderBook.orderBookType.nftList?.listAccount.toBase58() } })
 
           return this.orderBookRepository.create({
@@ -126,24 +149,35 @@ export class SharkifyService {
     try {
       const { program } = sharkyClient
 
-      const currentNftList = await this.nftListRepository.find()
-      let newNftList = await sharkyClient.fetchAllNftLists({ program })
+      // const currentNftList = await this.nftListRepository.find()
+      let newNftLists = await sharkyClient.fetchAllNftLists({ program })
+      let newNftListPubKeys = newNftLists.map((nftList) => nftList.pubKey.toBase58())
 
-      if (currentNftList.length > 0) {
-        newNftList = newNftList.filter((nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined)
+      // Delete nft list that are not in the new nft list
+      await this.nftListRepository.delete({ pubKey: Not(In(newNftListPubKeys)) })
+
+      // Create new order books that are not yet created
+      const existingNftList = await this.nftListRepository.find({ where: { pubKey: In(newNftListPubKeys) } })
+      const existingNftListPubKeys = new Set(existingNftList.map((nftList) => nftList.pubKey))
+
+      const newlyAddedNftLists = []
+      for (const newNftList of newNftLists) {
+        if (!existingNftListPubKeys.has(newNftList.pubKey.toBase58())) {
+          newlyAddedNftLists.push(newNftList)
+        }
       }
 
-      if (newNftList.length > 0) {
-        const collectionEntities = newNftList.map((collection) => {
+      if (newlyAddedNftLists.length > 0) {
+        const nftListEntities = newlyAddedNftLists.map((nftList) => {
           return this.nftListRepository.create({
-            collectionName: collection.collectionName,
-            pubKey: collection.pubKey.toBase58(),
-            version: collection.version,
-            nftMint: collection.mints[collection.mints.length - 1].toBase58(),
+            collectionName: nftList.collectionName,
+            pubKey: nftList.pubKey.toBase58(),
+            version: nftList.version,
+            nftMint: nftList.mints[nftList.mints.length - 1].toBase58(),
           })
         })
 
-        await this.nftListRepository.save(collectionEntities)
+        await this.nftListRepository.save(nftListEntities)
       }
     } catch (e) {
       console.log("ERROR", e)
@@ -151,5 +185,43 @@ export class SharkifyService {
 
     this.logger.debug(format(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"))
+  }
+
+  @Interval(3600000) // Every hour
+  async saveNftListImages() {
+    this.logger.debug(format(new Date(), "'saveNftListImages start:' MMMM d, yyyy hh:mma"))
+    console.log(format(new Date(), "'saveNftListImages start:' MMMM d, yyyy hh:mma"))
+
+    try {
+      const nftLists = await this.nftListRepository.find({ where: { collectionImage: IsNull() } })
+
+      const imagePromises = nftLists.map(async (nftList) => {
+        // Fetch collection image via nftMint
+        const { data: mintInfo } = await axios.post(
+          `${HELLO_MOON_URL}/nft/mint_information`,
+          {
+            nftMint: nftList?.nftMint,
+          },
+          AXIOS_CONFIG_HELLO_MOON_KEY
+        )
+
+        const nftMint = mintInfo?.data[0]?.nftCollectionMint
+
+        if (nftMint) {
+          const { data: metadata } = await axios.get(`${SHYFT_URL}/nft/read?network=mainnet-beta&token_address=${nftMint}`, AXIOS_CONFIG_SHYFT_KEY)
+          nftList.collectionImage = metadata?.result?.cached_image_uri ?? metadata?.result?.image_uri
+        }
+
+        return Promise.resolve()
+      })
+
+      await Promise.allSettled(imagePromises)
+      await this.nftListRepository.save(nftLists)
+    } catch (e) {
+      console.log("ERROR", e)
+    }
+
+    this.logger.debug(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"))
+    console.log(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"))
   }
 }

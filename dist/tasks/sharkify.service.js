@@ -35,6 +35,8 @@ const Loan_1 = require("./../entities/Loan");
 const OrderBook_1 = require("../entities/OrderBook");
 const sharkyClient_1 = __importDefault(require("../utils/sharkyClient"));
 const typeorm_2 = require("typeorm");
+const axios_1 = __importDefault(require("axios"));
+const constants_1 = require("../constants");
 let SharkifyService = SharkifyService_1 = class SharkifyService {
     constructor(nftListRepository, orderBookRepository, loanRepository) {
         this.nftListRepository = nftListRepository;
@@ -47,18 +49,26 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"));
             const { program } = sharkyClient_1.default;
-            yield this.loanRepository.query("ALTER SEQUENCE loan_id_seq RESTART WITH 1");
-            yield this.loanRepository.delete({});
             let newLoans = yield sharkyClient_1.default.fetchAllLoans({ program });
-            if (newLoans.length > 0) {
-                const queriedOrderBooks = [];
-                let loanEntities = yield Promise.all(newLoans.map((loan) => __awaiter(this, void 0, void 0, function* () {
+            let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58());
+            yield this.loanRepository.delete({ pubKey: (0, typeorm_2.Not)((0, typeorm_2.In)(newLoansPubKeys)) });
+            const existingLoans = yield this.loanRepository.find({ where: { pubKey: (0, typeorm_2.In)(newLoansPubKeys) } });
+            const existingLoansPubKeys = new Set(existingLoans.map((loan) => loan.pubKey));
+            const newlyAddedLoans = [];
+            for (const newLoan of newLoans) {
+                if (!existingLoansPubKeys.has(newLoan.pubKey.toBase58())) {
+                    newlyAddedLoans.push(newLoan);
+                }
+            }
+            if (newlyAddedLoans.length > 0) {
+                const queriedOrderBooks = new Map();
+                const loanEntities = yield Promise.all(newlyAddedLoans.map((loan) => __awaiter(this, void 0, void 0, function* () {
                     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
-                    let orderBook = queriedOrderBooks.find((orderBook) => orderBook.pubKey === loan.data.orderBook.toBase58());
+                    let orderBook = queriedOrderBooks.get(loan.data.orderBook.toBase58()) || null;
                     if (!orderBook) {
                         orderBook = yield this.orderBookRepository.findOne({ where: { pubKey: loan.data.orderBook.toBase58() } });
                         if (orderBook) {
-                            queriedOrderBooks.push(orderBook);
+                            queriedOrderBooks.set(orderBook.pubKey, orderBook);
                         }
                     }
                     return this.loanRepository.create({
@@ -83,7 +93,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                         orderBook: orderBook || undefined,
                     });
                 })));
-                yield this.loanRepository.save(loanEntities, { chunk: 50 });
+                yield this.loanRepository.save(loanEntities);
             }
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"));
@@ -94,13 +104,19 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveOrderBooks start:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveOrderBooks start:' MMMM d, yyyy hh:mma"));
             const { program } = sharkyClient_1.default;
-            const currentOrderBooks = yield this.orderBookRepository.find();
             let newOrderBooks = yield sharkyClient_1.default.fetchAllOrderBooks({ program });
-            if (currentOrderBooks.length > 0) {
-                newOrderBooks = newOrderBooks.filter((orderBook) => currentOrderBooks.find((n) => n.pubKey === orderBook.pubKey.toBase58()) === undefined);
+            let newOrderBooksPubKeys = newOrderBooks.map((orderBook) => orderBook.pubKey.toBase58());
+            yield this.orderBookRepository.delete({ pubKey: (0, typeorm_2.Not)((0, typeorm_2.In)(newOrderBooksPubKeys)) });
+            const existingOrderBooks = yield this.orderBookRepository.find({ where: { pubKey: (0, typeorm_2.In)(newOrderBooksPubKeys) } });
+            const existingOrderBooksPubKeys = new Set(existingOrderBooks.map((orderBook) => orderBook.pubKey));
+            const newlyAddedOrderBooks = [];
+            for (const newOrderBook of newOrderBooks) {
+                if (!existingOrderBooksPubKeys.has(newOrderBook.pubKey.toBase58())) {
+                    newlyAddedOrderBooks.push(newOrderBook);
+                }
             }
-            if (newOrderBooks.length > 0) {
-                const orderBookEntities = yield Promise.all(newOrderBooks.map((orderBook) => __awaiter(this, void 0, void 0, function* () {
+            if (newlyAddedOrderBooks.length > 0) {
+                const orderBookEntities = yield Promise.all(newlyAddedOrderBooks.map((orderBook) => __awaiter(this, void 0, void 0, function* () {
                     var _a, _b, _c, _d, _e;
                     const nftList = yield this.nftListRepository.findOne({ where: { pubKey: (_a = orderBook.orderBookType.nftList) === null || _a === void 0 ? void 0 : _a.listAccount.toBase58() } });
                     return this.orderBookRepository.create({
@@ -126,21 +142,27 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             console.log((0, date_fns_1.format)(new Date(), "'saveNftList start:' MMMM d, yyyy hh:mma"));
             try {
                 const { program } = sharkyClient_1.default;
-                const currentNftList = yield this.nftListRepository.find();
-                let newNftList = yield sharkyClient_1.default.fetchAllNftLists({ program });
-                if (currentNftList.length > 0) {
-                    newNftList = newNftList.filter((nftList) => currentNftList.find((n) => n.pubKey === nftList.pubKey.toBase58()) === undefined);
+                let newNftLists = yield sharkyClient_1.default.fetchAllNftLists({ program });
+                let newNftListPubKeys = newNftLists.map((nftList) => nftList.pubKey.toBase58());
+                yield this.nftListRepository.delete({ pubKey: (0, typeorm_2.Not)((0, typeorm_2.In)(newNftListPubKeys)) });
+                const existingNftList = yield this.nftListRepository.find({ where: { pubKey: (0, typeorm_2.In)(newNftListPubKeys) } });
+                const existingNftListPubKeys = new Set(existingNftList.map((nftList) => nftList.pubKey));
+                const newlyAddedNftLists = [];
+                for (const newNftList of newNftLists) {
+                    if (!existingNftListPubKeys.has(newNftList.pubKey.toBase58())) {
+                        newlyAddedNftLists.push(newNftList);
+                    }
                 }
-                if (newNftList.length > 0) {
-                    const collectionEntities = newNftList.map((collection) => {
+                if (newlyAddedNftLists.length > 0) {
+                    const nftListEntities = newlyAddedNftLists.map((nftList) => {
                         return this.nftListRepository.create({
-                            collectionName: collection.collectionName,
-                            pubKey: collection.pubKey.toBase58(),
-                            version: collection.version,
-                            nftMint: collection.mints[collection.mints.length - 1].toBase58(),
+                            collectionName: nftList.collectionName,
+                            pubKey: nftList.pubKey.toBase58(),
+                            version: nftList.version,
+                            nftMint: nftList.mints[nftList.mints.length - 1].toBase58(),
                         });
                     });
-                    yield this.nftListRepository.save(collectionEntities);
+                    yield this.nftListRepository.save(nftListEntities);
                 }
             }
             catch (e) {
@@ -150,9 +172,37 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             console.log((0, date_fns_1.format)(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"));
         });
     }
+    saveNftListImages() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.logger.debug((0, date_fns_1.format)(new Date(), "'saveNftListImages start:' MMMM d, yyyy hh:mma"));
+            console.log((0, date_fns_1.format)(new Date(), "'saveNftListImages start:' MMMM d, yyyy hh:mma"));
+            try {
+                const nftLists = yield this.nftListRepository.find({ where: { collectionImage: (0, typeorm_2.IsNull)() } });
+                const imagePromises = nftLists.map((nftList) => __awaiter(this, void 0, void 0, function* () {
+                    var _a, _b, _c, _d;
+                    const { data: mintInfo } = yield axios_1.default.post(`${constants_1.HELLO_MOON_URL}/nft/mint_information`, {
+                        nftMint: nftList === null || nftList === void 0 ? void 0 : nftList.nftMint,
+                    }, constants_1.AXIOS_CONFIG_HELLO_MOON_KEY);
+                    const nftMint = (_a = mintInfo === null || mintInfo === void 0 ? void 0 : mintInfo.data[0]) === null || _a === void 0 ? void 0 : _a.nftCollectionMint;
+                    if (nftMint) {
+                        const { data: metadata } = yield axios_1.default.get(`${constants_1.SHYFT_URL}/nft/read?network=mainnet-beta&token_address=${nftMint}`, constants_1.AXIOS_CONFIG_SHYFT_KEY);
+                        nftList.collectionImage = (_c = (_b = metadata === null || metadata === void 0 ? void 0 : metadata.result) === null || _b === void 0 ? void 0 : _b.cached_image_uri) !== null && _c !== void 0 ? _c : (_d = metadata === null || metadata === void 0 ? void 0 : metadata.result) === null || _d === void 0 ? void 0 : _d.image_uri;
+                    }
+                    return Promise.resolve();
+                }));
+                yield Promise.allSettled(imagePromises);
+                yield this.nftListRepository.save(nftLists);
+            }
+            catch (e) {
+                console.log("ERROR", e);
+            }
+            this.logger.debug((0, date_fns_1.format)(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"));
+            console.log((0, date_fns_1.format)(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"));
+        });
+    }
 };
 __decorate([
-    (0, schedule_1.Interval)(3600000),
+    (0, schedule_1.Interval)(60000),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
@@ -169,6 +219,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], SharkifyService.prototype, "saveNftList", null);
+__decorate([
+    (0, schedule_1.Interval)(3600000),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], SharkifyService.prototype, "saveNftListImages", null);
 SharkifyService = SharkifyService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(NftList_1.NftList)),
