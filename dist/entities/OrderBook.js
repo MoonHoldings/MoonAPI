@@ -8,13 +8,47 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderBook = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 const Loan_1 = require("./Loan");
 const NftList_1 = require("./NftList");
+const web3_js_1 = require("@solana/web3.js");
+const types_1 = require("../types");
 let OrderBook = class OrderBook extends typeorm_1.BaseEntity {
+    apyAfterFee() {
+        const aprBeforeFee = this.apy / 1000;
+        const interestRatioBeforeFee = Math.exp((this.duration / (365 * 24 * 60 * 60)) * (aprBeforeFee / 100)) - 1;
+        const interestRatioAfterFee = interestRatioBeforeFee * (1 - this.feePermillicentage / 100000);
+        const aprAfterFee = (Math.log(1 + interestRatioAfterFee) / (this.duration / (365 * 24 * 60 * 60))) * 100;
+        return Math.ceil(100 * (Math.exp(aprAfterFee / 100) - 1));
+    }
+    bestOffer() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const bestOffer = yield Loan_1.Loan.findOne({ where: { orderBook: { id: this.id }, state: types_1.LoanType.Offer }, order: { principalLamports: "DESC" } });
+            return bestOffer ? bestOffer.principalLamports / web3_js_1.LAMPORTS_PER_SOL : 0;
+        });
+    }
+    totalPool() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { totalPool } = yield Loan_1.Loan.createQueryBuilder("loan")
+                .select("SUM(loan.principalLamports)", "totalPool")
+                .where("loan.orderBookId = :id", { id: this.id })
+                .andWhere("loan.state = :state", { state: types_1.LoanType.Offer })
+                .getRawOne();
+            return totalPool ? parseInt(totalPool) / web3_js_1.LAMPORTS_PER_SOL : 0;
+        });
+    }
 };
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.ID),
@@ -36,6 +70,12 @@ __decorate([
     (0, typeorm_1.Column)("integer", { nullable: true }),
     __metadata("design:type", Number)
 ], OrderBook.prototype, "apy", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Number)
+], OrderBook.prototype, "apyAfterFee", null);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
     (0, typeorm_1.Column)("text"),
@@ -69,6 +109,18 @@ __decorate([
     (0, typeorm_1.JoinColumn)(),
     __metadata("design:type", Object)
 ], OrderBook.prototype, "nftList", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], OrderBook.prototype, "bestOffer", null);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], OrderBook.prototype, "totalPool", null);
 OrderBook = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()
