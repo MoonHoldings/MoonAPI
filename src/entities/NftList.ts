@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType, Int } from "type-graphql"
-import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm"
+import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm"
 import { OrderBook } from "./OrderBook"
 
 @ObjectType()
@@ -29,6 +29,7 @@ export class NftList extends BaseEntity {
   @Column("text", { nullable: true })
   collectionImage?: string
 
+  @Field(() => OrderBook, { nullable: true })
   @OneToOne(() => OrderBook, (orderBook) => orderBook.nftList, { cascade: true })
-  orderBook: OrderBook
+  orderBook: Relation<OrderBook>
 }

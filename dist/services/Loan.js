@@ -21,7 +21,30 @@ const typedi_1 = require("typedi");
 let LoanService = class LoanService {
     getLoanById(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield entities_1.Loan.findOneOrFail({ where: { id }, });
+            return yield entities_1.Loan.findOneOrFail({ where: { id } });
+        });
+    }
+    getLoans(args) {
+        var _a, _b, _c, _d, _e;
+        return __awaiter(this, void 0, void 0, function* () {
+            const loans = yield entities_1.Loan.find({
+                take: (_a = args === null || args === void 0 ? void 0 : args.pagination) === null || _a === void 0 ? void 0 : _a.limit,
+                skip: (_b = args === null || args === void 0 ? void 0 : args.pagination) === null || _b === void 0 ? void 0 : _b.offset,
+                where: {
+                    state: (_c = args === null || args === void 0 ? void 0 : args.filter) === null || _c === void 0 ? void 0 : _c.type,
+                    lenderWallet: (_d = args === null || args === void 0 ? void 0 : args.filter) === null || _d === void 0 ? void 0 : _d.lenderWallet,
+                    borrowerNoteMint: (_e = args === null || args === void 0 ? void 0 : args.filter) === null || _e === void 0 ? void 0 : _e.borrowerWallet,
+                },
+                relations: {
+                    orderBook: {
+                        nftList: true,
+                    },
+                },
+            });
+            return {
+                count: yield entities_1.Loan.count(),
+                data: loans,
+            };
         });
     }
 };

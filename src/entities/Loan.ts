@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from "type-graphql"
+import { Field, ID, Int, Float, ObjectType } from "type-graphql"
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Relation } from "typeorm"
 import { OrderBook } from "./OrderBook"
 
@@ -17,7 +17,7 @@ export class Loan extends BaseEntity {
   @Column("integer")
   version!: number
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Column("bigint")
   principalLamports!: number
 
@@ -49,7 +49,7 @@ export class Loan extends BaseEntity {
   @Column("text")
   state!: string
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Float, { nullable: true })
   @Column("bigint", { nullable: true })
   duration?: number | null
 
@@ -58,7 +58,7 @@ export class Loan extends BaseEntity {
   @Column({ type: "text", nullable: true })
   lenderWallet?: string
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Float, { nullable: true })
   @Column("bigint", { nullable: true })
   offerTime?: number | null
 
@@ -79,11 +79,11 @@ export class Loan extends BaseEntity {
   @Column("integer", { nullable: true })
   apy?: number | null
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Float, { nullable: true })
   @Column("bigint", { nullable: true })
   start?: number | null
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Float, { nullable: true })
   @Column("bigint", { nullable: true })
   totalOwedLamports?: number | null
 }
