@@ -35,16 +35,43 @@ export class SharkifyService {
     // Delete loans that are not in the new loans
     await this.loanRepository.delete({ pubKey: Not(In(newLoansPubKeys)) })
 
-    // Create new loans that are not yet created
+    // Create new loans that are not yet created, and update existing ones
     const existingLoans = await this.loanRepository.find({ where: { pubKey: In(newLoansPubKeys) } })
+    const existingLoansByPubKey = existingLoans.reduce((accumulator: any, loan) => {
+      accumulator[loan.pubKey] = loan
+      return accumulator
+    }, {})
+
     const existingLoansPubKeys = new Set(existingLoans.map((loan) => loan.pubKey))
 
     const newlyAddedLoans = []
+    const updatedLoanEntities = []
+
     for (const newLoan of newLoans) {
       if (!existingLoansPubKeys.has(newLoan.pubKey.toBase58())) {
         newlyAddedLoans.push(newLoan)
+      } else {
+        // If loan exists, check if state changed
+        const newLoanPubKey = newLoan.pubKey.toBase58()
+        const savedLoan: Loan = existingLoansByPubKey[newLoanPubKey]
+
+        if (savedLoan) {
+          if (savedLoan.state !== newLoan.state) {
+            savedLoan.lenderWallet = newLoan.data.loanState.offer?.offer.lenderWallet.toBase58()
+            savedLoan.offerTime = newLoan.data.loanState.offer?.offer.offerTime?.toNumber()
+            savedLoan.nftCollateralMint = newLoan.data.loanState.taken?.taken.nftCollateralMint.toBase58()
+            savedLoan.lenderNoteMint = newLoan.data.loanState.taken?.taken.lenderNoteMint.toBase58()
+            savedLoan.borrowerNoteMint = newLoan.data.loanState.taken?.taken.borrowerNoteMint.toBase58()
+            savedLoan.apy = newLoan.data.loanState.taken?.taken.apy.fixed?.apy
+            savedLoan.start = newLoan.data.loanState.taken?.taken.terms.time?.start?.toNumber()
+            savedLoan.totalOwedLamports = newLoan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber()
+
+            updatedLoanEntities.push(savedLoan)
+          }
+        }
       }
     }
+
     const newlyAddedLoansOrderBookPubKeys = newlyAddedLoans.map((loan) => loan.data.orderBook.toBase58())
     const uniqueOrderBookPubKeys = newlyAddedLoansOrderBookPubKeys.filter((value, index, self) => {
       return self.indexOf(value) === index
@@ -53,7 +80,7 @@ export class SharkifyService {
     if (newlyAddedLoans.length > 0) {
       const orderBooks = await this.orderBookRepository.find({ where: { pubKey: In(uniqueOrderBookPubKeys) } })
 
-      const loanEntities = newlyAddedLoans.map((loan) => {
+      const newLoanEntities = newlyAddedLoans.map((loan) => {
         const orderBook = orderBooks.find((orderBook) => loan.data.orderBook.toBase58() === orderBook.pubKey)
 
         return this.loanRepository.create({
@@ -79,7 +106,7 @@ export class SharkifyService {
         })
       })
 
-      await this.loanRepository.save(loanEntities, { chunk: Math.ceil(loanEntities.length / 10) })
+      await this.loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) })
     }
 
     this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"))
@@ -155,6 +182,7 @@ export class SharkifyService {
       const existingNftListPubKeys = new Set(existingNftList.map((nftList) => nftList.pubKey))
 
       const newlyAddedNftLists = []
+
       for (const newNftList of newNftLists) {
         if (!existingNftListPubKeys.has(newNftList.pubKey.toBase58())) {
           newlyAddedNftLists.push(newNftList)

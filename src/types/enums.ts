@@ -4,10 +4,14 @@ export enum OrderBookSortType {
   BestOffer = "Best Offer",
   Apy = "APY",
   Duration = "Duration",
-  Action = "Action",
 }
 
 export enum LoanType {
   Offer = "offered",
   Taken = "taken",
+}
+
+export enum SortOrder {
+  Asc = "asc",
+  Desc = "desc",
 }

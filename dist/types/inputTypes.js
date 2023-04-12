@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetLoansArgs = exports.GetLoansFilter = exports.LimitOffset = void 0;
+exports.GetOrderBooksArgs = exports.OrderBookSort = exports.GetOrderBooksFilter = exports.GetLoansArgs = exports.GetLoansFilter = exports.LimitOffset = void 0;
 const type_graphql_1 = require("type-graphql");
 const enums_1 = require("./enums");
 let LimitOffset = class LimitOffset {
@@ -58,4 +58,46 @@ GetLoansArgs = __decorate([
     (0, type_graphql_1.InputType)()
 ], GetLoansArgs);
 exports.GetLoansArgs = GetLoansArgs;
+let GetOrderBooksFilter = class GetOrderBooksFilter {
+};
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], GetOrderBooksFilter.prototype, "search", void 0);
+GetOrderBooksFilter = __decorate([
+    (0, type_graphql_1.InputType)()
+], GetOrderBooksFilter);
+exports.GetOrderBooksFilter = GetOrderBooksFilter;
+let OrderBookSort = class OrderBookSort {
+};
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], OrderBookSort.prototype, "type", void 0);
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], OrderBookSort.prototype, "order", void 0);
+OrderBookSort = __decorate([
+    (0, type_graphql_1.InputType)()
+], OrderBookSort);
+exports.OrderBookSort = OrderBookSort;
+let GetOrderBooksArgs = class GetOrderBooksArgs {
+};
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", GetOrderBooksFilter)
+], GetOrderBooksArgs.prototype, "filter", void 0);
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", LimitOffset)
+], GetOrderBooksArgs.prototype, "pagination", void 0);
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", OrderBookSort)
+], GetOrderBooksArgs.prototype, "sort", void 0);
+GetOrderBooksArgs = __decorate([
+    (0, type_graphql_1.InputType)()
+], GetOrderBooksArgs);
+exports.GetOrderBooksArgs = GetOrderBooksArgs;
 //# sourceMappingURL=inputTypes.js.map

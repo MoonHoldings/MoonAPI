@@ -45,6 +45,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
         this.logger = new common_1.Logger(SharkifyService_1.name);
     }
     saveLoans() {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
         return __awaiter(this, void 0, void 0, function* () {
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"));
@@ -53,11 +54,33 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58());
             yield this.loanRepository.delete({ pubKey: (0, typeorm_2.Not)((0, typeorm_2.In)(newLoansPubKeys)) });
             const existingLoans = yield this.loanRepository.find({ where: { pubKey: (0, typeorm_2.In)(newLoansPubKeys) } });
+            const existingLoansByPubKey = existingLoans.reduce((accumulator, loan) => {
+                accumulator[loan.pubKey] = loan;
+                return accumulator;
+            }, {});
             const existingLoansPubKeys = new Set(existingLoans.map((loan) => loan.pubKey));
             const newlyAddedLoans = [];
+            const updatedLoanEntities = [];
             for (const newLoan of newLoans) {
                 if (!existingLoansPubKeys.has(newLoan.pubKey.toBase58())) {
                     newlyAddedLoans.push(newLoan);
+                }
+                else {
+                    const newLoanPubKey = newLoan.pubKey.toBase58();
+                    const savedLoan = existingLoansByPubKey[newLoanPubKey];
+                    if (savedLoan) {
+                        if (savedLoan.state !== newLoan.state) {
+                            savedLoan.lenderWallet = (_a = newLoan.data.loanState.offer) === null || _a === void 0 ? void 0 : _a.offer.lenderWallet.toBase58();
+                            savedLoan.offerTime = (_c = (_b = newLoan.data.loanState.offer) === null || _b === void 0 ? void 0 : _b.offer.offerTime) === null || _c === void 0 ? void 0 : _c.toNumber();
+                            savedLoan.nftCollateralMint = (_d = newLoan.data.loanState.taken) === null || _d === void 0 ? void 0 : _d.taken.nftCollateralMint.toBase58();
+                            savedLoan.lenderNoteMint = (_e = newLoan.data.loanState.taken) === null || _e === void 0 ? void 0 : _e.taken.lenderNoteMint.toBase58();
+                            savedLoan.borrowerNoteMint = (_f = newLoan.data.loanState.taken) === null || _f === void 0 ? void 0 : _f.taken.borrowerNoteMint.toBase58();
+                            savedLoan.apy = (_h = (_g = newLoan.data.loanState.taken) === null || _g === void 0 ? void 0 : _g.taken.apy.fixed) === null || _h === void 0 ? void 0 : _h.apy;
+                            savedLoan.start = (_l = (_k = (_j = newLoan.data.loanState.taken) === null || _j === void 0 ? void 0 : _j.taken.terms.time) === null || _k === void 0 ? void 0 : _k.start) === null || _l === void 0 ? void 0 : _l.toNumber();
+                            savedLoan.totalOwedLamports = (_p = (_o = (_m = newLoan.data.loanState.taken) === null || _m === void 0 ? void 0 : _m.taken.terms.time) === null || _o === void 0 ? void 0 : _o.totalOwedLamports) === null || _p === void 0 ? void 0 : _p.toNumber();
+                            updatedLoanEntities.push(savedLoan);
+                        }
+                    }
                 }
             }
             const newlyAddedLoansOrderBookPubKeys = newlyAddedLoans.map((loan) => loan.data.orderBook.toBase58());
@@ -66,7 +89,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             });
             if (newlyAddedLoans.length > 0) {
                 const orderBooks = yield this.orderBookRepository.find({ where: { pubKey: (0, typeorm_2.In)(uniqueOrderBookPubKeys) } });
-                const loanEntities = newlyAddedLoans.map((loan) => {
+                const newLoanEntities = newlyAddedLoans.map((loan) => {
                     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
                     const orderBook = orderBooks.find((orderBook) => loan.data.orderBook.toBase58() === orderBook.pubKey);
                     return this.loanRepository.create({
@@ -91,7 +114,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                         orderBook: orderBook,
                     });
                 });
-                yield this.loanRepository.save(loanEntities, { chunk: Math.ceil(loanEntities.length / 10) });
+                yield this.loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) });
             }
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"));

@@ -29,6 +29,7 @@ const services_1 = require("../services");
 const entities_1 = require("../entities");
 const type_graphql_1 = require("type-graphql");
 const typedi_1 = __importDefault(require("typedi"));
+const types_1 = require("../types");
 let OrderBookResolver = class OrderBookResolver {
     constructor() {
         this.orderBookService = typedi_1.default.get(services_1.OrderBookService);
@@ -36,6 +37,11 @@ let OrderBookResolver = class OrderBookResolver {
     getOrderBook(id) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.orderBookService.getOrderBookById(id);
+        });
+    }
+    getOrderBooks(args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.orderBookService.getOrderBooks(args);
         });
     }
 };
@@ -46,6 +52,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], OrderBookResolver.prototype, "getOrderBook", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => types_1.OrderBookPaginatedResponse),
+    __param(0, (0, type_graphql_1.Arg)("args", { nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [types_1.GetOrderBooksArgs]),
+    __metadata("design:returntype", Promise)
+], OrderBookResolver.prototype, "getOrderBooks", null);
 OrderBookResolver = __decorate([
     (0, type_graphql_1.Resolver)()
 ], OrderBookResolver);

@@ -9,8 +9,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LoansPaginatedResponse = void 0;
-const Loan_1 = require("./../entities/Loan");
+exports.OrderBookPaginatedResponse = exports.LoansPaginatedResponse = void 0;
+const entities_1 = require("../entities");
 const type_graphql_1 = require("type-graphql");
 let LoansPaginatedResponse = class LoansPaginatedResponse {
 };
@@ -19,11 +19,25 @@ __decorate([
     __metadata("design:type", Number)
 ], LoansPaginatedResponse.prototype, "count", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => [Loan_1.Loan]),
+    (0, type_graphql_1.Field)(() => [entities_1.Loan]),
     __metadata("design:type", Array)
 ], LoansPaginatedResponse.prototype, "data", void 0);
 LoansPaginatedResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], LoansPaginatedResponse);
 exports.LoansPaginatedResponse = LoansPaginatedResponse;
+let OrderBookPaginatedResponse = class OrderBookPaginatedResponse {
+};
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], OrderBookPaginatedResponse.prototype, "count", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => [entities_1.OrderBook]),
+    __metadata("design:type", Array)
+], OrderBookPaginatedResponse.prototype, "data", void 0);
+OrderBookPaginatedResponse = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], OrderBookPaginatedResponse);
+exports.OrderBookPaginatedResponse = OrderBookPaginatedResponse;
 //# sourceMappingURL=objectTypes.js.map

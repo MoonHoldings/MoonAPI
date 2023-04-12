@@ -1,5 +1,5 @@
 import { InputType, Field } from "type-graphql"
-import { LoanType } from "./enums"
+import { LoanType, OrderBookSortType, SortOrder } from "./enums"
 
 @InputType()
 export class LimitOffset {
@@ -25,4 +25,28 @@ export class GetLoansArgs {
   filter?: GetLoansFilter
   @Field({ nullable: true })
   pagination?: LimitOffset
+}
+
+@InputType()
+export class GetOrderBooksFilter {
+  @Field({ nullable: true })
+  search?: string
+}
+
+@InputType()
+export class OrderBookSort {
+  @Field({ nullable: true })
+  type?: OrderBookSortType
+  @Field({ nullable: true })
+  order?: SortOrder
+}
+
+@InputType()
+export class GetOrderBooksArgs {
+  @Field({ nullable: true })
+  filter?: GetOrderBooksFilter
+  @Field({ nullable: true })
+  pagination?: LimitOffset
+  @Field({ nullable: true })
+  sort?: OrderBookSort
 }
