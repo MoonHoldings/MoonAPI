@@ -19,7 +19,7 @@ exports.LoanService = void 0;
 const entities_1 = require("../entities");
 const typedi_1 = require("typedi");
 let LoanService = class LoanService {
-    getOrderBookById(id) {
+    getLoanById(id) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield entities_1.Loan.findOneOrFail({ where: { id }, });
         });

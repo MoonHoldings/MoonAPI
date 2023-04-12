@@ -10,6 +10,6 @@ export class LoanResolver {
 
   @Query(() => Loan)
   async getLoan(@Arg("id", () => Number) id: number): Promise<Loan> {
-    return await this.loanService.getOrderBookById(id);
+    return await this.loanService.getLoanById(id);
   }
 }

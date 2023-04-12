@@ -35,7 +35,7 @@ let LoanResolver = class LoanResolver {
     }
     getLoan(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.loanService.getOrderBookById(id);
+            return yield this.loanService.getLoanById(id);
         });
     }
 };
