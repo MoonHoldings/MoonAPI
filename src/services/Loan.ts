@@ -9,14 +9,16 @@ export class LoanService {
   }
 
   async getLoans(args: GetLoansArgs): Promise<LoansPaginatedResponse> {
+    const where = {
+      state: args?.filter?.type,
+      lenderWallet: args?.filter?.lenderWallet,
+      borrowerNoteMint: args?.filter?.borrowerWallet,
+    }
+
     const loans = await Loan.find({
       take: args?.pagination?.limit,
       skip: args?.pagination?.offset,
-      where: {
-        state: args?.filter?.type,
-        lenderWallet: args?.filter?.lenderWallet,
-        borrowerNoteMint: args?.filter?.borrowerWallet,
-      },
+      where,
       relations: {
         orderBook: {
           nftList: true,
@@ -25,7 +27,7 @@ export class LoanService {
     })
 
     return {
-      count: await Loan.count(),
+      count: await Loan.count({ where }),
       data: loans,
     }
   }

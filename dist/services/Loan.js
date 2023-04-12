@@ -27,14 +27,15 @@ let LoanService = class LoanService {
     getLoans(args) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
+            const where = {
+                state: (_a = args === null || args === void 0 ? void 0 : args.filter) === null || _a === void 0 ? void 0 : _a.type,
+                lenderWallet: (_b = args === null || args === void 0 ? void 0 : args.filter) === null || _b === void 0 ? void 0 : _b.lenderWallet,
+                borrowerNoteMint: (_c = args === null || args === void 0 ? void 0 : args.filter) === null || _c === void 0 ? void 0 : _c.borrowerWallet,
+            };
             const loans = yield entities_1.Loan.find({
-                take: (_a = args === null || args === void 0 ? void 0 : args.pagination) === null || _a === void 0 ? void 0 : _a.limit,
-                skip: (_b = args === null || args === void 0 ? void 0 : args.pagination) === null || _b === void 0 ? void 0 : _b.offset,
-                where: {
-                    state: (_c = args === null || args === void 0 ? void 0 : args.filter) === null || _c === void 0 ? void 0 : _c.type,
-                    lenderWallet: (_d = args === null || args === void 0 ? void 0 : args.filter) === null || _d === void 0 ? void 0 : _d.lenderWallet,
-                    borrowerNoteMint: (_e = args === null || args === void 0 ? void 0 : args.filter) === null || _e === void 0 ? void 0 : _e.borrowerWallet,
-                },
+                take: (_d = args === null || args === void 0 ? void 0 : args.pagination) === null || _d === void 0 ? void 0 : _d.limit,
+                skip: (_e = args === null || args === void 0 ? void 0 : args.pagination) === null || _e === void 0 ? void 0 : _e.offset,
+                where,
                 relations: {
                     orderBook: {
                         nftList: true,
@@ -42,7 +43,7 @@ let LoanService = class LoanService {
                 },
             });
             return {
-                count: yield entities_1.Loan.count(),
+                count: yield entities_1.Loan.count({ where }),
                 data: loans,
             };
         });
