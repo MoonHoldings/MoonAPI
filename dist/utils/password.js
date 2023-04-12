@@ -19,4 +19,4 @@ const generatePassword = (password) => __awaiter(void 0, void 0, void 0, functio
     return yield (0, bcrypt_1.hash)(password, 10);
 });
 exports.generatePassword = generatePassword;
-//# sourceMappingURL=passwordUtil.js.map
+//# sourceMappingURL=password.js.map

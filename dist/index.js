@@ -20,7 +20,11 @@ const cors_1 = __importDefault(require("cors"));
 const constants_1 = require("./constants");
 const db_1 = require("./utils/db");
 const resolvers_1 = require("./resolvers");
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const jsonwebtoken_1 = require("jsonwebtoken");
 const dotenv_1 = __importDefault(require("dotenv"));
+const entities_1 = require("./entities");
+const utils_1 = require("./utils");
 dotenv_1.default.config();
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
@@ -37,6 +41,28 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         credentials: true,
     };
     app.use((0, cors_1.default)(corsOptions));
+    app.use((0, cookie_parser_1.default)());
+    app.post("/refresh_token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const token = req.cookies.jid;
+        if (!token) {
+            return res.send({ ok: false, accessToken: '' });
+        }
+        let payload = null;
+        try {
+            payload = (0, jsonwebtoken_1.verify)(token, process.env.REFRESH_TOKEN_SECRET);
+        }
+        catch (err) {
+            return res.send({ ok: false, accessToken: '' });
+        }
+        const user = yield entities_1.User.findOne({ where: { id: payload.userId } });
+        if (!user) {
+            return res.send({ ok: false, accessToken: '' });
+        }
+        if (user.tokenVersion != payload.tokenVersion) {
+            return res.send({ ok: false, accessToken: '' });
+        }
+        return res.send({ ok: true, accessToken: (0, utils_1.createAccessToken)(user) });
+    }));
     app.use((0, express_session_1.default)({
         name: "qid",
         cookie: {

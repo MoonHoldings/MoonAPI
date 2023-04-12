@@ -28,6 +28,7 @@ exports.UserResolver = void 0;
 const entities_1 = require("../entities");
 const services_1 = require("../services");
 const type_graphql_1 = require("type-graphql");
+const utils_1 = require("../utils");
 const typedi_1 = __importDefault(require("typedi"));
 let UserResolver = class UserResolver {
     constructor() {
@@ -38,9 +39,18 @@ let UserResolver = class UserResolver {
             return yield this.userService.register(email, password);
         });
     }
-    login(email, password) {
+    login(email, password, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield entities_1.User.findOneByOrFail({ email });
+            return yield this.userService.login(email, password, ctx);
+        });
+    }
+    bye({ payload }) {
+        return `your user id is:${payload === null || payload === void 0 ? void 0 : payload.userId}`;
+    }
+    revokeRefreshTokensForUser(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.userService.incrementRefreshVersion(userId);
+            return true;
         });
     }
 };
@@ -56,10 +66,27 @@ __decorate([
     (0, type_graphql_1.Mutation)(() => entities_1.User),
     __param(0, (0, type_graphql_1.Arg)('email')),
     __param(1, (0, type_graphql_1.Arg)('password')),
+    __param(2, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "login", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => String),
+    (0, type_graphql_1.UseMiddleware)(utils_1.isAuth),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UserResolver.prototype, "bye", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    (0, type_graphql_1.UseMiddleware)(utils_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)('userId', () => type_graphql_1.Int)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "revokeRefreshTokensForUser", null);
 UserResolver = __decorate([
     (0, type_graphql_1.Resolver)()
 ], UserResolver);
