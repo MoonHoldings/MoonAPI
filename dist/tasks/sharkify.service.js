@@ -48,15 +48,25 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             console.log((0, date_fns_1.format)(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"));
             const { program } = sharkyClient_1.default;
             let newLoans = yield sharkyClient_1.default.fetchAllLoans({ program });
-            if (newLoans.length > 0) {
-                const queriedOrderBooks = [];
-                let loanEntities = yield Promise.all(newLoans.map((loan) => __awaiter(this, void 0, void 0, function* () {
+            let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58());
+            yield this.loanRepository.delete({ pubKey: (0, typeorm_2.Not)((0, typeorm_2.In)(newLoansPubKeys)) });
+            const existingLoans = yield this.loanRepository.find({ where: { pubKey: (0, typeorm_2.In)(newLoansPubKeys) } });
+            const existingLoansPubKeys = new Set(existingLoans.map((loan) => loan.pubKey));
+            const newlyAddedLoans = [];
+            for (const newLoan of newLoans) {
+                if (!existingLoansPubKeys.has(newLoan.pubKey.toBase58())) {
+                    newlyAddedLoans.push(newLoan);
+                }
+            }
+            if (newlyAddedLoans.length > 0) {
+                const queriedOrderBooks = new Map();
+                const loanEntities = yield Promise.all(newlyAddedLoans.map((loan) => __awaiter(this, void 0, void 0, function* () {
                     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
-                    let orderBook = queriedOrderBooks.find((orderBook) => orderBook.pubKey === loan.data.orderBook.toBase58());
+                    let orderBook = queriedOrderBooks.get(loan.data.orderBook.toBase58()) || null;
                     if (!orderBook) {
                         orderBook = yield this.orderBookRepository.findOne({ where: { pubKey: loan.data.orderBook.toBase58() } });
                         if (orderBook) {
-                            queriedOrderBooks.push(orderBook);
+                            queriedOrderBooks.set(orderBook.pubKey, orderBook);
                         }
                     }
                     return this.loanRepository.create({
@@ -81,9 +91,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                         orderBook: orderBook || undefined,
                     });
                 })));
-                yield this.loanRepository.query("ALTER SEQUENCE loan_id_seq RESTART WITH 1");
-                yield this.loanRepository.delete({});
-                yield this.loanRepository.save(loanEntities, { chunk: 50 });
+                yield this.loanRepository.save(loanEntities);
             }
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"));
@@ -152,7 +160,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
     }
 };
 __decorate([
-    (0, schedule_1.Interval)(300000),
+    (0, schedule_1.Interval)(60000),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)

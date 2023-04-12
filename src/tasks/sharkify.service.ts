@@ -6,7 +6,7 @@ import { NftList } from "../entities/NftList"
 import { Loan } from "./../entities/Loan"
 import { OrderBook } from "../entities/OrderBook"
 import sharkyClient from "../utils/sharkyClient"
-import { Repository } from "typeorm"
+import { In, Not, Repository } from "typeorm"
 
 @Injectable()
 export class SharkifyService {
@@ -21,26 +21,41 @@ export class SharkifyService {
     private readonly loanRepository: Repository<Loan>
   ) {}
 
-  @Interval(300000) // Every 5 mins
+  @Interval(60000) // Every 1 min
   async saveLoans() {
     this.logger.debug(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
 
     const { program } = sharkyClient
     let newLoans = await sharkyClient.fetchAllLoans({ program })
+    let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
 
-    if (newLoans.length > 0) {
-      const queriedOrderBooks: [OrderBook] = [] as any
+    // Delete loans that are not in the new loans
+    await this.loanRepository.delete({ pubKey: Not(In(newLoansPubKeys)) })
 
-      let loanEntities = await Promise.all(
-        newLoans.map(async (loan) => {
-          let orderBook: OrderBook | null | undefined = queriedOrderBooks.find((orderBook) => orderBook.pubKey === loan.data.orderBook.toBase58())
+    // Create new loans that are not yet created
+    const existingLoans = await this.loanRepository.find({ where: { pubKey: In(newLoansPubKeys) } })
+    const existingLoansPubKeys = new Set(existingLoans.map((loan) => loan.pubKey))
+
+    const newlyAddedLoans = []
+    for (const newLoan of newLoans) {
+      if (!existingLoansPubKeys.has(newLoan.pubKey.toBase58())) {
+        newlyAddedLoans.push(newLoan)
+      }
+    }
+
+    if (newlyAddedLoans.length > 0) {
+      const queriedOrderBooks = new Map<string, OrderBook>()
+
+      const loanEntities = await Promise.all(
+        newlyAddedLoans.map(async (loan) => {
+          let orderBook = queriedOrderBooks.get(loan.data.orderBook.toBase58()) || null
 
           if (!orderBook) {
             orderBook = await this.orderBookRepository.findOne({ where: { pubKey: loan.data.orderBook.toBase58() } })
 
             if (orderBook) {
-              queriedOrderBooks.push(orderBook)
+              queriedOrderBooks.set(orderBook.pubKey, orderBook)
             }
           }
 
@@ -68,9 +83,7 @@ export class SharkifyService {
         })
       )
 
-      await this.loanRepository.query("ALTER SEQUENCE loan_id_seq RESTART WITH 1")
-      await this.loanRepository.delete({})
-      await this.loanRepository.save(loanEntities, { chunk: 50 })
+      await this.loanRepository.save(loanEntities)
     }
 
     this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"))

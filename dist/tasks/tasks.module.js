@@ -37,7 +37,7 @@ TasksModule = __decorate([
                 database: process.env.DB_NAME,
                 entities: [Loan_1.Loan, OrderBook_1.OrderBook, NftList_1.NftList],
                 synchronize: true,
-                logging: true,
+                logging: ["log", "info", "error", "warn"],
             }),
             typeorm_1.TypeOrmModule.forFeature([Loan_1.Loan, OrderBook_1.OrderBook, NftList_1.NftList]),
         ],

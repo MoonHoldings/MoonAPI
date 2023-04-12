@@ -24,7 +24,7 @@ dotenv.config()
       database: process.env.DB_NAME,
       entities: [Loan, OrderBook, NftList],
       synchronize: true,
-      logging: true,
+      logging: ["log", "info", "error", "warn"],
     }),
     TypeOrmModule.forFeature([Loan, OrderBook, NftList]),
   ],
