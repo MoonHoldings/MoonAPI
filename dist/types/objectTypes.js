@@ -59,6 +59,10 @@ __decorate([
 __decorate([
     (0, type_graphql_1.Field)(() => Number, { nullable: true }),
     __metadata("design:type", Number)
+], OrderBookList.prototype, "floorPrice", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
 ], OrderBookList.prototype, "totalPool", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Number, { nullable: true }),

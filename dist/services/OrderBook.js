@@ -43,6 +43,7 @@ let OrderBookService = class OrderBookService {
                 .select("orderBook.id", "id")
                 .addSelect("nftList.collectionName", "collectionName")
                 .addSelect("nftList.collectionImage", "collectionImage")
+                .addSelect("nftList.floorPrice", "floorPrice")
                 .addSelect("orderBook.apy", "apy")
                 .addSelect("orderBook.duration", "duration")
                 .addSelect("orderBook.feePermillicentage", "feePermillicentage")
@@ -60,7 +61,7 @@ let OrderBookService = class OrderBookService {
             if ((_c = args === null || args === void 0 ? void 0 : args.pagination) === null || _c === void 0 ? void 0 : _c.limit) {
                 query.limit(args.pagination.limit);
             }
-            query.groupBy("orderBook.id, nftList.collectionName, nftList.collectionImage");
+            query.groupBy("orderBook.id, nftList.collectionName, nftList.collectionImage, nftList.floorPrice");
             switch ((_d = args === null || args === void 0 ? void 0 : args.sort) === null || _d === void 0 ? void 0 : _d.type) {
                 case types_1.OrderBookSortType.Apy:
                     query.orderBy("apy", (_f = (_e = args === null || args === void 0 ? void 0 : args.sort) === null || _e === void 0 ? void 0 : _e.order) !== null && _f !== void 0 ? _f : types_1.SortOrder.Desc);
@@ -90,6 +91,7 @@ let OrderBookService = class OrderBookService {
                 feePermillicentage: orderBook.feePermillicentage,
                 collectionName: orderBook.collectionName,
                 collectionImage: orderBook.collectionImage,
+                floorPrice: orderBook.floorPrice,
                 totalPool: parseFloat(orderBook.totalpool) / web3_js_1.LAMPORTS_PER_SOL,
                 bestOffer: parseFloat(orderBook.bestOffer) / web3_js_1.LAMPORTS_PER_SOL,
             }));

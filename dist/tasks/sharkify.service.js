@@ -226,9 +226,10 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
         return __awaiter(this, void 0, void 0, function* () {
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveNftListPrices start:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveNftListPrices start:' MMMM d, yyyy hh:mma"));
-            const fetchHelloMoonCollectionIds = (addresses) => __awaiter(this, void 0, void 0, function* () {
+            const fetchHelloMoonCollectionIds = (addresses, paginationToken) => __awaiter(this, void 0, void 0, function* () {
                 const { data: collectionIdResponse } = yield axios_1.default.post(`${constants_1.HELLO_MOON_URL}/nft/collection/mints`, {
                     nftMint: addresses,
+                    paginationToken,
                 }, constants_1.AXIOS_CONFIG_HELLO_MOON_KEY);
                 return collectionIdResponse;
             });
@@ -245,20 +246,33 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                 nftLists.forEach((nftList) => {
                     nftMintToListMap[nftList.nftMint] = nftList;
                 });
-                const { data: collectionIds } = yield fetchHelloMoonCollectionIds(nftLists.map((nftList) => nftList.nftMint));
+                let allIds = [];
+                const { data: collectionIds, paginationToken } = yield fetchHelloMoonCollectionIds(nftLists.map((nftList) => nftList.nftMint));
+                let currentPaginationToken = paginationToken;
+                allIds = [...collectionIds];
+                while (currentPaginationToken) {
+                    const { data: collectionIds, paginationToken } = yield fetchHelloMoonCollectionIds(nftLists.map((nftList) => nftList.nftMint), currentPaginationToken);
+                    currentPaginationToken = paginationToken;
+                    allIds = [...allIds, ...collectionIds];
+                }
                 const collectionIdToNftListMap = {};
-                collectionIds === null || collectionIds === void 0 ? void 0 : collectionIds.forEach((data) => {
+                allIds === null || allIds === void 0 ? void 0 : allIds.forEach((data) => {
                     collectionIdToNftListMap[data.helloMoonCollectionId] = nftMintToListMap[data.nftMint];
                 });
-                const promises = collectionIds.map((id) => __awaiter(this, void 0, void 0, function* () {
+                console.log("collectionIds", allIds.length);
+                const promises = allIds.map((id) => __awaiter(this, void 0, void 0, function* () {
                     return fetchFloorPrice(id.helloMoonCollectionId);
                 }));
-                const floorPrices = (yield Promise.allSettled(promises)).filter((price) => price.status === "fulfilled").map((price) => price.value);
+                const floorPrices = yield Promise.allSettled(promises);
+                console.log("floorPrices", floorPrices.length);
                 const nftListsToSave = [];
                 floorPrices.forEach((price) => {
-                    const nftList = collectionIdToNftListMap[price.helloMoonCollectionId];
-                    nftList.floorPrice = price.floorPriceLamports;
-                    nftListsToSave.push(nftList);
+                    var _a, _b;
+                    if (price.status === "fulfilled") {
+                        const nftList = collectionIdToNftListMap[(_a = price === null || price === void 0 ? void 0 : price.value) === null || _a === void 0 ? void 0 : _a.helloMoonCollectionId];
+                        nftList.floorPrice = (_b = price === null || price === void 0 ? void 0 : price.value) === null || _b === void 0 ? void 0 : _b.floorPriceLamports;
+                        nftListsToSave.push(nftList);
+                    }
                 });
                 yield this.nftListRepository.save(nftListsToSave);
             }

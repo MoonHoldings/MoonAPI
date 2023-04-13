@@ -21,6 +21,7 @@ export class OrderBookService {
       .select("orderBook.id", "id")
       .addSelect("nftList.collectionName", "collectionName")
       .addSelect("nftList.collectionImage", "collectionImage")
+      .addSelect("nftList.floorPrice", "floorPrice")
       .addSelect("orderBook.apy", "apy")
       .addSelect("orderBook.duration", "duration")
       .addSelect("orderBook.feePermillicentage", "feePermillicentage")
@@ -43,7 +44,7 @@ export class OrderBookService {
       query.limit(args.pagination.limit)
     }
 
-    query.groupBy("orderBook.id, nftList.collectionName, nftList.collectionImage")
+    query.groupBy("orderBook.id, nftList.collectionName, nftList.collectionImage, nftList.floorPrice")
 
     switch (args?.sort?.type) {
       case OrderBookSortType.Apy:
@@ -76,6 +77,7 @@ export class OrderBookService {
       feePermillicentage: orderBook.feePermillicentage,
       collectionName: orderBook.collectionName,
       collectionImage: orderBook.collectionImage,
+      floorPrice: orderBook.floorPrice,
       totalPool: parseFloat(orderBook.totalpool) / LAMPORTS_PER_SOL,
       bestOffer: parseFloat(orderBook.bestOffer) / LAMPORTS_PER_SOL,
     }))

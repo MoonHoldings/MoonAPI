@@ -256,11 +256,12 @@ export class SharkifyService {
     this.logger.debug(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy hh:mma"))
 
-    const fetchHelloMoonCollectionIds = async (addresses: any[]) => {
+    const fetchHelloMoonCollectionIds = async (addresses: any[], paginationToken?: string) => {
       const { data: collectionIdResponse } = await axios.post(
         `${HELLO_MOON_URL}/nft/collection/mints`,
         {
           nftMint: addresses,
+          paginationToken,
         },
         AXIOS_CONFIG_HELLO_MOON_KEY
       )
@@ -288,25 +289,45 @@ export class SharkifyService {
         nftMintToListMap[nftList.nftMint] = nftList
       })
 
-      const { data: collectionIds } = await fetchHelloMoonCollectionIds(nftLists.map((nftList) => nftList.nftMint))
+      let allIds: any = []
+      const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(nftLists.map((nftList) => nftList.nftMint))
+      let currentPaginationToken = paginationToken
+      allIds = [...collectionIds]
+
+      while (currentPaginationToken) {
+        const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(
+          nftLists.map((nftList) => nftList.nftMint),
+          currentPaginationToken
+        )
+
+        currentPaginationToken = paginationToken
+        allIds = [...allIds, ...collectionIds]
+      }
+
       const collectionIdToNftListMap: Record<string, NftList> = {}
 
-      collectionIds?.forEach((data: any) => {
+      allIds?.forEach((data: any) => {
         collectionIdToNftListMap[data.helloMoonCollectionId] = nftMintToListMap[data.nftMint]
       })
 
-      const promises = collectionIds.map(async (id: any) => {
+      console.log("collectionIds", allIds.length)
+
+      const promises = allIds.map(async (id: any) => {
         return fetchFloorPrice(id.helloMoonCollectionId)
       })
-      const floorPrices = (await Promise.allSettled(promises)).filter((price) => price.status === "fulfilled").map((price: any) => price.value)
+      const floorPrices = await Promise.allSettled(promises)
+
+      console.log("floorPrices", floorPrices.length)
 
       const nftListsToSave: any = []
 
-      floorPrices.forEach((price) => {
-        const nftList = collectionIdToNftListMap[price.helloMoonCollectionId]
+      floorPrices.forEach((price: any) => {
+        if (price.status === "fulfilled") {
+          const nftList = collectionIdToNftListMap[price?.value?.helloMoonCollectionId]
 
-        nftList.floorPrice = price.floorPriceLamports
-        nftListsToSave.push(nftList)
+          nftList.floorPrice = price?.value?.floorPriceLamports
+          nftListsToSave.push(nftList)
+        }
       })
 
       await this.nftListRepository.save(nftListsToSave)

@@ -26,6 +26,8 @@ export class OrderBookList {
   @Field(() => String, { nullable: true })
   collectionImage?: string
   @Field(() => Number, { nullable: true })
+  floorPrice: number
+  @Field(() => Number, { nullable: true })
   totalPool?: number
   @Field(() => Number, { nullable: true })
   bestOffer?: number
