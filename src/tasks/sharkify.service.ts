@@ -15,10 +15,13 @@ export class SharkifyService {
   private readonly logger = new Logger(SharkifyService.name)
 
   constructor(
+    // @ts-ignore
     @InjectRepository(NftList)
     private readonly nftListRepository: Repository<NftList>,
+    // @ts-ignore
     @InjectRepository(OrderBook)
     private readonly orderBookRepository: Repository<OrderBook>,
+    // @ts-ignore
     @InjectRepository(Loan)
     private readonly loanRepository: Repository<Loan>
   ) {}
@@ -65,6 +68,7 @@ export class SharkifyService {
             savedLoan.apy = newLoan.data.loanState.taken?.taken.apy.fixed?.apy
             savedLoan.start = newLoan.data.loanState.taken?.taken.terms.time?.start?.toNumber()
             savedLoan.totalOwedLamports = newLoan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber()
+            savedLoan.state = newLoan.state
 
             updatedLoanEntities.push(savedLoan)
           }

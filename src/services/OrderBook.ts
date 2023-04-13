@@ -1,7 +1,7 @@
-import { GetOrderBooksArgs, OrderBookPaginatedResponse, OrderBookSortType, SortOrder } from "../types"
+import { GetOrderBooksArgs, OrderBookSortType, PaginatedOrderBookResponse, SortOrder } from "../types"
 import { OrderBook } from "../entities"
 import { Service } from "typedi"
-import { ILike } from "typeorm"
+import { LAMPORTS_PER_SOL } from "@solana/web3.js"
 
 @Service()
 export class OrderBookService {
@@ -15,44 +15,70 @@ export class OrderBookService {
     })
   }
 
-  async getOrderBooks(args: GetOrderBooksArgs): Promise<OrderBookPaginatedResponse> {
-    const where: any = {}
-    let order: any = {}
+  async getOrderBooks(args: GetOrderBooksArgs): Promise<PaginatedOrderBookResponse> {
+    let query = OrderBook.createQueryBuilder("orderBook")
+      .select("orderBook.id", "id")
+      .addSelect("nftList.collectionName", "collectionName")
+      .addSelect("nftList.collectionImage", "collectionImage")
+      .addSelect("orderBook.apy", "apy")
+      .addSelect("orderBook.duration", "duration")
+      .addSelect("COALESCE(SUM(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "totalpool")
+      .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "bestOffer")
+      .innerJoin("orderBook.nftList", "nftList")
+      .leftJoin("orderBook.loans", "loan")
 
-    if (args.filter?.search) {
-      where["nftList"] = { collectionName: ILike(`%${args.filter?.search}%`) }
+    if (args?.filter?.search) {
+      query.where("nftList.collectionName ILIKE :name", { name: `%${args.filter.search}%` })
     }
 
-    switch (args.sort?.type) {
+    const count = await query.getCount()
+
+    if (args?.pagination?.offset) {
+      query.offset(args.pagination.offset)
+    }
+
+    if (args?.pagination?.limit) {
+      query.limit(args.pagination.limit)
+    }
+
+    query.groupBy("orderBook.id, nftList.collectionName, nftList.collectionImage")
+
+    switch (args?.sort?.type) {
       case OrderBookSortType.Apy:
-        order = { apy: args.sort.order }
+        query.orderBy("apy", args?.sort?.order ?? SortOrder.Desc)
         break
       case OrderBookSortType.Collection:
-        order = { nftList: { collectionName: SortOrder.Asc } }
+        query.orderBy("collectionName", args?.sort?.order ?? SortOrder.Desc)
         break
       case OrderBookSortType.Duration:
-        order = { duration: args.sort.order }
+        query.orderBy("duration", args?.sort?.order ?? SortOrder.Desc)
         break
       case OrderBookSortType.TotalPool:
+        query.orderBy("totalpool", args?.sort?.order ?? SortOrder.Desc)
         break
       case OrderBookSortType.BestOffer:
+        query.orderBy("bestOffer", args?.sort?.order ?? SortOrder.Desc)
         break
       default:
-        order = { nftList: { collectionName: SortOrder.Asc } }
+        query.orderBy("totalpool", args?.sort?.order ?? SortOrder.Desc)
         break
     }
 
-    const data = await OrderBook.find({
-      order,
-      skip: args.pagination?.offset,
-      take: args.pagination?.limit,
-      where,
-      relations: { nftList: true, loans: true },
-    })
+    const rawData = await query.getRawMany()
+
+    const orderBooks = rawData.map((orderBook) => ({
+      id: orderBook.id,
+      apy: orderBook.apy,
+      duration: orderBook.duration,
+      collectionName: orderBook.collectionName,
+      collectionImage: orderBook.collectionImage,
+      totalPool: parseFloat(orderBook.totalpool) / LAMPORTS_PER_SOL,
+      bestOffer: parseFloat(orderBook.bestOffer) / LAMPORTS_PER_SOL,
+    }))
 
     return {
-      count: await OrderBook.count({ where }),
-      data,
+      count,
+      data: orderBooks,
     }
   }
 }

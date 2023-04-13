@@ -9,35 +9,69 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrderBookPaginatedResponse = exports.LoansPaginatedResponse = void 0;
+exports.PaginatedOrderBookResponse = exports.OrderBookList = exports.PaginatedLoanResponse = void 0;
 const entities_1 = require("../entities");
 const type_graphql_1 = require("type-graphql");
-let LoansPaginatedResponse = class LoansPaginatedResponse {
+let PaginatedLoanResponse = class PaginatedLoanResponse {
 };
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int),
     __metadata("design:type", Number)
-], LoansPaginatedResponse.prototype, "count", void 0);
+], PaginatedLoanResponse.prototype, "count", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => [entities_1.Loan]),
     __metadata("design:type", Array)
-], LoansPaginatedResponse.prototype, "data", void 0);
-LoansPaginatedResponse = __decorate([
+], PaginatedLoanResponse.prototype, "data", void 0);
+PaginatedLoanResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
-], LoansPaginatedResponse);
-exports.LoansPaginatedResponse = LoansPaginatedResponse;
-let OrderBookPaginatedResponse = class OrderBookPaginatedResponse {
+], PaginatedLoanResponse);
+exports.PaginatedLoanResponse = PaginatedLoanResponse;
+let OrderBookList = class OrderBookList {
 };
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int),
     __metadata("design:type", Number)
-], OrderBookPaginatedResponse.prototype, "count", void 0);
+], OrderBookList.prototype, "id", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => [entities_1.OrderBook]),
-    __metadata("design:type", Array)
-], OrderBookPaginatedResponse.prototype, "data", void 0);
-OrderBookPaginatedResponse = __decorate([
+    (0, type_graphql_1.Field)(() => Number),
+    __metadata("design:type", Number)
+], OrderBookList.prototype, "apy", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number),
+    __metadata("design:type", Number)
+], OrderBookList.prototype, "duration", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], OrderBookList.prototype, "collectionName", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], OrderBookList.prototype, "collectionImage", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], OrderBookList.prototype, "totalPool", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], OrderBookList.prototype, "bestOffer", void 0);
+OrderBookList = __decorate([
     (0, type_graphql_1.ObjectType)()
-], OrderBookPaginatedResponse);
-exports.OrderBookPaginatedResponse = OrderBookPaginatedResponse;
+], OrderBookList);
+exports.OrderBookList = OrderBookList;
+let PaginatedOrderBookResponse = class PaginatedOrderBookResponse {
+};
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], PaginatedOrderBookResponse.prototype, "count", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => [OrderBookList]),
+    __metadata("design:type", Array)
+], PaginatedOrderBookResponse.prototype, "data", void 0);
+PaginatedOrderBookResponse = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], PaginatedOrderBookResponse);
+exports.PaginatedOrderBookResponse = PaginatedOrderBookResponse;
 //# sourceMappingURL=objectTypes.js.map

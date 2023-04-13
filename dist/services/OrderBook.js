@@ -19,7 +19,7 @@ exports.OrderBookService = void 0;
 const types_1 = require("../types");
 const entities_1 = require("../entities");
 const typedi_1 = require("typedi");
-const typeorm_1 = require("typeorm");
+const web3_js_1 = require("@solana/web3.js");
 let OrderBookService = class OrderBookService {
     getOrderBookById(id) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -33,41 +33,62 @@ let OrderBookService = class OrderBookService {
         });
     }
     getOrderBooks(args) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
         return __awaiter(this, void 0, void 0, function* () {
-            const where = {};
-            let order = {};
-            if ((_a = args.filter) === null || _a === void 0 ? void 0 : _a.search) {
-                where["nftList"] = { collectionName: (0, typeorm_1.ILike)(`%${(_b = args.filter) === null || _b === void 0 ? void 0 : _b.search}%`) };
+            let query = entities_1.OrderBook.createQueryBuilder("orderBook")
+                .select("orderBook.id", "id")
+                .addSelect("nftList.collectionName", "collectionName")
+                .addSelect("nftList.collectionImage", "collectionImage")
+                .addSelect("orderBook.apy", "apy")
+                .addSelect("orderBook.duration", "duration")
+                .addSelect("COALESCE(SUM(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "totalpool")
+                .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "bestOffer")
+                .innerJoin("orderBook.nftList", "nftList")
+                .leftJoin("orderBook.loans", "loan");
+            if ((_a = args === null || args === void 0 ? void 0 : args.filter) === null || _a === void 0 ? void 0 : _a.search) {
+                query.where("nftList.collectionName ILIKE :name", { name: `%${args.filter.search}%` });
             }
-            switch ((_c = args.sort) === null || _c === void 0 ? void 0 : _c.type) {
+            const count = yield query.getCount();
+            if ((_b = args === null || args === void 0 ? void 0 : args.pagination) === null || _b === void 0 ? void 0 : _b.offset) {
+                query.offset(args.pagination.offset);
+            }
+            if ((_c = args === null || args === void 0 ? void 0 : args.pagination) === null || _c === void 0 ? void 0 : _c.limit) {
+                query.limit(args.pagination.limit);
+            }
+            query.groupBy("orderBook.id, nftList.collectionName, nftList.collectionImage");
+            switch ((_d = args === null || args === void 0 ? void 0 : args.sort) === null || _d === void 0 ? void 0 : _d.type) {
                 case types_1.OrderBookSortType.Apy:
-                    order = { apy: args.sort.order };
+                    query.orderBy("apy", (_f = (_e = args === null || args === void 0 ? void 0 : args.sort) === null || _e === void 0 ? void 0 : _e.order) !== null && _f !== void 0 ? _f : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.Collection:
-                    order = { nftList: { collectionName: types_1.SortOrder.Asc } };
+                    query.orderBy("collectionName", (_h = (_g = args === null || args === void 0 ? void 0 : args.sort) === null || _g === void 0 ? void 0 : _g.order) !== null && _h !== void 0 ? _h : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.Duration:
-                    order = { duration: args.sort.order };
+                    query.orderBy("duration", (_k = (_j = args === null || args === void 0 ? void 0 : args.sort) === null || _j === void 0 ? void 0 : _j.order) !== null && _k !== void 0 ? _k : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.TotalPool:
+                    query.orderBy("totalpool", (_m = (_l = args === null || args === void 0 ? void 0 : args.sort) === null || _l === void 0 ? void 0 : _l.order) !== null && _m !== void 0 ? _m : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.BestOffer:
+                    query.orderBy("bestOffer", (_p = (_o = args === null || args === void 0 ? void 0 : args.sort) === null || _o === void 0 ? void 0 : _o.order) !== null && _p !== void 0 ? _p : types_1.SortOrder.Desc);
                     break;
                 default:
-                    order = { nftList: { collectionName: types_1.SortOrder.Asc } };
+                    query.orderBy("totalpool", (_r = (_q = args === null || args === void 0 ? void 0 : args.sort) === null || _q === void 0 ? void 0 : _q.order) !== null && _r !== void 0 ? _r : types_1.SortOrder.Desc);
                     break;
             }
-            const data = yield entities_1.OrderBook.find({
-                order,
-                skip: (_d = args.pagination) === null || _d === void 0 ? void 0 : _d.offset,
-                take: (_e = args.pagination) === null || _e === void 0 ? void 0 : _e.limit,
-                where,
-                relations: { nftList: true, loans: true },
-            });
+            const rawData = yield query.getRawMany();
+            const orderBooks = rawData.map((orderBook) => ({
+                id: orderBook.id,
+                apy: orderBook.apy,
+                duration: orderBook.duration,
+                collectionName: orderBook.collectionName,
+                collectionImage: orderBook.collectionImage,
+                totalPool: parseFloat(orderBook.totalpool) / web3_js_1.LAMPORTS_PER_SOL,
+                bestOffer: parseFloat(orderBook.bestOffer) / web3_js_1.LAMPORTS_PER_SOL,
+            }));
             return {
-                count: yield entities_1.OrderBook.count({ where }),
-                data,
+                count,
+                data: orderBooks,
             };
         });
     }

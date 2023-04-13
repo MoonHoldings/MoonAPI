@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetOrderBooksArgs = exports.OrderBookSort = exports.GetOrderBooksFilter = exports.GetLoansArgs = exports.GetLoansFilter = exports.LimitOffset = void 0;
+exports.GetOrderBooksArgs = exports.OrderBookSort = exports.GetOrderBooksFilter = exports.GetLoansArgs = exports.LoanSort = exports.GetLoansFilter = exports.LimitOffset = void 0;
 const type_graphql_1 = require("type-graphql");
 const enums_1 = require("./enums");
 let LimitOffset = class LimitOffset {
@@ -44,6 +44,20 @@ GetLoansFilter = __decorate([
     (0, type_graphql_1.InputType)()
 ], GetLoansFilter);
 exports.GetLoansFilter = GetLoansFilter;
+let LoanSort = class LoanSort {
+};
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], LoanSort.prototype, "type", void 0);
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], LoanSort.prototype, "order", void 0);
+LoanSort = __decorate([
+    (0, type_graphql_1.InputType)()
+], LoanSort);
+exports.LoanSort = LoanSort;
 let GetLoansArgs = class GetLoansArgs {
 };
 __decorate([

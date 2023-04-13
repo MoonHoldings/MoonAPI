@@ -16,7 +16,7 @@ var LoanType;
 })(LoanType = exports.LoanType || (exports.LoanType = {}));
 var SortOrder;
 (function (SortOrder) {
-    SortOrder["Asc"] = "asc";
-    SortOrder["Desc"] = "desc";
+    SortOrder["Asc"] = "ASC";
+    SortOrder["Desc"] = "DESC";
 })(SortOrder = exports.SortOrder || (exports.SortOrder = {}));
 //# sourceMappingURL=enums.js.map

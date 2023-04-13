@@ -63,18 +63,24 @@ export class OrderBook extends BaseEntity {
 
   @Field(() => Number)
   async bestOffer(): Promise<number> {
-    const bestOffer = await Loan.findOne({ where: { orderBook: { id: this.id }, state: LoanType.Offer }, order: { principalLamports: "DESC" } })
+    const query = Loan.createQueryBuilder("loan")
+      .select("MAX(loan.principalLamports)", "bestOffer")
+      .where("loan.orderBookId = :id", { id: this.id })
+      .andWhere("loan.state = :state", { state: LoanType.Offer })
 
-    return bestOffer ? bestOffer.principalLamports / LAMPORTS_PER_SOL : 0
+    const { bestOffer } = await query.getRawOne()
+
+    return bestOffer ? parseInt(bestOffer) / LAMPORTS_PER_SOL : 0
   }
 
   @Field(() => Number)
   async totalPool(): Promise<number> {
-    const { totalPool } = await Loan.createQueryBuilder("loan")
+    const query = Loan.createQueryBuilder("loan")
       .select("SUM(loan.principalLamports)", "totalPool")
       .where("loan.orderBookId = :id", { id: this.id })
       .andWhere("loan.state = :state", { state: LoanType.Offer })
-      .getRawOne()
+
+    const { totalPool } = await query.getRawOne()
 
     return totalPool ? parseInt(totalPool) / LAMPORTS_PER_SOL : 0
   }

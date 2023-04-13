@@ -1,4 +1,4 @@
-import { GetLoansArgs, LoansPaginatedResponse } from "../types"
+import { GetLoansArgs, PaginatedLoanResponse } from "../types"
 import { Loan } from "../entities"
 import { Service } from "typedi"
 
@@ -8,7 +8,7 @@ export class LoanService {
     return await Loan.findOneOrFail({ where: { id } })
   }
 
-  async getLoans(args: GetLoansArgs): Promise<LoansPaginatedResponse> {
+  async getLoans(args: GetLoansArgs): Promise<PaginatedLoanResponse> {
     const where = {
       state: args?.filter?.type,
       lenderWallet: args?.filter?.lenderWallet,

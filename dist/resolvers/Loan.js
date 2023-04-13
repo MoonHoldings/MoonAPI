@@ -53,7 +53,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], LoanResolver.prototype, "getLoan", null);
 __decorate([
-    (0, type_graphql_1.Query)(() => types_1.LoansPaginatedResponse),
+    (0, type_graphql_1.Query)(() => types_1.PaginatedLoanResponse),
     __param(0, (0, type_graphql_1.Arg)("args", { nullable: true })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [types_1.GetLoansArgs]),

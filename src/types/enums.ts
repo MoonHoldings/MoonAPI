@@ -12,6 +12,6 @@ export enum LoanType {
 }
 
 export enum SortOrder {
-  Asc = "asc",
-  Desc = "desc",
+  Asc = "ASC",
+  Desc = "DESC",
 }
