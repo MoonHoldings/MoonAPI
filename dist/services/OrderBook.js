@@ -92,6 +92,7 @@ let OrderBookService = class OrderBookService {
                 collectionName: orderBook.collectionName,
                 collectionImage: orderBook.collectionImage,
                 floorPrice: orderBook.floorPrice,
+                floorPriceSol: orderBook.floorPrice ? parseFloat(orderBook.floorPrice) / web3_js_1.LAMPORTS_PER_SOL : undefined,
                 totalPool: parseFloat(orderBook.totalpool) / web3_js_1.LAMPORTS_PER_SOL,
                 bestOffer: parseFloat(orderBook.bestOffer) / web3_js_1.LAMPORTS_PER_SOL,
             }));

@@ -78,6 +78,7 @@ export class OrderBookService {
       collectionName: orderBook.collectionName,
       collectionImage: orderBook.collectionImage,
       floorPrice: orderBook.floorPrice,
+      floorPriceSol: orderBook.floorPrice ? parseFloat(orderBook.floorPrice) / LAMPORTS_PER_SOL : undefined,
       totalPool: parseFloat(orderBook.totalpool) / LAMPORTS_PER_SOL,
       bestOffer: parseFloat(orderBook.bestOffer) / LAMPORTS_PER_SOL,
     }))
