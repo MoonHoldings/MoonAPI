@@ -250,4 +250,71 @@ export class SharkifyService {
     this.logger.debug(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"))
   }
+
+  @Interval(300000) // Every 5 mins
+  async saveNftListFloorPrices() {
+    this.logger.debug(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy hh:mma"))
+    console.log(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy hh:mma"))
+
+    const fetchHelloMoonCollectionIds = async (addresses: any[]) => {
+      const { data: collectionIdResponse } = await axios.post(
+        `${HELLO_MOON_URL}/nft/collection/mints`,
+        {
+          nftMint: addresses,
+        },
+        AXIOS_CONFIG_HELLO_MOON_KEY
+      )
+
+      return collectionIdResponse
+    }
+
+    const fetchFloorPrice = async (id: any) => {
+      const res = await axios.post(
+        `${HELLO_MOON_URL}/nft/collection/floorprice`,
+        {
+          helloMoonCollectionId: id,
+        },
+        AXIOS_CONFIG_HELLO_MOON_KEY
+      )
+
+      return res?.data?.data?.length ? res?.data?.data[0] : undefined
+    }
+
+    try {
+      const nftLists = await this.nftListRepository.find()
+      const nftMintToListMap: any = {}
+
+      nftLists.forEach((nftList) => {
+        nftMintToListMap[nftList.nftMint] = nftList
+      })
+
+      const { data: collectionIds } = await fetchHelloMoonCollectionIds(nftLists.map((nftList) => nftList.nftMint))
+      const collectionIdToNftListMap: Record<string, NftList> = {}
+
+      collectionIds?.forEach((data: any) => {
+        collectionIdToNftListMap[data.helloMoonCollectionId] = nftMintToListMap[data.nftMint]
+      })
+
+      const promises = collectionIds.map(async (id: any) => {
+        return fetchFloorPrice(id.helloMoonCollectionId)
+      })
+      const floorPrices = (await Promise.allSettled(promises)).filter((price) => price.status === "fulfilled").map((price: any) => price.value)
+
+      const nftListsToSave: any = []
+
+      floorPrices.forEach((price) => {
+        const nftList = collectionIdToNftListMap[price.helloMoonCollectionId]
+
+        nftList.floorPrice = price.floorPriceLamports
+        nftListsToSave.push(nftList)
+      })
+
+      await this.nftListRepository.save(nftListsToSave)
+    } catch (e) {
+      console.log("ERROR", e)
+    }
+
+    this.logger.debug(format(new Date(), "'saveNftListPrices end:' MMMM d, yyyy hh:mma"))
+    console.log(format(new Date(), "'saveNftListPrices end:' MMMM d, yyyy hh:mma"))
+  }
 }

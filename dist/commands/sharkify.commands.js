@@ -46,6 +46,11 @@ let SharkifyCommands = class SharkifyCommands {
             yield this.sharkifyService.saveNftListImages();
         });
     }
+    saveNftListFloorPrices() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.sharkifyService.saveNftListFloorPrices();
+        });
+    }
 };
 __decorate([
     (0, nestjs_command_1.Command)({
@@ -77,12 +82,21 @@ __decorate([
 __decorate([
     (0, nestjs_command_1.Command)({
         command: "save:nftlistimages",
-        describe: "Fetches all nft list images using sharkify client and saves in our database",
+        describe: "Fetches all nft list images using hello moon and shyft and saves in our database",
     }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], SharkifyCommands.prototype, "saveNftListImages", null);
+__decorate([
+    (0, nestjs_command_1.Command)({
+        command: "save:nftlistprices",
+        describe: "Fetches all nft list floor prices using hello moon and saves in our database",
+    }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], SharkifyCommands.prototype, "saveNftListFloorPrices", null);
 SharkifyCommands = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [sharkify_service_1.SharkifyService])

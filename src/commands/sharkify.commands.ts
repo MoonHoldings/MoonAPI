@@ -32,9 +32,17 @@ export class SharkifyCommands {
 
   @Command({
     command: "save:nftlistimages",
-    describe: "Fetches all nft list images using sharkify client and saves in our database",
+    describe: "Fetches all nft list images using hello moon and shyft and saves in our database",
   })
   async saveNftListImages() {
     await this.sharkifyService.saveNftListImages()
+  }
+
+  @Command({
+    command: "save:nftlistprices",
+    describe: "Fetches all nft list floor prices using hello moon and saves in our database",
+  })
+  async saveNftListFloorPrices() {
+    await this.sharkifyService.saveNftListFloorPrices()
   }
 }

@@ -46,6 +46,11 @@ __decorate([
     __metadata("design:type", String)
 ], NftList.prototype, "collectionImage", void 0);
 __decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    (0, typeorm_1.Column)("bigint", { nullable: true }),
+    __metadata("design:type", Number)
+], NftList.prototype, "floorPrice", void 0);
+__decorate([
     (0, type_graphql_1.Field)(() => OrderBook_1.OrderBook, { nullable: true }),
     (0, typeorm_1.OneToOne)(() => OrderBook_1.OrderBook, (orderBook) => orderBook.nftList, { cascade: true }),
     __metadata("design:type", Object)

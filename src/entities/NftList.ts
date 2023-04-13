@@ -29,6 +29,10 @@ export class NftList extends BaseEntity {
   @Column("text", { nullable: true })
   collectionImage?: string
 
+  @Field(() => Number, { nullable: true })
+  @Column("bigint", { nullable: true })
+  floorPrice!: number
+
   @Field(() => OrderBook, { nullable: true })
   @OneToOne(() => OrderBook, (orderBook) => orderBook.nftList, { cascade: true })
   orderBook: Relation<OrderBook>
