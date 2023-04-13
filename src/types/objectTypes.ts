@@ -21,7 +21,7 @@ export class OrderBookList {
   duration: number
   @Field(() => Number)
   feePermillicentage: number
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   collectionName: string
   @Field(() => String, { nullable: true })
   collectionImage?: string
