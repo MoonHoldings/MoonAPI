@@ -49,7 +49,7 @@ __decorate([
     __metadata("design:type", Number)
 ], OrderBookList.prototype, "feePermillicentage", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => String),
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], OrderBookList.prototype, "collectionName", void 0);
 __decorate([

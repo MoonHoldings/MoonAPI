@@ -48,7 +48,7 @@ let OrderBookService = class OrderBookService {
                 .addSelect("orderBook.duration", "duration")
                 .addSelect("orderBook.feePermillicentage", "feePermillicentage")
                 .addSelect("COALESCE(SUM(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "totalpool")
-                .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "bestOffer")
+                .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "bestoffer")
                 .innerJoin("orderBook.nftList", "nftList")
                 .leftJoin("orderBook.loans", "loan");
             if ((_a = args === null || args === void 0 ? void 0 : args.filter) === null || _a === void 0 ? void 0 : _a.search) {
@@ -67,7 +67,7 @@ let OrderBookService = class OrderBookService {
                     query.orderBy("apy", (_f = (_e = args === null || args === void 0 ? void 0 : args.sort) === null || _e === void 0 ? void 0 : _e.order) !== null && _f !== void 0 ? _f : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.Collection:
-                    query.orderBy("collectionName", (_h = (_g = args === null || args === void 0 ? void 0 : args.sort) === null || _g === void 0 ? void 0 : _g.order) !== null && _h !== void 0 ? _h : types_1.SortOrder.Desc);
+                    query.orderBy("nftList.collectionName", (_h = (_g = args === null || args === void 0 ? void 0 : args.sort) === null || _g === void 0 ? void 0 : _g.order) !== null && _h !== void 0 ? _h : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.Duration:
                     query.orderBy("duration", (_k = (_j = args === null || args === void 0 ? void 0 : args.sort) === null || _j === void 0 ? void 0 : _j.order) !== null && _k !== void 0 ? _k : types_1.SortOrder.Desc);
@@ -76,7 +76,7 @@ let OrderBookService = class OrderBookService {
                     query.orderBy("totalpool", (_m = (_l = args === null || args === void 0 ? void 0 : args.sort) === null || _l === void 0 ? void 0 : _l.order) !== null && _m !== void 0 ? _m : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.BestOffer:
-                    query.orderBy("bestOffer", (_p = (_o = args === null || args === void 0 ? void 0 : args.sort) === null || _o === void 0 ? void 0 : _o.order) !== null && _p !== void 0 ? _p : types_1.SortOrder.Desc);
+                    query.orderBy("bestoffer", (_p = (_o = args === null || args === void 0 ? void 0 : args.sort) === null || _o === void 0 ? void 0 : _o.order) !== null && _p !== void 0 ? _p : types_1.SortOrder.Desc);
                     break;
                 default:
                     query.orderBy("totalpool", (_r = (_q = args === null || args === void 0 ? void 0 : args.sort) === null || _q === void 0 ? void 0 : _q.order) !== null && _r !== void 0 ? _r : types_1.SortOrder.Desc);
@@ -94,7 +94,7 @@ let OrderBookService = class OrderBookService {
                 floorPrice: orderBook.floorPrice,
                 floorPriceSol: orderBook.floorPrice ? parseFloat(orderBook.floorPrice) / web3_js_1.LAMPORTS_PER_SOL : undefined,
                 totalPool: parseFloat(orderBook.totalpool) / web3_js_1.LAMPORTS_PER_SOL,
-                bestOffer: parseFloat(orderBook.bestOffer) / web3_js_1.LAMPORTS_PER_SOL,
+                bestOffer: parseFloat(orderBook.bestoffer) / web3_js_1.LAMPORTS_PER_SOL,
             }));
             return {
                 count,
