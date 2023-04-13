@@ -6,6 +6,11 @@ export enum OrderBookSortType {
   Duration = "Duration",
 }
 
+export enum LoanSortType {
+  Time = "time",
+  Amount = "amount",
+}
+
 export enum LoanType {
   Offer = "offered",
   Taken = "taken",

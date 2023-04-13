@@ -40,6 +40,10 @@ __decorate([
     (0, type_graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], GetLoansFilter.prototype, "borrowerWallet", void 0);
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], GetLoansFilter.prototype, "orderBookPubKey", void 0);
 GetLoansFilter = __decorate([
     (0, type_graphql_1.InputType)()
 ], GetLoansFilter);
@@ -68,6 +72,10 @@ __decorate([
     (0, type_graphql_1.Field)({ nullable: true }),
     __metadata("design:type", LimitOffset)
 ], GetLoansArgs.prototype, "pagination", void 0);
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", LoanSort)
+], GetLoansArgs.prototype, "sort", void 0);
 GetLoansArgs = __decorate([
     (0, type_graphql_1.InputType)()
 ], GetLoansArgs);
