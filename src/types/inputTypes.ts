@@ -20,6 +20,14 @@ export class GetLoansFilter {
 }
 
 @InputType()
+export class LoanSort {
+  @Field({ nullable: true })
+  type?: OrderBookSortType
+  @Field({ nullable: true })
+  order?: SortOrder
+}
+
+@InputType()
 export class GetLoansArgs {
   @Field({ nullable: true })
   filter?: GetLoansFilter

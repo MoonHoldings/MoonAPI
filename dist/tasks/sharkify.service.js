@@ -78,6 +78,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                             savedLoan.apy = (_h = (_g = newLoan.data.loanState.taken) === null || _g === void 0 ? void 0 : _g.taken.apy.fixed) === null || _h === void 0 ? void 0 : _h.apy;
                             savedLoan.start = (_l = (_k = (_j = newLoan.data.loanState.taken) === null || _j === void 0 ? void 0 : _j.taken.terms.time) === null || _k === void 0 ? void 0 : _k.start) === null || _l === void 0 ? void 0 : _l.toNumber();
                             savedLoan.totalOwedLamports = (_p = (_o = (_m = newLoan.data.loanState.taken) === null || _m === void 0 ? void 0 : _m.taken.terms.time) === null || _o === void 0 ? void 0 : _o.totalOwedLamports) === null || _p === void 0 ? void 0 : _p.toNumber();
+                            savedLoan.state = newLoan.state;
                             updatedLoanEntities.push(savedLoan);
                         }
                     }

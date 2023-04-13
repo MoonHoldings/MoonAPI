@@ -35,17 +35,21 @@ let OrderBook = class OrderBook extends typeorm_1.BaseEntity {
     }
     bestOffer() {
         return __awaiter(this, void 0, void 0, function* () {
-            const bestOffer = yield Loan_1.Loan.findOne({ where: { orderBook: { id: this.id }, state: types_1.LoanType.Offer }, order: { principalLamports: "DESC" } });
-            return bestOffer ? bestOffer.principalLamports / web3_js_1.LAMPORTS_PER_SOL : 0;
+            const query = Loan_1.Loan.createQueryBuilder("loan")
+                .select("MAX(loan.principalLamports)", "bestOffer")
+                .where("loan.orderBookId = :id", { id: this.id })
+                .andWhere("loan.state = :state", { state: types_1.LoanType.Offer });
+            const { bestOffer } = yield query.getRawOne();
+            return bestOffer ? parseInt(bestOffer) / web3_js_1.LAMPORTS_PER_SOL : 0;
         });
     }
     totalPool() {
         return __awaiter(this, void 0, void 0, function* () {
-            const { totalPool } = yield Loan_1.Loan.createQueryBuilder("loan")
+            const query = Loan_1.Loan.createQueryBuilder("loan")
                 .select("SUM(loan.principalLamports)", "totalPool")
                 .where("loan.orderBookId = :id", { id: this.id })
-                .andWhere("loan.state = :state", { state: types_1.LoanType.Offer })
-                .getRawOne();
+                .andWhere("loan.state = :state", { state: types_1.LoanType.Offer });
+            const { totalPool } = yield query.getRawOne();
             return totalPool ? parseInt(totalPool) / web3_js_1.LAMPORTS_PER_SOL : 0;
         });
     }

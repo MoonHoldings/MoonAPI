@@ -2,7 +2,7 @@ import { OrderBookService } from "../services"
 import { OrderBook } from "../entities"
 import { Resolver, Query, Arg } from "type-graphql"
 import Container from "typedi"
-import { OrderBookPaginatedResponse, GetOrderBooksArgs } from "../types"
+import { PaginatedOrderBookResponse, GetOrderBooksArgs } from "../types"
 
 @Resolver()
 export class OrderBookResolver {
@@ -13,8 +13,8 @@ export class OrderBookResolver {
     return await this.orderBookService.getOrderBookById(id)
   }
 
-  @Query(() => OrderBookPaginatedResponse)
-  async getOrderBooks(@Arg("args", { nullable: true }) args: GetOrderBooksArgs): Promise<OrderBookPaginatedResponse> {
+  @Query(() => PaginatedOrderBookResponse)
+  async getOrderBooks(@Arg("args", { nullable: true }) args: GetOrderBooksArgs): Promise<PaginatedOrderBookResponse> {
     return await this.orderBookService.getOrderBooks(args)
   }
 }

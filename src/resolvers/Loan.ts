@@ -2,7 +2,7 @@ import { Resolver, Query, Arg } from "type-graphql"
 import Container from "typedi"
 import { LoanService } from "../services"
 import { Loan } from "../entities"
-import { GetLoansArgs, LoansPaginatedResponse } from "../types"
+import { GetLoansArgs, PaginatedLoanResponse } from "../types"
 
 @Resolver()
 export class LoanResolver {
@@ -13,8 +13,8 @@ export class LoanResolver {
     return await this.loanService.getLoanById(id)
   }
 
-  @Query(() => LoansPaginatedResponse)
-  async getLoans(@Arg("args", { nullable: true }) args: GetLoansArgs): Promise<LoansPaginatedResponse> {
+  @Query(() => PaginatedLoanResponse)
+  async getLoans(@Arg("args", { nullable: true }) args: GetLoansArgs): Promise<PaginatedLoanResponse> {
     return await this.loanService.getLoans(args)
   }
 }

@@ -53,7 +53,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], OrderBookResolver.prototype, "getOrderBook", null);
 __decorate([
-    (0, type_graphql_1.Query)(() => types_1.OrderBookPaginatedResponse),
+    (0, type_graphql_1.Query)(() => types_1.PaginatedOrderBookResponse),
     __param(0, (0, type_graphql_1.Arg)("args", { nullable: true })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [types_1.GetOrderBooksArgs]),
