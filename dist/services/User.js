@@ -41,13 +41,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const apollo_server_express_1 = require("apollo-server-express");
 const entities_1 = require("../entities");
-const typedi_1 = __importStar(require("typedi"));
-const passwordUtil_1 = require("../utils/passwordUtil");
+const typedi_1 = require("typedi");
 const check_password_strength_1 = require("check-password-strength");
+const enums_1 = require("../enums");
+const utils = __importStar(require("../utils"));
 let UserService = class UserService {
-    constructor() {
-        this.passwordUtil = typedi_1.default.get(passwordUtil_1.PasswordUtil);
-    }
     register(email, password) {
         return __awaiter(this, void 0, void 0, function* () {
             let user = yield this.getUserByEmail(email);
@@ -56,29 +54,32 @@ let UserService = class UserService {
             }
             let hashedPassword;
             if ((0, check_password_strength_1.passwordStrength)(password).id != 0 || (0, check_password_strength_1.passwordStrength)(password).id != 1)
-                hashedPassword = yield this.passwordUtil.generatePassword(password);
+                hashedPassword = yield utils.generatePassword(password);
             else {
                 throw new apollo_server_express_1.UserInputError('Password is too weak');
             }
             user = new entities_1.User();
             user.email = email;
             user.password = hashedPassword;
+            user.signupType = enums_1.SignupType.EMAIL;
             return yield entities_1.User.save(user);
         });
     }
-    login(email, password) {
+    login(email, password, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
             let user = yield this.getUserByEmail(email);
             if (!user) {
                 throw new apollo_server_express_1.UserInputError('User does not exists');
             }
             let passwordMatched;
-            passwordMatched = yield this.passwordUtil.comparePassword(password, user.password);
+            passwordMatched = yield utils.comparePassword(password, user.password);
             if (!passwordMatched) {
                 throw new apollo_server_express_1.UserInputError('Email or Password is incorrect.');
             }
             user.lastLoginTimestamp = new Date();
             entities_1.User.save(user);
+            ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true });
+            user.accessToken = utils.createAccessToken(user);
             return user;
         });
     }
@@ -86,6 +87,16 @@ let UserService = class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             return yield entities_1.User.findOne({ where: { email } });
             ;
+        });
+    }
+    incrementRefreshVersion(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                entities_1.User.incrementTokenVersion(id);
+            }
+            catch (err) {
+                console.log(err);
+            }
         });
     }
 };

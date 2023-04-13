@@ -13,14 +13,31 @@ export class User extends BaseEntity {
     @Column({ nullable: false })
     email: string;
 
-    @Field(() => String, { nullable: false })
-    @Column({ nullable: false })
-    password: string;
-
     @Field(() => Boolean, { defaultValue: false })
     @Column({ type: 'boolean', default: 'false' })
     isVerified: boolean;
 
+    @Field(() => String, { nullable: false })
+    @Column({ type: 'varchar', nullable: true, })
+    signupType: string;
+
+    @Column({ nullable: false })
+    password: string;
+
     @Column({ nullable: true })
     lastLoginTimestamp: Date;
+
+    @Column({ type: 'int', default: 0 })
+    tokenVersion: number
+
+    @Field(() => String, { nullable: true })
+    accessToken: string;
+
+    static async incrementTokenVersion(id: number) {
+        await this.createQueryBuilder()
+            .update()
+            .set({ tokenVersion: () => `"tokenVersion" + ${1}` })
+            .where('id = :id', { id })
+            .execute();
+    }
 }
