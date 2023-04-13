@@ -4,7 +4,6 @@ import { Service } from 'typedi';
 
 import { passwordStrength } from 'check-password-strength'
 import { SignupType } from '../enums';
-import { verify } from 'jsonwebtoken';
 
 import * as utils from '../utils';
 
