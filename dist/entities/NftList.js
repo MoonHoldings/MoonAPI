@@ -13,7 +13,11 @@ exports.NftList = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 const OrderBook_1 = require("./OrderBook");
+const web3_js_1 = require("@solana/web3.js");
 let NftList = class NftList extends typeorm_1.BaseEntity {
+    floorPriceSol() {
+        return this.floorPrice ? this.floorPrice / web3_js_1.LAMPORTS_PER_SOL : null;
+    }
 };
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.ID),
@@ -45,6 +49,17 @@ __decorate([
     (0, typeorm_1.Column)("text", { nullable: true }),
     __metadata("design:type", String)
 ], NftList.prototype, "collectionImage", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    (0, typeorm_1.Column)("bigint", { nullable: true }),
+    __metadata("design:type", Number)
+], NftList.prototype, "floorPrice", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Object)
+], NftList.prototype, "floorPriceSol", null);
 __decorate([
     (0, type_graphql_1.Field)(() => OrderBook_1.OrderBook, { nullable: true }),
     (0, typeorm_1.OneToOne)(() => OrderBook_1.OrderBook, (orderBook) => orderBook.nftList, { cascade: true }),

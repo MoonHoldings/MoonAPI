@@ -14,12 +14,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderBookService = void 0;
 const types_1 = require("../types");
 const entities_1 = require("../entities");
 const typedi_1 = require("typedi");
 const web3_js_1 = require("@solana/web3.js");
+const apyAfterFee_1 = __importDefault(require("../utils/apyAfterFee"));
 let OrderBookService = class OrderBookService {
     getOrderBookById(id) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -39,8 +43,10 @@ let OrderBookService = class OrderBookService {
                 .select("orderBook.id", "id")
                 .addSelect("nftList.collectionName", "collectionName")
                 .addSelect("nftList.collectionImage", "collectionImage")
+                .addSelect("nftList.floorPrice", "floorPrice")
                 .addSelect("orderBook.apy", "apy")
                 .addSelect("orderBook.duration", "duration")
+                .addSelect("orderBook.feePermillicentage", "feePermillicentage")
                 .addSelect("COALESCE(SUM(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "totalpool")
                 .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "bestOffer")
                 .innerJoin("orderBook.nftList", "nftList")
@@ -55,7 +61,7 @@ let OrderBookService = class OrderBookService {
             if ((_c = args === null || args === void 0 ? void 0 : args.pagination) === null || _c === void 0 ? void 0 : _c.limit) {
                 query.limit(args.pagination.limit);
             }
-            query.groupBy("orderBook.id, nftList.collectionName, nftList.collectionImage");
+            query.groupBy("orderBook.id, nftList.collectionName, nftList.collectionImage, nftList.floorPrice");
             switch ((_d = args === null || args === void 0 ? void 0 : args.sort) === null || _d === void 0 ? void 0 : _d.type) {
                 case types_1.OrderBookSortType.Apy:
                     query.orderBy("apy", (_f = (_e = args === null || args === void 0 ? void 0 : args.sort) === null || _e === void 0 ? void 0 : _e.order) !== null && _f !== void 0 ? _f : types_1.SortOrder.Desc);
@@ -80,9 +86,13 @@ let OrderBookService = class OrderBookService {
             const orderBooks = rawData.map((orderBook) => ({
                 id: orderBook.id,
                 apy: orderBook.apy,
+                apyAfterFee: (0, apyAfterFee_1.default)(orderBook.apy, orderBook.duration, orderBook.feePermillicentage),
                 duration: orderBook.duration,
+                feePermillicentage: orderBook.feePermillicentage,
                 collectionName: orderBook.collectionName,
                 collectionImage: orderBook.collectionImage,
+                floorPrice: orderBook.floorPrice,
+                floorPriceSol: orderBook.floorPrice ? parseFloat(orderBook.floorPrice) / web3_js_1.LAMPORTS_PER_SOL : undefined,
                 totalPool: parseFloat(orderBook.totalpool) / web3_js_1.LAMPORTS_PER_SOL,
                 bestOffer: parseFloat(orderBook.bestOffer) / web3_js_1.LAMPORTS_PER_SOL,
             }));

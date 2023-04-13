@@ -17,6 +17,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderBook = void 0;
 const type_graphql_1 = require("type-graphql");
@@ -25,13 +28,10 @@ const Loan_1 = require("./Loan");
 const NftList_1 = require("./NftList");
 const web3_js_1 = require("@solana/web3.js");
 const types_1 = require("../types");
+const apyAfterFee_1 = __importDefault(require("../utils/apyAfterFee"));
 let OrderBook = class OrderBook extends typeorm_1.BaseEntity {
     apyAfterFee() {
-        const aprBeforeFee = this.apy / 1000;
-        const interestRatioBeforeFee = Math.exp((this.duration / (365 * 24 * 60 * 60)) * (aprBeforeFee / 100)) - 1;
-        const interestRatioAfterFee = interestRatioBeforeFee * (1 - this.feePermillicentage / 100000);
-        const aprAfterFee = (Math.log(1 + interestRatioAfterFee) / (this.duration / (365 * 24 * 60 * 60))) * 100;
-        return Math.ceil(100 * (Math.exp(aprAfterFee / 100) - 1));
+        return (0, apyAfterFee_1.default)(this.apy, this.duration, this.feePermillicentage);
     }
     bestOffer() {
         return __awaiter(this, void 0, void 0, function* () {

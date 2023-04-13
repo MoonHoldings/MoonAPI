@@ -15,12 +15,20 @@ export class OrderBookList {
   id: number
   @Field(() => Number)
   apy: number
+  @Field(() => Number, { nullable: true })
+  apyAfterFee?: number
   @Field(() => Number)
   duration: number
+  @Field(() => Number)
+  feePermillicentage: number
   @Field(() => String)
   collectionName: string
   @Field(() => String, { nullable: true })
   collectionImage?: string
+  @Field(() => Number, { nullable: true })
+  floorPrice?: number
+  @Field(() => Number, { nullable: true })
+  floorPriceSol?: number
   @Field(() => Number, { nullable: true })
   totalPool?: number
   @Field(() => Number, { nullable: true })
