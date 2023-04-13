@@ -37,9 +37,17 @@ __decorate([
     __metadata("design:type", Number)
 ], OrderBookList.prototype, "apy", void 0);
 __decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], OrderBookList.prototype, "apyAfterFee", void 0);
+__decorate([
     (0, type_graphql_1.Field)(() => Number),
     __metadata("design:type", Number)
 ], OrderBookList.prototype, "duration", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number),
+    __metadata("design:type", Number)
+], OrderBookList.prototype, "feePermillicentage", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
     __metadata("design:type", String)

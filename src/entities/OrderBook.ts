@@ -4,6 +4,7 @@ import { Loan } from "./Loan"
 import { NftList } from "./NftList"
 import { LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { LoanType } from "../types"
+import apyAfterFee from "../utils/apyAfterFee"
 
 @ObjectType()
 @Entity()
@@ -26,12 +27,7 @@ export class OrderBook extends BaseEntity {
 
   @Field(() => Number)
   apyAfterFee(): number {
-    const aprBeforeFee = this.apy / 1000
-    const interestRatioBeforeFee = Math.exp((this.duration / (365 * 24 * 60 * 60)) * (aprBeforeFee / 100)) - 1
-    const interestRatioAfterFee = interestRatioBeforeFee * (1 - this.feePermillicentage / 100_000)
-    const aprAfterFee = (Math.log(1 + interestRatioAfterFee) / (this.duration / (365 * 24 * 60 * 60))) * 100
-
-    return Math.ceil(100 * (Math.exp(aprAfterFee / 100) - 1))
+    return apyAfterFee(this.apy, this.duration, this.feePermillicentage)
   }
 
   @Field(() => String)

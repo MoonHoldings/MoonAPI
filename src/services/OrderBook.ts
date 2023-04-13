@@ -2,6 +2,7 @@ import { GetOrderBooksArgs, OrderBookSortType, PaginatedOrderBookResponse, SortO
 import { OrderBook } from "../entities"
 import { Service } from "typedi"
 import { LAMPORTS_PER_SOL } from "@solana/web3.js"
+import apyAfterFee from "../utils/apyAfterFee"
 
 @Service()
 export class OrderBookService {
@@ -22,6 +23,7 @@ export class OrderBookService {
       .addSelect("nftList.collectionImage", "collectionImage")
       .addSelect("orderBook.apy", "apy")
       .addSelect("orderBook.duration", "duration")
+      .addSelect("orderBook.feePermillicentage", "feePermillicentage")
       .addSelect("COALESCE(SUM(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "totalpool")
       .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "bestOffer")
       .innerJoin("orderBook.nftList", "nftList")
@@ -69,7 +71,9 @@ export class OrderBookService {
     const orderBooks = rawData.map((orderBook) => ({
       id: orderBook.id,
       apy: orderBook.apy,
+      apyAfterFee: apyAfterFee(orderBook.apy, orderBook.duration, orderBook.feePermillicentage),
       duration: orderBook.duration,
+      feePermillicentage: orderBook.feePermillicentage,
       collectionName: orderBook.collectionName,
       collectionImage: orderBook.collectionImage,
       totalPool: parseFloat(orderBook.totalpool) / LAMPORTS_PER_SOL,
