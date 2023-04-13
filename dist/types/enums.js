@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SortOrder = exports.LoanType = exports.OrderBookSortType = void 0;
+exports.SortOrder = exports.LoanType = exports.LoanSortType = exports.OrderBookSortType = void 0;
 var OrderBookSortType;
 (function (OrderBookSortType) {
     OrderBookSortType["Collection"] = "Collection";
@@ -9,6 +9,11 @@ var OrderBookSortType;
     OrderBookSortType["Apy"] = "APY";
     OrderBookSortType["Duration"] = "Duration";
 })(OrderBookSortType = exports.OrderBookSortType || (exports.OrderBookSortType = {}));
+var LoanSortType;
+(function (LoanSortType) {
+    LoanSortType["Time"] = "time";
+    LoanSortType["Amount"] = "amount";
+})(LoanSortType = exports.LoanSortType || (exports.LoanSortType = {}));
 var LoanType;
 (function (LoanType) {
     LoanType["Offer"] = "offered";

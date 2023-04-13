@@ -1,4 +1,4 @@
-import { Loan, OrderBook } from "../entities"
+import { Loan } from "../entities"
 import { ObjectType, Field, Int } from "type-graphql"
 
 @ObjectType()
