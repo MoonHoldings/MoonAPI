@@ -242,14 +242,13 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
             });
             try {
                 const nftLists = yield this.nftListRepository.find();
-                const nftMintToListMap = {};
-                nftLists.forEach((nftList) => {
-                    nftMintToListMap[nftList.nftMint] = nftList;
-                });
-                let allIds = [];
+                const nftMintToListMap = nftLists.reduce((map, nftList) => {
+                    map[nftList.nftMint] = nftList;
+                    return map;
+                }, {});
                 const { data: collectionIds, paginationToken } = yield fetchHelloMoonCollectionIds(nftLists.map((nftList) => nftList.nftMint));
+                let allIds = [...collectionIds];
                 let currentPaginationToken = paginationToken;
-                allIds = [...collectionIds];
                 while (currentPaginationToken) {
                     const { data: collectionIds, paginationToken } = yield fetchHelloMoonCollectionIds(nftLists.map((nftList) => nftList.nftMint), currentPaginationToken);
                     currentPaginationToken = paginationToken;
@@ -261,19 +260,20 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                 });
                 console.log("collectionIds", allIds.length);
                 const promises = allIds.map((id) => __awaiter(this, void 0, void 0, function* () {
-                    return fetchFloorPrice(id.helloMoonCollectionId);
+                    var _d;
+                    const { floorPriceLamports, helloMoonCollectionId } = (_d = (yield fetchFloorPrice(id.helloMoonCollectionId))) !== null && _d !== void 0 ? _d : {};
+                    return { floorPriceLamports, helloMoonCollectionId };
                 }));
-                const floorPrices = yield Promise.allSettled(promises);
+                const floorPrices = yield Promise.all(promises);
                 console.log("floorPrices", floorPrices.length);
                 const nftListsToSave = [];
-                floorPrices.forEach((price) => {
-                    var _a, _b;
-                    if (price.status === "fulfilled") {
-                        const nftList = collectionIdToNftListMap[(_a = price === null || price === void 0 ? void 0 : price.value) === null || _a === void 0 ? void 0 : _a.helloMoonCollectionId];
-                        nftList.floorPrice = (_b = price === null || price === void 0 ? void 0 : price.value) === null || _b === void 0 ? void 0 : _b.floorPriceLamports;
+                for (const { floorPriceLamports, helloMoonCollectionId } of floorPrices) {
+                    if (floorPriceLamports && helloMoonCollectionId) {
+                        const nftList = collectionIdToNftListMap[helloMoonCollectionId];
+                        nftList.floorPrice = floorPriceLamports;
                         nftListsToSave.push(nftList);
                     }
-                });
+                }
                 yield this.nftListRepository.save(nftListsToSave);
             }
             catch (e) {

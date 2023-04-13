@@ -283,16 +283,14 @@ export class SharkifyService {
 
     try {
       const nftLists = await this.nftListRepository.find()
-      const nftMintToListMap: any = {}
+      const nftMintToListMap: Record<string, NftList> = nftLists.reduce((map: Record<string, NftList>, nftList) => {
+        map[nftList.nftMint] = nftList
+        return map
+      }, {})
 
-      nftLists.forEach((nftList) => {
-        nftMintToListMap[nftList.nftMint] = nftList
-      })
-
-      let allIds: any = []
       const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(nftLists.map((nftList) => nftList.nftMint))
+      let allIds = [...collectionIds]
       let currentPaginationToken = paginationToken
-      allIds = [...collectionIds]
 
       while (currentPaginationToken) {
         const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(
@@ -313,22 +311,24 @@ export class SharkifyService {
       console.log("collectionIds", allIds.length)
 
       const promises = allIds.map(async (id: any) => {
-        return fetchFloorPrice(id.helloMoonCollectionId)
+        const { floorPriceLamports, helloMoonCollectionId } = (await fetchFloorPrice(id.helloMoonCollectionId)) ?? {}
+        return { floorPriceLamports, helloMoonCollectionId }
       })
-      const floorPrices = await Promise.allSettled(promises)
+
+      const floorPrices = await Promise.all(promises)
 
       console.log("floorPrices", floorPrices.length)
 
-      const nftListsToSave: any = []
+      const nftListsToSave: NftList[] = []
 
-      floorPrices.forEach((price: any) => {
-        if (price.status === "fulfilled") {
-          const nftList = collectionIdToNftListMap[price?.value?.helloMoonCollectionId]
+      for (const { floorPriceLamports, helloMoonCollectionId } of floorPrices) {
+        if (floorPriceLamports && helloMoonCollectionId) {
+          const nftList = collectionIdToNftListMap[helloMoonCollectionId]
 
-          nftList.floorPrice = price?.value?.floorPriceLamports
+          nftList.floorPrice = floorPriceLamports
           nftListsToSave.push(nftList)
         }
-      })
+      }
 
       await this.nftListRepository.save(nftListsToSave)
     } catch (e) {
