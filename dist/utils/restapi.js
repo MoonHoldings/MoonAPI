@@ -20,21 +20,21 @@ const router = express_1.default.Router();
 router.post("/refresh_token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.cookies.jid;
     if (!token) {
-        return res.send({ ok: false, accessToken: '' });
+        return res.send({ ok: false, accessToken: "" });
     }
     let payload = null;
     try {
         payload = (0, jsonwebtoken_1.verify)(token, process.env.REFRESH_TOKEN_SECRET);
     }
     catch (err) {
-        return res.send({ ok: false, accessToken: '' });
+        return res.send({ ok: false, accessToken: "" });
     }
     const user = yield entities_1.User.findOne({ where: { id: payload.userId } });
     if (!user) {
-        return res.send({ ok: false, accessToken: '' });
+        return res.send({ ok: false, accessToken: "" });
     }
     if (user.tokenVersion != payload.tokenVersion) {
-        return res.send({ ok: false, accessToken: '' });
+        return res.send({ ok: false, accessToken: "" });
     }
     return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user) });
 }));
