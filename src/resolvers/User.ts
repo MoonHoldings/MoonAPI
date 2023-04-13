@@ -5,6 +5,7 @@ import { Arg, Ctx, Int, Mutation, Query, Resolver, UseMiddleware } from "type-gr
 import { isAuth } from "../utils";
 import { Session } from "../utils/session";
 import Container from 'typedi';
+import { ExpressContext } from "apollo-server-express";
 
 @Resolver()
 export class UserResolver {
@@ -20,6 +21,7 @@ export class UserResolver {
     async login(@Arg('email') email: string, @Arg('password') password: string, @Ctx() ctx: Context<any>): Promise<User> {
         return await this.userService.login(email, password, ctx);
     }
+
     @Query(() => String)
     @UseMiddleware(isAuth)
     bye(@Ctx() { payload }: Session) {
@@ -33,4 +35,11 @@ export class UserResolver {
         await this.userService.incrementRefreshVersion(userId);
         return true;
     }
+
+    //TODO: In case to use in future
+    // @Query(() => User)
+    // async refreshToken(@Ctx() ctx: Session): Promise<String> {
+    //     return await this.userService.refreshAccessToken(ctx);
+    // }
+
 }

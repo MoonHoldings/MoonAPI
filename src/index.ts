@@ -9,10 +9,9 @@ import { __prod__ } from "./constants"
 import { AppDataSource } from "./utils/db"
 import { LoanResolver, OrderBookResolver, UserResolver } from "./resolvers"
 import cookieParser from 'cookie-parser'
-import { verify } from 'jsonwebtoken';
+import restRouter from './utils/restapi';
 import dotenv from "dotenv"
-import { User } from "./entities"
-import { createAccessToken } from "./utils"
+
 
 dotenv.config()
 
@@ -21,9 +20,11 @@ export type IContext = {
   res: Response
 }
 
+const app = express()
+
 const main = async () => {
   // EXPRESS
-  const app = express()
+
   const whitelist = ["http://localhost:3000", "https://studio.apollographql.com"]
   const corsOptions = {
     origin: function (origin: any, callback: any) {
@@ -37,32 +38,7 @@ const main = async () => {
   }
   app.use(cors(corsOptions))
   app.use(cookieParser())
-
-  app.post("/refresh_token", async (req, res) => {
-    const token = req.cookies.jid;
-    if (!token) {
-      return res.send({ ok: false, accessToken: '' })
-    }
-    let payload: any = null
-
-    try {
-      payload = verify(token, process.env.REFRESH_TOKEN_SECRET!);
-    } catch (err) {
-      return res.send({ ok: false, accessToken: '' })
-    }
-
-    const user = await User.findOne({ where: { id: payload.userId } })
-
-    if (!user) {
-      return res.send({ ok: false, accessToken: '' })
-    }
-
-    if (user.tokenVersion != payload.tokenVersion) {
-      return res.send({ ok: false, accessToken: '' })
-    }
-
-    return res.send({ ok: true, accessToken: createAccessToken(user) })
-  })
+  app.use('/', restRouter);
 
   // REDIS
   // let RedisStore = require("connect-redis")(session)

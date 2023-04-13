@@ -1,4 +1,3 @@
-import { SignupType } from "../enums";
 import { Field, ID, ObjectType } from "type-graphql"
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
@@ -18,8 +17,8 @@ export class User extends BaseEntity {
     @Column({ type: 'boolean', default: 'false' })
     isVerified: boolean;
 
-    @Field(() => SignupType, { nullable: false })
-    @Column({ type: 'varchar', nullable: false, })
+    @Field(() => String, { nullable: false })
+    @Column({ type: 'varchar', nullable: true, })
     signupType: string;
 
     @Column({ nullable: false })

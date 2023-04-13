@@ -43,8 +43,8 @@ const apollo_server_express_1 = require("apollo-server-express");
 const entities_1 = require("../entities");
 const typedi_1 = require("typedi");
 const check_password_strength_1 = require("check-password-strength");
+const enums_1 = require("../enums");
 const utils = __importStar(require("../utils"));
-const enums_1 = require("src/enums");
 let UserService = class UserService {
     register(email, password) {
         return __awaiter(this, void 0, void 0, function* () {

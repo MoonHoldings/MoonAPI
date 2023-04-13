@@ -19,7 +19,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
-const enums_1 = require("../enums");
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 let User = class User extends typeorm_1.BaseEntity {
@@ -49,8 +48,8 @@ __decorate([
     __metadata("design:type", Boolean)
 ], User.prototype, "isVerified", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => enums_1.SignupType, { nullable: false }),
-    (0, typeorm_1.Column)({ type: 'varchar', nullable: false, }),
+    (0, type_graphql_1.Field)(() => String, { nullable: false }),
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true, }),
     __metadata("design:type", String)
 ], User.prototype, "signupType", void 0);
 __decorate([

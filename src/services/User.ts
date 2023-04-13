@@ -3,8 +3,10 @@ import { User } from '../entities';
 import { Service } from 'typedi';
 
 import { passwordStrength } from 'check-password-strength'
+import { SignupType } from '../enums';
+import { verify } from 'jsonwebtoken';
+
 import * as utils from '../utils';
-import { SignupType } from 'src/enums';
 
 @Service()
 export class UserService {
@@ -68,4 +70,32 @@ export class UserService {
          console.log(err)
       }
    }
+
+   //TODO: To hold in function
+   // async refreshAccessToken({ req, res }: ExpressContext): Promise<string> {
+
+   //    if (!req.cookies.token) {
+   //       throw new Error("Token not valid")
+   //    }
+   //    let payload: any = null
+
+   //    try {
+   //       payload = verify(req.cookies.token, process.env.REFRESH_TOKEN_SECRET!);
+   //    } catch (err) {
+   //       throw new Error("Token not valid")
+   //    }
+
+   //    const user = await User.findOne({ where: { id: payload.userId } })
+
+   //    if (!user) {
+   //       throw new Error("Token not valid")
+   //    }
+
+   //    if (user.tokenVersion != payload.tokenVersion) {
+   //       throw new Error("Token not valid")
+   //    }
+
+
+   //    return utils.createAccessToken(user);
+   // }
 }
