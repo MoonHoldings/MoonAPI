@@ -2,11 +2,15 @@ import { verify } from "jsonwebtoken"
 import { createAccessToken } from "./auth"
 import express from "express"
 
-import { EmailTokenService } from "../services"
+import { EmailTokenService, UserService } from "../services"
 import { Container } from 'typedi';
 import { User } from "../entities";
+import oauth from "./discord";
 
 const router = express.Router()
+
+const emailTokenService = Container.get(EmailTokenService);
+const userService = Container.get(UserService);
 
 router.post("/refresh_token", async (req, res) => {
   const token = req.cookies.jid
@@ -37,14 +41,42 @@ router.post("/refresh_token", async (req, res) => {
 })
 
 router.get("/verify_email/:token", async (req, res) => {
-  const myServiceInstance = Container.get(EmailTokenService);
-  const success = await myServiceInstance.validateUserToken(req.params.token);
-
+  const success = await emailTokenService.validateUserToken(req.params.token);
   //TODO CORRECT ROUTING IN FE PAGE
   if (success) {
     return res.status(200).redirect("http://localhost/graphql")
   } else {
     //route somewhere
+  }
+})
+
+router.get("/auth/discord", async (req, res) => {
+  const code = req.query.code as string;
+  try {
+    const accessToken = await oauth.tokenRequest({
+      code,
+      scope: ['identify', 'email'],
+      grantType: "authorization_code",
+    });
+
+    const userInfo = await oauth.getUser(accessToken.access_token);
+
+    if (userInfo.email) {
+      const accessToken = await userService.discordAuth(userInfo.email, res);
+
+      if (accessToken) {
+        //TODO fix client side url
+        res.status(200).redirect(`/dashboard`);
+      } else {
+        res.status(200).redirect(`/login}`);
+      }
+    } else {
+      res.status(200).json({ error: 'Verify if discord email is confirmed' });
+    }
+
+  } catch (error) {
+    console.error(error.response);
+    res.status(200).json({ error: 'Discord might have maintenance' });
   }
 })
 

@@ -1,9 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isAuth = exports.createRefreshToken = exports.createAccessToken = void 0;
+exports.generateDiscordUrl = exports.isAuth = exports.createRefreshToken = exports.createAccessToken = void 0;
 const jsonwebtoken_1 = require("jsonwebtoken");
 const jsonwebtoken_2 = require("jsonwebtoken");
 const constants_1 = require("../constants");
+const discord_1 = __importDefault(require("./discord"));
+const crypto = require('crypto');
 const createAccessToken = (user) => {
     return (0, jsonwebtoken_1.sign)({ userId: user.id }, `${constants_1.ACCESS_TOKEN_SECRET}`, { expiresIn: "1d" });
 };
@@ -29,4 +34,12 @@ const isAuth = ({ context }, next) => {
     return next();
 };
 exports.isAuth = isAuth;
+const generateDiscordUrl = () => {
+    const url = discord_1.default.generateAuthUrl({
+        scope: ["identify", "email"],
+        state: crypto.randomBytes(16).toString("hex"),
+    });
+    return url;
+};
+exports.generateDiscordUrl = generateDiscordUrl;
 //# sourceMappingURL=auth.js.map

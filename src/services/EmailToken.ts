@@ -3,10 +3,8 @@ import { Service } from 'typedi';
 import { generateRandomString } from '../utils/string';
 import { EmailToken, User } from '../entities';
 import { EMAIL_EXPIRY_IN_DAYS } from '../constants';
-
-
 import * as utils from '../utils'
-import moment from 'moment';
+import { add } from 'date-fns';
 
 
 @Service()
@@ -14,16 +12,16 @@ export class EmailTokenService {
 
    async generateUserConfirmationToken(email: string): Promise<string> {
       const token = generateRandomString(32);
-      const now = moment();
-      const emailToken = await EmailToken.findOne({ where: { email } })
 
+      const emailToken = await EmailToken.findOne({ where: { email } })
+      const now = new Date();
       if (emailToken) {
          if (emailToken.isExpired()) {
             await EmailToken.save(
                Object.assign(emailToken, {
                   token: token,
-                  generatedAt: now.toDate(),
-                  expireAt: now.add(EMAIL_EXPIRY_IN_DAYS, 'days').toDate()
+                  generatedAt: now,
+                  expireAt: add(now, { days: EMAIL_EXPIRY_IN_DAYS })
                })
             )
          } else {
@@ -33,8 +31,8 @@ export class EmailTokenService {
          await EmailToken.save({
             email: email,
             token: token,
-            generatedAt: now.toDate(),
-            expireAt: now.add(EMAIL_EXPIRY_IN_DAYS, 'days').toDate(),
+            generatedAt: now,
+            expireAt: add(now, { days: EMAIL_EXPIRY_IN_DAYS })
          })
       }
 
@@ -64,7 +62,7 @@ export class EmailTokenService {
       } else {
          await User.save(Object.assign(user, {
             isVerified: true,
-            verifiedAt: moment().toDate(),
+            verifiedAt: new Date(),
          }));
       }
 

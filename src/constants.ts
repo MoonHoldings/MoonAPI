@@ -12,8 +12,11 @@ export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET
 export const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET
 export const SENDGRID_KEY = process.env.SENDGRID_KEY
 export const SG_SENDER = process.env.SG_SENDER
-export const EMAIL_EXPIRY_IN_DAYS = process.env.EMAIL_EXPIRY_IN_DAYS
+export const EMAIL_EXPIRY_IN_DAYS = parseInt(process.env.EMAIL_EXPIRY_IN_DAYS!, 10)
 export const EMAIL_TOKEN_SECRET = process.env.EMAIL_TOKEN_SECRET
+export const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID
+export const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET
+export const SERVER_URL = process.env.SERVER_URL
 
 export const AXIOS_CONFIG_SHYFT_KEY = {
   headers: {

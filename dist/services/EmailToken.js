@@ -37,9 +37,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailTokenService = void 0;
 const typedi_1 = require("typedi");
@@ -47,19 +44,19 @@ const string_1 = require("../utils/string");
 const entities_1 = require("../entities");
 const constants_1 = require("../constants");
 const utils = __importStar(require("../utils"));
-const moment_1 = __importDefault(require("moment"));
+const date_fns_1 = require("date-fns");
 let EmailTokenService = class EmailTokenService {
     generateUserConfirmationToken(email) {
         return __awaiter(this, void 0, void 0, function* () {
             const token = (0, string_1.generateRandomString)(32);
-            const now = (0, moment_1.default)();
             const emailToken = yield entities_1.EmailToken.findOne({ where: { email } });
+            const now = new Date();
             if (emailToken) {
                 if (emailToken.isExpired()) {
                     yield entities_1.EmailToken.save(Object.assign(emailToken, {
                         token: token,
-                        generatedAt: now.toDate(),
-                        expireAt: now.add(constants_1.EMAIL_EXPIRY_IN_DAYS, 'days').toDate()
+                        generatedAt: now,
+                        expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS })
                     }));
                 }
                 else {
@@ -70,8 +67,8 @@ let EmailTokenService = class EmailTokenService {
                 yield entities_1.EmailToken.save({
                     email: email,
                     token: token,
-                    generatedAt: now.toDate(),
-                    expireAt: now.add(constants_1.EMAIL_EXPIRY_IN_DAYS, 'days').toDate(),
+                    generatedAt: now,
+                    expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS })
                 });
             }
             return token;
@@ -97,7 +94,7 @@ let EmailTokenService = class EmailTokenService {
             else {
                 yield entities_1.User.save(Object.assign(user, {
                     isVerified: true,
-                    verifiedAt: (0, moment_1.default)().toDate(),
+                    verifiedAt: new Date(),
                 }));
             }
             return true;

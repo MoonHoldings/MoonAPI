@@ -68,17 +68,15 @@ let UserResolver = class UserResolver {
             return yield this.userService.login(email, password, ctx);
         });
     }
-    bye({}) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const test = utils.encryptToken('alvarezmicoh@gmail.com');
-            const test2 = utils.decryptToken(test);
-            return 'testing function';
-        });
-    }
     revokeRefreshTokensForUser(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.userService.incrementRefreshVersion(userId);
             return true;
+        });
+    }
+    generateDiscordUrl() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return utils.generateDiscordUrl();
         });
     }
 };
@@ -100,13 +98,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "login", null);
 __decorate([
-    (0, type_graphql_1.Query)(() => String),
-    __param(0, (0, type_graphql_1.Ctx)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], UserResolver.prototype, "bye", null);
-__decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
     (0, type_graphql_1.UseMiddleware)(utils_1.isAuth),
     __param(0, (0, type_graphql_1.Arg)('userId', () => type_graphql_1.Int)),
@@ -114,6 +105,12 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "revokeRefreshTokensForUser", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => String),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "generateDiscordUrl", null);
 UserResolver = __decorate([
     (0, type_graphql_1.Resolver)()
 ], UserResolver);
