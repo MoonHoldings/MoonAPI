@@ -19,6 +19,7 @@ export class OrderBookService {
   async getOrderBooks(args: GetOrderBooksArgs): Promise<PaginatedOrderBookResponse> {
     let query = OrderBook.createQueryBuilder("orderBook")
       .select("orderBook.id", "id")
+      .addSelect("orderBook.pubKey", "pubKey")
       .addSelect("nftList.collectionName", "collectionName")
       .addSelect("nftList.collectionImage", "collectionImage")
       .addSelect("nftList.floorPrice", "floorPrice")
@@ -71,6 +72,7 @@ export class OrderBookService {
 
     const orderBooks = rawData.map((orderBook) => ({
       id: orderBook.id,
+      pubKey: orderBook.pubKey,
       apy: orderBook.apy,
       apyAfterFee: apyAfterFee(orderBook.apy, orderBook.duration, orderBook.feePermillicentage),
       duration: orderBook.duration,
