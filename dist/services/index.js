@@ -17,4 +17,5 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./Loan"), exports);
 __exportStar(require("./OrderBook"), exports);
 __exportStar(require("./User"), exports);
+__exportStar(require("./EmailToken"), exports);
 //# sourceMappingURL=index.js.map

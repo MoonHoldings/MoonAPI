@@ -5,7 +5,7 @@ import { Arg, Ctx, Int, Mutation, Query, Resolver, UseMiddleware } from "type-gr
 import { isAuth } from "../utils";
 import { Session } from "../utils/session";
 import Container from 'typedi';
-import { ExpressContext } from "apollo-server-express";
+import * as utils from '../utils';
 
 @Resolver()
 export class UserResolver {
@@ -23,9 +23,10 @@ export class UserResolver {
     }
 
     @Query(() => String)
-    @UseMiddleware(isAuth)
-    bye(@Ctx() { payload }: Session) {
-        return `your user id is:${payload?.userId}`
+    async bye(@Ctx() { }: Session) {
+        const test = utils.encryptToken('alvarezmicoh@gmail.com');
+        const test2 = utils.decryptToken(test);
+        return 'testing function';
     }
 
     //like a logout function
@@ -41,5 +42,4 @@ export class UserResolver {
     // async refreshToken(@Ctx() ctx: Session): Promise<String> {
     //     return await this.userService.refreshAccessToken(ctx);
     // }
-
 }
