@@ -22,6 +22,22 @@ __decorate([
     (0, type_graphql_1.Field)(() => [entities_1.Loan]),
     __metadata("design:type", Array)
 ], PaginatedLoanResponse.prototype, "data", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], PaginatedLoanResponse.prototype, "totalOffers", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], PaginatedLoanResponse.prototype, "totalActive", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], PaginatedLoanResponse.prototype, "offerCount", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], PaginatedLoanResponse.prototype, "activeCount", void 0);
 PaginatedLoanResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], PaginatedLoanResponse);

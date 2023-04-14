@@ -53,6 +53,16 @@ let OrderBook = class OrderBook extends typeorm_1.BaseEntity {
             return totalPool ? parseInt(totalPool) / web3_js_1.LAMPORTS_PER_SOL : 0;
         });
     }
+    totalActiveLoans() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const query = Loan_1.Loan.createQueryBuilder("loan")
+                .select("SUM(loan.principalLamports)", "totalActiveLoans")
+                .where("loan.orderBookId = :id", { id: this.id })
+                .andWhere("loan.state = :state", { state: types_1.LoanType.Taken });
+            const { totalActiveLoans } = yield query.getRawOne();
+            return totalActiveLoans ? parseInt(totalActiveLoans) / web3_js_1.LAMPORTS_PER_SOL : 0;
+        });
+    }
 };
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.ID),
@@ -125,6 +135,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], OrderBook.prototype, "totalPool", null);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], OrderBook.prototype, "totalActiveLoans", null);
 OrderBook = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

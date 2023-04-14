@@ -44,6 +44,10 @@ __decorate([
     (0, type_graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], GetLoansFilter.prototype, "orderBookPubKey", void 0);
+__decorate([
+    (0, type_graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", Number)
+], GetLoansFilter.prototype, "orderBookId", void 0);
 GetLoansFilter = __decorate([
     (0, type_graphql_1.InputType)()
 ], GetLoansFilter);

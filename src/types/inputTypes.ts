@@ -19,6 +19,8 @@ export class GetLoansFilter {
   borrowerWallet?: string
   @Field({ nullable: true })
   orderBookPubKey?: string
+  @Field({ nullable: true })
+  orderBookId?: number
 }
 
 @InputType()
