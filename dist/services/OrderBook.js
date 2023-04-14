@@ -41,6 +41,7 @@ let OrderBookService = class OrderBookService {
         return __awaiter(this, void 0, void 0, function* () {
             let query = entities_1.OrderBook.createQueryBuilder("orderBook")
                 .select("orderBook.id", "id")
+                .addSelect("orderBook.pubKey", "pubKey")
                 .addSelect("nftList.collectionName", "collectionName")
                 .addSelect("nftList.collectionImage", "collectionImage")
                 .addSelect("nftList.floorPrice", "floorPrice")
@@ -85,6 +86,7 @@ let OrderBookService = class OrderBookService {
             const rawData = yield query.getRawMany();
             const orderBooks = rawData.map((orderBook) => ({
                 id: orderBook.id,
+                pubKey: orderBook.pubKey,
                 apy: orderBook.apy,
                 apyAfterFee: (0, apyAfterFee_1.default)(orderBook.apy, orderBook.duration, orderBook.feePermillicentage),
                 duration: orderBook.duration,

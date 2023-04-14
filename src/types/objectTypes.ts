@@ -21,6 +21,8 @@ export class PaginatedLoanResponse {
 export class OrderBookList {
   @Field(() => Int)
   id: number
+  @Field(() => String)
+  pubKey: string
   @Field(() => Number)
   apy: number
   @Field(() => Number, { nullable: true })

@@ -49,6 +49,10 @@ __decorate([
     __metadata("design:type", Number)
 ], OrderBookList.prototype, "id", void 0);
 __decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], OrderBookList.prototype, "pubKey", void 0);
+__decorate([
     (0, type_graphql_1.Field)(() => Number),
     __metadata("design:type", Number)
 ], OrderBookList.prototype, "apy", void 0);
