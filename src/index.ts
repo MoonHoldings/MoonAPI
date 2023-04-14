@@ -8,10 +8,9 @@ import cors from "cors"
 import { __prod__ } from "./constants"
 import { AppDataSource } from "./utils/db"
 import { LoanResolver, OrderBookResolver, UserResolver } from "./resolvers"
-import cookieParser from 'cookie-parser'
-import restRouter from './utils/restapi';
+import cookieParser from "cookie-parser"
+import restRouter from "./utils/restapi"
 import dotenv from "dotenv"
-
 
 dotenv.config()
 
@@ -25,7 +24,7 @@ const app = express()
 const main = async () => {
   // EXPRESS
 
-  const whitelist = ["http://localhost:3000", "https://studio.apollographql.com"]
+  const whitelist = process?.env?.CORS_ALLOW_ORIGIN?.split(", ") ?? []
   const corsOptions = {
     origin: function (origin: any, callback: any) {
       if (whitelist.indexOf(origin) !== -1) {
@@ -38,7 +37,7 @@ const main = async () => {
   }
   app.use(cors(corsOptions))
   app.use(cookieParser())
-  app.use('/', restRouter);
+  app.use("/", restRouter)
 
   // REDIS
   // let RedisStore = require("connect-redis")(session)
@@ -74,7 +73,7 @@ const main = async () => {
     context: async ({ req, res }: IContext) => {
       try {
         await AppDataSource.initialize()
-      } catch (_) { }
+      } catch (_) {}
 
       return {
         req,
