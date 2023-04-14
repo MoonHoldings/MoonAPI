@@ -19,6 +19,7 @@ export class OrderBookService {
   async getOrderBooks(args: GetOrderBooksArgs): Promise<PaginatedOrderBookResponse> {
     let query = OrderBook.createQueryBuilder("orderBook")
       .select("orderBook.id", "id")
+      .addSelect("orderBook.pubKey", "pubKey")
       .addSelect("nftList.collectionName", "collectionName")
       .addSelect("nftList.collectionImage", "collectionImage")
       .addSelect("nftList.floorPrice", "floorPrice")
@@ -26,7 +27,7 @@ export class OrderBookService {
       .addSelect("orderBook.duration", "duration")
       .addSelect("orderBook.feePermillicentage", "feePermillicentage")
       .addSelect("COALESCE(SUM(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "totalpool")
-      .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "bestOffer")
+      .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "bestoffer")
       .innerJoin("orderBook.nftList", "nftList")
       .leftJoin("orderBook.loans", "loan")
 
@@ -51,7 +52,7 @@ export class OrderBookService {
         query.orderBy("apy", args?.sort?.order ?? SortOrder.Desc)
         break
       case OrderBookSortType.Collection:
-        query.orderBy("collectionName", args?.sort?.order ?? SortOrder.Desc)
+        query.orderBy("nftList.collectionName", args?.sort?.order ?? SortOrder.Desc)
         break
       case OrderBookSortType.Duration:
         query.orderBy("duration", args?.sort?.order ?? SortOrder.Desc)
@@ -60,7 +61,7 @@ export class OrderBookService {
         query.orderBy("totalpool", args?.sort?.order ?? SortOrder.Desc)
         break
       case OrderBookSortType.BestOffer:
-        query.orderBy("bestOffer", args?.sort?.order ?? SortOrder.Desc)
+        query.orderBy("bestoffer", args?.sort?.order ?? SortOrder.Desc)
         break
       default:
         query.orderBy("totalpool", args?.sort?.order ?? SortOrder.Desc)
@@ -71,6 +72,7 @@ export class OrderBookService {
 
     const orderBooks = rawData.map((orderBook) => ({
       id: orderBook.id,
+      pubKey: orderBook.pubKey,
       apy: orderBook.apy,
       apyAfterFee: apyAfterFee(orderBook.apy, orderBook.duration, orderBook.feePermillicentage),
       duration: orderBook.duration,
@@ -80,7 +82,7 @@ export class OrderBookService {
       floorPrice: orderBook.floorPrice,
       floorPriceSol: orderBook.floorPrice ? parseFloat(orderBook.floorPrice) / LAMPORTS_PER_SOL : undefined,
       totalPool: parseFloat(orderBook.totalpool) / LAMPORTS_PER_SOL,
-      bestOffer: parseFloat(orderBook.bestOffer) / LAMPORTS_PER_SOL,
+      bestOffer: parseFloat(orderBook.bestoffer) / LAMPORTS_PER_SOL,
     }))
 
     return {

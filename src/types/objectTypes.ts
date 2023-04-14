@@ -7,12 +7,22 @@ export class PaginatedLoanResponse {
   count: number
   @Field(() => [Loan])
   data: Loan[]
+  @Field(() => Number, { nullable: true })
+  totalOffers?: number
+  @Field(() => Number, { nullable: true })
+  totalActive?: number
+  @Field(() => Number, { nullable: true })
+  offerCount?: number
+  @Field(() => Number, { nullable: true })
+  activeCount?: number
 }
 
 @ObjectType()
 export class OrderBookList {
   @Field(() => Int)
   id: number
+  @Field(() => String)
+  pubKey: string
   @Field(() => Number)
   apy: number
   @Field(() => Number, { nullable: true })
@@ -21,7 +31,7 @@ export class OrderBookList {
   duration: number
   @Field(() => Number)
   feePermillicentage: number
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   collectionName: string
   @Field(() => String, { nullable: true })
   collectionImage?: string

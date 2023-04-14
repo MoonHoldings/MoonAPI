@@ -22,6 +22,22 @@ __decorate([
     (0, type_graphql_1.Field)(() => [entities_1.Loan]),
     __metadata("design:type", Array)
 ], PaginatedLoanResponse.prototype, "data", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], PaginatedLoanResponse.prototype, "totalOffers", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], PaginatedLoanResponse.prototype, "totalActive", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], PaginatedLoanResponse.prototype, "offerCount", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Number, { nullable: true }),
+    __metadata("design:type", Number)
+], PaginatedLoanResponse.prototype, "activeCount", void 0);
 PaginatedLoanResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], PaginatedLoanResponse);
@@ -32,6 +48,10 @@ __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int),
     __metadata("design:type", Number)
 ], OrderBookList.prototype, "id", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], OrderBookList.prototype, "pubKey", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Number),
     __metadata("design:type", Number)
@@ -49,7 +69,7 @@ __decorate([
     __metadata("design:type", Number)
 ], OrderBookList.prototype, "feePermillicentage", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => String),
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], OrderBookList.prototype, "collectionName", void 0);
 __decorate([

@@ -26,7 +26,8 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
-    const whitelist = ["http://localhost:3000", "https://studio.apollographql.com"];
+    var _a, _b, _c;
+    const whitelist = (_c = (_b = (_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.CORS_ALLOW_ORIGIN) === null || _b === void 0 ? void 0 : _b.split(", ")) !== null && _c !== void 0 ? _c : [];
     const corsOptions = {
         origin: function (origin, callback) {
             if (whitelist.indexOf(origin) !== -1) {
@@ -40,7 +41,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     };
     app.use((0, cors_1.default)(corsOptions));
     app.use((0, cookie_parser_1.default)());
-    app.use('/', restapi_1.default);
+    app.use("/", restapi_1.default);
     app.use((0, express_session_1.default)({
         name: "qid",
         cookie: {
