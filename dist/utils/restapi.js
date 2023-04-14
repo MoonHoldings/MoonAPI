@@ -12,10 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const entities_1 = require("../entities");
 const jsonwebtoken_1 = require("jsonwebtoken");
 const auth_1 = require("./auth");
 const express_1 = __importDefault(require("express"));
+const services_1 = require("../services");
+const typedi_1 = require("typedi");
+const entities_1 = require("../entities");
 const router = express_1.default.Router();
 router.post("/refresh_token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.cookies.jid;
@@ -37,6 +39,15 @@ router.post("/refresh_token", (req, res) => __awaiter(void 0, void 0, void 0, fu
         return res.send({ ok: false, accessToken: "" });
     }
     return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user) });
+}));
+router.get("/verify_email/:token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const myServiceInstance = typedi_1.Container.get(services_1.EmailTokenService);
+    const success = yield myServiceInstance.validateUserToken(req.params.token);
+    if (success) {
+        return res.status(200).redirect("http://localhost/graphql");
+    }
+    else {
+    }
 }));
 exports.default = router;
 //# sourceMappingURL=restapi.js.map

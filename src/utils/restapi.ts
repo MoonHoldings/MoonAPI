@@ -1,7 +1,10 @@
-import { User } from "../entities"
 import { verify } from "jsonwebtoken"
 import { createAccessToken } from "./auth"
 import express from "express"
+
+import { EmailTokenService } from "../services"
+import { Container } from 'typedi';
+import { User } from "../entities";
 
 const router = express.Router()
 
@@ -33,4 +36,16 @@ router.post("/refresh_token", async (req, res) => {
   return res.send({ ok: true, accessToken: createAccessToken(user) })
 })
 
-export default router
+router.get("/verify_email/:token", async (req, res) => {
+  const myServiceInstance = Container.get(EmailTokenService);
+  const success = await myServiceInstance.validateUserToken(req.params.token);
+
+  //TODO CORRECT ROUTING IN FE PAGE
+  if (success) {
+    return res.status(200).redirect("http://localhost/graphql")
+  } else {
+    //route somewhere
+  }
+})
+
+export default router;

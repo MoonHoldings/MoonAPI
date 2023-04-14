@@ -28,6 +28,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -37,15 +40,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const apollo_server_express_1 = require("apollo-server-express");
 const entities_1 = require("../entities");
-const typedi_1 = require("typedi");
+const typedi_1 = __importStar(require("typedi"));
 const check_password_strength_1 = require("check-password-strength");
 const enums_1 = require("../enums");
+const EmailToken_1 = require("./EmailToken");
+const constants_1 = require("../constants");
+const mail_1 = __importDefault(require("@sendgrid/mail"));
 const utils = __importStar(require("../utils"));
 let UserService = class UserService {
+    constructor() {
+        this.emailTokenService = typedi_1.default.get(EmailToken_1.EmailTokenService);
+        mail_1.default.setApiKey(`${constants_1.SENDGRID_KEY}`);
+    }
     register(email, password) {
         return __awaiter(this, void 0, void 0, function* () {
             let user = yield this.getUserByEmail(email);
@@ -58,11 +71,19 @@ let UserService = class UserService {
             else {
                 throw new apollo_server_express_1.UserInputError('Password is too weak');
             }
+            const generatedUsername = utils.removeEmailAddressesFromString(email);
             user = new entities_1.User();
             user.email = email;
+            user.username = generatedUsername;
             user.password = hashedPassword;
             user.signupType = enums_1.SignupType.EMAIL;
-            return yield entities_1.User.save(user);
+            const hasSent = yield this.sendConfirmationEmail(email, generatedUsername);
+            if (hasSent) {
+                return yield entities_1.User.save(user);
+            }
+            else {
+                throw new apollo_server_express_1.UserInputError('Signup is unavailable at the moment. Please try again later.');
+            }
         });
     }
     login(email, password, ctx) {
@@ -99,9 +120,30 @@ let UserService = class UserService {
             }
         });
     }
+    sendConfirmationEmail(email, username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const randomToken = yield this.emailTokenService.generateUserConfirmationToken(email);
+            const message = utils.generateEmailHTML(username, utils.encryptToken(randomToken));
+            const msg = {
+                to: email,
+                from: `${constants_1.SG_SENDER}`,
+                subject: "MoonHoldings Email Confirmation",
+                html: message,
+            };
+            try {
+                yield mail_1.default.send(msg);
+            }
+            catch (error) {
+                console.error(error);
+                return false;
+            }
+            return true;
+        });
+    }
 };
 UserService = __decorate([
-    (0, typedi_1.Service)()
+    (0, typedi_1.Service)(),
+    __metadata("design:paramtypes", [])
 ], UserService);
 exports.UserService = UserService;
 //# sourceMappingURL=User.js.map

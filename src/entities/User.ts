@@ -4,7 +4,6 @@ import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
-
     @Field(() => ID)
     @PrimaryGeneratedColumn()
     id!: number
@@ -13,9 +12,14 @@ export class User extends BaseEntity {
     @Column({ nullable: false })
     email: string;
 
+    @Field(() => String, { nullable: true })
+    @Column({ nullable: true })
+    username: string;
+
     @Field(() => Boolean, { defaultValue: false })
     @Column({ type: 'boolean', default: 'false' })
     isVerified: boolean;
+
 
     @Field(() => String, { nullable: false })
     @Column({ type: 'varchar', nullable: true, })
@@ -26,6 +30,9 @@ export class User extends BaseEntity {
 
     @Column({ nullable: true })
     lastLoginTimestamp: Date;
+
+    @Column({ nullable: true })
+    verifiedAt: Date;
 
     @Column({ type: 'int', default: 0 })
     tokenVersion: number
