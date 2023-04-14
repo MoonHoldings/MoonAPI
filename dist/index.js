@@ -28,7 +28,6 @@ const app = (0, express_1.default)();
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     const whitelist = (_c = (_b = (_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.CORS_ALLOW_ORIGIN) === null || _b === void 0 ? void 0 : _b.split(", ")) !== null && _c !== void 0 ? _c : [];
-    console.log(whitelist);
     const corsOptions = {
         origin: function (origin, callback) {
             if (whitelist.indexOf(origin) !== -1) {
