@@ -25,7 +25,6 @@ const main = async () => {
   // EXPRESS
 
   const whitelist = process?.env?.CORS_ALLOW_ORIGIN?.split(", ") ?? []
-  console.log(whitelist)
   const corsOptions = {
     origin: function (origin: any, callback: any) {
       if (whitelist.indexOf(origin) !== -1) {

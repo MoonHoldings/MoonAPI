@@ -10,10 +10,28 @@ export class LoanService {
   }
 
   async getLoans(args: GetLoansArgs): Promise<PaginatedLoanResponse> {
-    const where: any = {
+    let where: any = {
       state: args?.filter?.type,
-      lenderWallet: args?.filter?.lenderWallet,
-      borrowerNoteMint: args?.filter?.borrowerWallet,
+    }
+
+    const lenderWallet = args.filter?.lenderWallet
+    const borrowerWallet = args?.filter?.borrowerWallet
+
+    if (args.filter?.lenderWallet) {
+      where = [
+        {
+          lenderWallet,
+        },
+        {
+          lenderNoteMint: lenderWallet,
+        },
+      ]
+    }
+
+    if (borrowerWallet) {
+      where = {
+        borrowerNoteMint: borrowerWallet,
+      }
     }
 
     let totalOffers
