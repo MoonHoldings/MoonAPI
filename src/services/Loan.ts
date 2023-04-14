@@ -1,6 +1,7 @@
 import { GetLoansArgs, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from "../types"
-import { Loan } from "../entities"
+import { Loan, OrderBook } from "../entities"
 import { Service } from "typedi"
+import { LAMPORTS_PER_SOL } from "@solana/web3.js"
 
 @Service()
 export class LoanService {
@@ -15,10 +16,54 @@ export class LoanService {
       borrowerNoteMint: args?.filter?.borrowerWallet,
     }
 
+    let totalOffers
+    let totalActive
+    let offerCount
+    let activeCount
+
+    if (args?.filter?.orderBookId || args?.filter?.orderBookPubKey) {
+      offerCount = await Loan.count({ where: { state: LoanType.Offer, orderBook: { id: args?.filter?.orderBookId, pubKey: args?.filter?.orderBookPubKey } } })
+      activeCount = await Loan.count({ where: { state: LoanType.Taken, orderBook: { id: args?.filter?.orderBookId, pubKey: args?.filter?.orderBookPubKey } } })
+    }
+
     if (args?.filter?.orderBookPubKey) {
       where["orderBook"] = {
         pubKey: args?.filter?.orderBookPubKey,
       }
+
+      const orderBook = await OrderBook.findOneBy({ pubKey: args?.filter?.orderBookPubKey })
+
+      const loanQuery = Loan.createQueryBuilder("loan")
+        .select("SUM(CASE WHEN loan.state = :offer THEN loan.principalLamports ELSE 0 END)", "totalOffers")
+        .addSelect("SUM(CASE WHEN loan.state = :taken THEN loan.principalLamports ELSE 0 END)", "totalActive")
+        .where("loan.orderBookId = :id", { id: orderBook?.id })
+        .setParameter("offer", LoanType.Offer)
+        .setParameter("taken", LoanType.Taken)
+
+      const [result] = await loanQuery.getRawMany()
+      const { totalOffers: offers, totalActive: active } = result
+
+      totalOffers = parseFloat(offers ?? 0) / LAMPORTS_PER_SOL
+      totalActive = parseFloat(active ?? 0) / LAMPORTS_PER_SOL
+    }
+
+    if (args?.filter?.orderBookId) {
+      where["orderBook"] = {
+        id: args?.filter?.orderBookId,
+      }
+
+      const loanQuery = Loan.createQueryBuilder("loan")
+        .select("SUM(CASE WHEN loan.state = :offer THEN loan.principalLamports ELSE 0 END)", "totalOffers")
+        .addSelect("SUM(CASE WHEN loan.state = :taken THEN loan.principalLamports ELSE 0 END)", "totalActive")
+        .where("loan.orderBookId = :id", { id: args?.filter?.orderBookId })
+        .setParameter("offer", LoanType.Offer)
+        .setParameter("taken", LoanType.Taken)
+
+      const [result] = await loanQuery.getRawMany()
+      const { totalOffers: offers, totalActive: active } = result
+
+      totalOffers = parseFloat(offers ?? 0) / LAMPORTS_PER_SOL
+      totalActive = parseFloat(active ?? 0) / LAMPORTS_PER_SOL
     }
 
     let order
@@ -50,6 +95,10 @@ export class LoanService {
     return {
       count: await Loan.count({ where }),
       data: loans,
+      totalActive,
+      totalOffers,
+      offerCount,
+      activeCount,
     }
   }
 }

@@ -80,4 +80,16 @@ export class OrderBook extends BaseEntity {
 
     return totalPool ? parseInt(totalPool) / LAMPORTS_PER_SOL : 0
   }
+
+  @Field(() => Number)
+  async totalActiveLoans(): Promise<number> {
+    const query = Loan.createQueryBuilder("loan")
+      .select("SUM(loan.principalLamports)", "totalActiveLoans")
+      .where("loan.orderBookId = :id", { id: this.id })
+      .andWhere("loan.state = :state", { state: LoanType.Taken })
+
+    const { totalActiveLoans } = await query.getRawOne()
+
+    return totalActiveLoans ? parseInt(totalActiveLoans) / LAMPORTS_PER_SOL : 0
+  }
 }

@@ -7,6 +7,14 @@ export class PaginatedLoanResponse {
   count: number
   @Field(() => [Loan])
   data: Loan[]
+  @Field(() => Number, { nullable: true })
+  totalOffers?: number
+  @Field(() => Number, { nullable: true })
+  totalActive?: number
+  @Field(() => Number, { nullable: true })
+  offerCount?: number
+  @Field(() => Number, { nullable: true })
+  activeCount?: number
 }
 
 @ObjectType()
