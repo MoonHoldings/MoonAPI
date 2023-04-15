@@ -8,17 +8,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailToken = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
-const moment_1 = __importDefault(require("moment"));
+const date_fns_1 = require("date-fns");
 let EmailToken = class EmailToken extends typeorm_1.BaseEntity {
     isExpired() {
-        return (0, moment_1.default)().isAfter(this.expireAt);
+        return (0, date_fns_1.isAfter)(new Date(), this.expireAt);
     }
 };
 __decorate([

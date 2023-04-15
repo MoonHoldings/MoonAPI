@@ -3,9 +3,9 @@ import { User } from "../entities"
 import { UserService } from "../services";
 import { Arg, Ctx, Int, Mutation, Query, Resolver, UseMiddleware } from "type-graphql"
 import { isAuth } from "../utils";
-import { Session } from "../utils/session";
 import Container from 'typedi';
 import * as utils from '../utils';
+
 
 @Resolver()
 export class UserResolver {
@@ -22,12 +22,21 @@ export class UserResolver {
         return await this.userService.login(email, password, ctx);
     }
 
-    @Query(() => String)
-    async bye(@Ctx() { }: Session) {
-        const test = utils.encryptToken('alvarezmicoh@gmail.com');
-        const test2 = utils.decryptToken(test);
-        return 'testing function';
-    }
+    // @Query(() => String)
+    // async bye(@Ctx() { }: Session) {
+    //     const DiscordOauth2 = require("discord-oauth2");
+    //     const oauth = new DiscordOauth2({
+    //         clientId: '1096313631894933544',
+    //         clientSecret: 'fnOfTnPPDypUl7fyDt6wVjFdPyuZLEwP',
+    //         redirectUri: 'http://localhost:80/auth/discord',
+    //     });
+
+    //     const url = oauth.generateAuthUrl({
+    //         scope: ["identify", "email"],
+    //         state: crypto.randomBytes(16).toString("hex"),
+    //     });
+    //     return url;
+    // }
 
     //like a logout function
     @Mutation(() => Boolean)
@@ -35,6 +44,11 @@ export class UserResolver {
     async revokeRefreshTokensForUser(@Arg('userId', () => Int) userId: number) {
         await this.userService.incrementRefreshVersion(userId);
         return true;
+    }
+
+    @Query(() => String)
+    async generateDiscordUrl() {
+        return utils.generateDiscordUrl();
     }
 
     //TODO: In case to use in future

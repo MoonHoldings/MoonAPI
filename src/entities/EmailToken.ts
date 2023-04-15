@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType } from "type-graphql"
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm"
-import moment from 'moment';
+import { isAfter } from 'date-fns';
 
 @ObjectType()
 @Entity()
@@ -26,6 +26,6 @@ export class EmailToken extends BaseEntity {
     expireAt: Date;
 
     isExpired(): boolean {
-        return moment().isAfter(this.expireAt);
+        return isAfter(new Date(), this.expireAt);
     }
 }

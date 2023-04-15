@@ -5,6 +5,9 @@ import { verify } from 'jsonwebtoken';
 import { Session } from "./session";
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../constants';
 
+import oauth from './discord';
+const crypto = require('crypto')
+
 export const createAccessToken = (user: User) => {
     return sign({ userId: user.id }, `${ACCESS_TOKEN_SECRET}`, { expiresIn: "1d" })
 }
@@ -31,4 +34,13 @@ export const isAuth: MiddlewareFn<Session> = ({ context }, next) => {
     }
 
     return next();
+}
+
+export const generateDiscordUrl = () => {
+    const url = oauth.generateAuthUrl({
+        scope: ["identify", "email"],
+        state: crypto.randomBytes(16).toString("hex"),
+    });
+
+    return url;
 }

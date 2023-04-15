@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AXIOS_CONFIG_HELLO_MOON_KEY = exports.AXIOS_CONFIG_SHYFT_KEY = exports.EMAIL_TOKEN_SECRET = exports.EMAIL_EXPIRY_IN_DAYS = exports.SG_SENDER = exports.SENDGRID_KEY = exports.REFRESH_TOKEN_SECRET = exports.ACCESS_TOKEN_SECRET = exports.SHYFT_KEY = exports.SHYFT_URL = exports.HELLO_MOON_KEY = exports.HELLO_MOON_URL = exports.HELLO_MOON_RPC_URL = exports.RPC_URL = exports.__prod__ = void 0;
+exports.AXIOS_CONFIG_HELLO_MOON_KEY = exports.AXIOS_CONFIG_SHYFT_KEY = exports.SERVER_URL = exports.DISCORD_CLIENT_SECRET = exports.DISCORD_CLIENT_ID = exports.EMAIL_TOKEN_SECRET = exports.EMAIL_EXPIRY_IN_DAYS = exports.SG_SENDER = exports.SENDGRID_KEY = exports.REFRESH_TOKEN_SECRET = exports.ACCESS_TOKEN_SECRET = exports.SHYFT_KEY = exports.SHYFT_URL = exports.HELLO_MOON_KEY = exports.HELLO_MOON_URL = exports.HELLO_MOON_RPC_URL = exports.RPC_URL = exports.__prod__ = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 exports.__prod__ = process.env.NODE_ENV !== "production";
@@ -17,8 +17,11 @@ exports.ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 exports.REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 exports.SENDGRID_KEY = process.env.SENDGRID_KEY;
 exports.SG_SENDER = process.env.SG_SENDER;
-exports.EMAIL_EXPIRY_IN_DAYS = process.env.EMAIL_EXPIRY_IN_DAYS;
+exports.EMAIL_EXPIRY_IN_DAYS = parseInt(process.env.EMAIL_EXPIRY_IN_DAYS, 10);
 exports.EMAIL_TOKEN_SECRET = process.env.EMAIL_TOKEN_SECRET;
+exports.DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+exports.DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
+exports.SERVER_URL = process.env.SERVER_URL;
 exports.AXIOS_CONFIG_SHYFT_KEY = {
     headers: {
         "Content-Type": "application/json",

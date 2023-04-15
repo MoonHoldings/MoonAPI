@@ -18,7 +18,10 @@ const express_1 = __importDefault(require("express"));
 const services_1 = require("../services");
 const typedi_1 = require("typedi");
 const entities_1 = require("../entities");
+const discord_1 = __importDefault(require("./discord"));
 const router = express_1.default.Router();
+const emailTokenService = typedi_1.Container.get(services_1.EmailTokenService);
+const userService = typedi_1.Container.get(services_1.UserService);
 router.post("/refresh_token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.cookies.jid;
     if (!token) {
@@ -41,12 +44,38 @@ router.post("/refresh_token", (req, res) => __awaiter(void 0, void 0, void 0, fu
     return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user) });
 }));
 router.get("/verify_email/:token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const myServiceInstance = typedi_1.Container.get(services_1.EmailTokenService);
-    const success = yield myServiceInstance.validateUserToken(req.params.token);
+    const success = yield emailTokenService.validateUserToken(req.params.token);
     if (success) {
         return res.status(200).redirect("http://localhost/graphql");
     }
     else {
+    }
+}));
+router.get("/auth/discord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const code = req.query.code;
+    try {
+        const accessToken = yield discord_1.default.tokenRequest({
+            code,
+            scope: ['identify', 'email'],
+            grantType: "authorization_code",
+        });
+        const userInfo = yield discord_1.default.getUser(accessToken.access_token);
+        if (userInfo.email) {
+            const accessToken = yield userService.discordAuth(userInfo.email, res);
+            if (accessToken) {
+                res.status(200).redirect(`/dashboard`);
+            }
+            else {
+                res.status(200).redirect(`/login}`);
+            }
+        }
+        else {
+            res.status(200).json({ error: 'Verify if discord email is confirmed' });
+        }
+    }
+    catch (error) {
+        console.error(error.response);
+        res.status(200).json({ error: 'Discord might have maintenance' });
     }
 }));
 exports.default = router;

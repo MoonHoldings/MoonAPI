@@ -71,15 +71,9 @@ let UserService = class UserService {
             else {
                 throw new apollo_server_express_1.UserInputError('Password is too weak');
             }
-            const generatedUsername = utils.removeEmailAddressesFromString(email);
-            user = new entities_1.User();
-            user.email = email;
-            user.username = generatedUsername;
-            user.password = hashedPassword;
-            user.signupType = enums_1.SignupType.EMAIL;
-            const hasSent = yield this.sendConfirmationEmail(email, generatedUsername);
+            const hasSent = yield this.sendConfirmationEmail(email);
             if (hasSent) {
-                return yield entities_1.User.save(user);
+                return yield this.createUser(email, enums_1.SignupType.EMAIL, hashedPassword);
             }
             else {
                 throw new apollo_server_express_1.UserInputError('Signup is unavailable at the moment. Please try again later.');
@@ -91,6 +85,9 @@ let UserService = class UserService {
             let user = yield this.getUserByEmail(email);
             if (!user) {
                 throw new apollo_server_express_1.UserInputError('User does not exists');
+            }
+            if (!user.isVerified) {
+                throw new apollo_server_express_1.UserInputError('Please verify email');
             }
             let passwordMatched;
             passwordMatched = yield utils.comparePassword(password, user.password);
@@ -120,9 +117,10 @@ let UserService = class UserService {
             }
         });
     }
-    sendConfirmationEmail(email, username) {
+    sendConfirmationEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
             const randomToken = yield this.emailTokenService.generateUserConfirmationToken(email);
+            const username = utils.removeEmailAddressesFromString(email);
             const message = utils.generateEmailHTML(username, utils.encryptToken(randomToken));
             const msg = {
                 to: email,
@@ -138,6 +136,39 @@ let UserService = class UserService {
                 return false;
             }
             return true;
+        });
+    }
+    discordAuth(email, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.getUserByEmail(email);
+            let token = null;
+            if (!user) {
+                const hasSent = yield this.sendConfirmationEmail(email);
+                if (hasSent) {
+                    yield this.createUser(email, enums_1.SignupType.DISCORD);
+                    token = true;
+                }
+                else {
+                    throw new Error('There is an issue with our email servers. Please try again later.');
+                }
+            }
+            else {
+                res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true });
+            }
+            return token;
+        });
+    }
+    createUser(email, signupType, password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const newUser = new entities_1.User();
+            const generatedUsername = utils.removeEmailAddressesFromString(email);
+            newUser.email = email;
+            newUser.username = generatedUsername;
+            newUser.signupType = signupType;
+            if (password) {
+                newUser.password = password;
+            }
+            return entities_1.User.save(newUser);
         });
     }
 };
