@@ -5,19 +5,20 @@ import Container, { Service } from 'typedi';
 import { passwordStrength } from 'check-password-strength'
 import { SignupType } from '../enums';
 import { EmailTokenService } from './EmailToken';
-import { SG_SENDER } from '../constants';
+import { SENDGRID_KEY, SG_SENDER } from '../constants';
 
-import { MailDataRequired } from '@sendgrid/mail';
+import sgMail from '@sendgrid/mail';
 import * as utils from '../utils';
 import { Response } from 'express';
-import { SendMailService } from './Email';
 
 @Service()
 export class UserService {
 
    private emailTokenService = Container.get(EmailTokenService);
 
-   constructor(private readonly sendMailService: SendMailService) { }
+   constructor() {
+      sgMail.setApiKey(`${SENDGRID_KEY}`);
+   }
 
    async register(email: string, password: string): Promise<User> {
       let user = await this.getUserByEmail(email);
@@ -88,7 +89,7 @@ export class UserService {
       const randomToken = await this.emailTokenService.generateUserConfirmationToken(email);
       const username = utils.removeEmailAddressesFromString(email)
       const message = utils.generateEmailHTML(username, utils.encryptToken(randomToken))
-      const msg: MailDataRequired = {
+      const msg: sgMail.MailDataRequired = {
          to: email,
          from: `${SG_SENDER}`,
          subject: "MoonHoldings Email Confirmation",
@@ -96,7 +97,7 @@ export class UserService {
       };
 
       try {
-         await this.sendMailService.sendMail(msg);
+         await sgMail.send(msg);
       } catch (error) {
          console.error(error);
          return false
