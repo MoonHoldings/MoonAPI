@@ -10,17 +10,12 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const schedule_1 = require("@nestjs/schedule");
 const tasks_module_1 = require("./tasks/tasks.module");
-const bull_1 = require("@nestjs/bull");
 require("reflect-metadata");
-const Email_1 = require("./services/Email");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [schedule_1.ScheduleModule.forRoot(), tasks_module_1.TasksModule, bull_1.BullModule.registerQueue({
-                name: 'sendMail',
-            }),],
-        providers: [Email_1.SendMailService]
+        imports: [schedule_1.ScheduleModule.forRoot(), tasks_module_1.TasksModule],
     })
 ], AppModule);
 exports.AppModule = AppModule;
