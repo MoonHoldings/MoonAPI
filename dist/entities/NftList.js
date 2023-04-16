@@ -26,32 +26,32 @@ __decorate([
 ], NftList.prototype, "id", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text", { unique: true }),
+    (0, typeorm_1.Column)('text', { unique: true }),
     __metadata("design:type", String)
 ], NftList.prototype, "pubKey", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int),
-    (0, typeorm_1.Column)("integer"),
+    (0, typeorm_1.Column)('integer'),
     __metadata("design:type", Number)
 ], NftList.prototype, "version", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], NftList.prototype, "nftMint", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], NftList.prototype, "collectionName", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String, { nullable: true }),
-    (0, typeorm_1.Column)("text", { nullable: true }),
+    (0, typeorm_1.Column)('text', { nullable: true }),
     __metadata("design:type", String)
 ], NftList.prototype, "collectionImage", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Number, { nullable: true }),
-    (0, typeorm_1.Column)("bigint", { nullable: true }),
+    (0, typeorm_1.Column)('bigint', { nullable: true }),
     __metadata("design:type", Number)
 ], NftList.prototype, "floorPrice", void 0);
 __decorate([

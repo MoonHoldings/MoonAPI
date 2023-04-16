@@ -54,7 +54,7 @@ __decorate([
 ], User.prototype, "isVerified", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String, { nullable: false }),
-    (0, typeorm_1.Column)({ type: 'varchar', nullable: true, }),
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "signupType", void 0);
 __decorate([

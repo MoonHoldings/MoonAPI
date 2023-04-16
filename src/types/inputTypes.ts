@@ -1,5 +1,5 @@
-import { InputType, Field } from "type-graphql"
-import { LoanSortType, LoanType, OrderBookSortType, SortOrder } from "./enums"
+import { InputType, Field } from 'type-graphql'
+import { LoanSortType, LoanType, OrderBookSortType, SortOrder } from './enums'
 
 @InputType()
 export class LimitOffset {

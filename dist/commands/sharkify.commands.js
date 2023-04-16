@@ -54,8 +54,8 @@ let SharkifyCommands = class SharkifyCommands {
 };
 __decorate([
     (0, nestjs_command_1.Command)({
-        command: "save:loans",
-        describe: "Fetches all loans using sharkify client and saves in our database",
+        command: 'save:loans',
+        describe: 'Fetches all loans using sharkify client and saves in our database',
     }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
@@ -63,8 +63,8 @@ __decorate([
 ], SharkifyCommands.prototype, "saveLoans", null);
 __decorate([
     (0, nestjs_command_1.Command)({
-        command: "save:orderbooks",
-        describe: "Fetches all order books using sharkify client and saves in our database",
+        command: 'save:orderbooks',
+        describe: 'Fetches all order books using sharkify client and saves in our database',
     }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
@@ -72,8 +72,8 @@ __decorate([
 ], SharkifyCommands.prototype, "saveOrderBooks", null);
 __decorate([
     (0, nestjs_command_1.Command)({
-        command: "save:nftlist",
-        describe: "Fetches all nft list using sharkify client and saves in our database",
+        command: 'save:nftlist',
+        describe: 'Fetches all nft list using sharkify client and saves in our database',
     }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
@@ -81,8 +81,8 @@ __decorate([
 ], SharkifyCommands.prototype, "saveNftList", null);
 __decorate([
     (0, nestjs_command_1.Command)({
-        command: "save:nftlistimages",
-        describe: "Fetches all nft list images using hello moon and shyft and saves in our database",
+        command: 'save:nftlistimages',
+        describe: 'Fetches all nft list images using hello moon and shyft and saves in our database',
     }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
@@ -90,8 +90,8 @@ __decorate([
 ], SharkifyCommands.prototype, "saveNftListImages", null);
 __decorate([
     (0, nestjs_command_1.Command)({
-        command: "save:nftlistprices",
-        describe: "Fetches all nft list floor prices using hello moon and saves in our database",
+        command: 'save:nftlistprices',
+        describe: 'Fetches all nft list floor prices using hello moon and saves in our database',
     }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),

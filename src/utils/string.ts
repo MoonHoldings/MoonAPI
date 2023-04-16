@@ -1,24 +1,24 @@
-import crypto from 'crypto';
+import crypto from 'crypto'
 
 export function generateRandomString(length: number): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const bytes = crypto.randomBytes(length);
-  const result = new Array(length);
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const bytes = crypto.randomBytes(length)
+  const result = new Array(length)
 
   for (let i = 0; i < length; i++) {
-    const byte = bytes[i];
-    result[i] = chars[byte % chars.length];
+    const byte = bytes[i]
+    result[i] = chars[byte % chars.length]
   }
 
-  return result.join('');
+  return result.join('')
 }
 
 export function removeEmailAddressesFromString(str: string): string {
-  return str.split('@')[0];
+  return str.split('@')[0]
 }
 
 export function removedKey(str: string): string {
-  return str.split('=')[1];
+  return str.split('=')[1]
 }
 
 export function generateEmailHTML(username: string, randomToken: string): string {
@@ -56,5 +56,5 @@ export function generateEmailHTML(username: string, randomToken: string): string
 
     <div style="font-size: 17px; font-weight: semi-bold; color: #494949;">
       The Moon Holdings Team
-    </div>`;
+    </div>`
 }

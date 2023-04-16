@@ -1,4 +1,4 @@
 export enum SignupType {
-    EMAIL = 'EMAIL',
-    DISCORD = 'DISCORD',
+  EMAIL = 'EMAIL',
+  DISCORD = 'DISCORD',
 }
