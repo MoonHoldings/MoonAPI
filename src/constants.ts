@@ -1,7 +1,7 @@
-import dotenv from "dotenv"
+import dotenv from 'dotenv'
 dotenv.config()
 
-export const __prod__ = process.env.NODE_ENV !== "production"
+export const __prod__ = process.env.NODE_ENV !== 'production'
 export const RPC_URL = process.env.RPC_URL
 export const HELLO_MOON_RPC_URL = process.env.HELLO_MOON_RPC_URL
 export const HELLO_MOON_URL = `${process.env.HELLO_MOON_SERVER_URL}`
@@ -20,8 +20,8 @@ export const SERVER_URL = process.env.SERVER_URL
 
 export const AXIOS_CONFIG_SHYFT_KEY = {
   headers: {
-    "Content-Type": "application/json",
-    "x-api-key": SHYFT_KEY,
+    'Content-Type': 'application/json',
+    'x-api-key': SHYFT_KEY,
   },
 }
 export const AXIOS_CONFIG_HELLO_MOON_KEY = {

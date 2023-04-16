@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AXIOS_CONFIG_HELLO_MOON_KEY = exports.AXIOS_CONFIG_SHYFT_KEY = exports.SERVER_URL = exports.DISCORD_CLIENT_SECRET = exports.DISCORD_CLIENT_ID = exports.EMAIL_TOKEN_SECRET = exports.EMAIL_EXPIRY_IN_DAYS = exports.SG_SENDER = exports.SENDGRID_KEY = exports.REFRESH_TOKEN_SECRET = exports.ACCESS_TOKEN_SECRET = exports.SHYFT_KEY = exports.SHYFT_URL = exports.HELLO_MOON_KEY = exports.HELLO_MOON_URL = exports.HELLO_MOON_RPC_URL = exports.RPC_URL = exports.__prod__ = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-exports.__prod__ = process.env.NODE_ENV !== "production";
+exports.__prod__ = process.env.NODE_ENV !== 'production';
 exports.RPC_URL = process.env.RPC_URL;
 exports.HELLO_MOON_RPC_URL = process.env.HELLO_MOON_RPC_URL;
 exports.HELLO_MOON_URL = `${process.env.HELLO_MOON_SERVER_URL}`;
@@ -24,8 +24,8 @@ exports.DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 exports.SERVER_URL = process.env.SERVER_URL;
 exports.AXIOS_CONFIG_SHYFT_KEY = {
     headers: {
-        "Content-Type": "application/json",
-        "x-api-key": exports.SHYFT_KEY,
+        'Content-Type': 'application/json',
+        'x-api-key': exports.SHYFT_KEY,
     },
 };
 exports.AXIOS_CONFIG_HELLO_MOON_KEY = {

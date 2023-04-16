@@ -1,5 +1,5 @@
-import { Loan } from "../entities"
-import { ObjectType, Field, Int } from "type-graphql"
+import { Loan } from '../entities'
+import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
 export class PaginatedLoanResponse {

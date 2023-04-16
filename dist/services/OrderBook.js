@@ -39,21 +39,21 @@ let OrderBookService = class OrderBookService {
     getOrderBooks(args) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
         return __awaiter(this, void 0, void 0, function* () {
-            let query = entities_1.OrderBook.createQueryBuilder("orderBook")
-                .select("orderBook.id", "id")
-                .addSelect("orderBook.pubKey", "pubKey")
-                .addSelect("nftList.collectionName", "collectionName")
-                .addSelect("nftList.collectionImage", "collectionImage")
-                .addSelect("nftList.floorPrice", "floorPrice")
-                .addSelect("orderBook.apy", "apy")
-                .addSelect("orderBook.duration", "duration")
-                .addSelect("orderBook.feePermillicentage", "feePermillicentage")
-                .addSelect("COALESCE(SUM(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "totalpool")
-                .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", "bestoffer")
-                .innerJoin("orderBook.nftList", "nftList")
-                .leftJoin("orderBook.loans", "loan");
+            let query = entities_1.OrderBook.createQueryBuilder('orderBook')
+                .select('orderBook.id', 'id')
+                .addSelect('orderBook.pubKey', 'pubKey')
+                .addSelect('nftList.collectionName', 'collectionName')
+                .addSelect('nftList.collectionImage', 'collectionImage')
+                .addSelect('nftList.floorPrice', 'floorPrice')
+                .addSelect('orderBook.apy', 'apy')
+                .addSelect('orderBook.duration', 'duration')
+                .addSelect('orderBook.feePermillicentage', 'feePermillicentage')
+                .addSelect("COALESCE(SUM(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", 'totalpool')
+                .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", 'bestoffer')
+                .innerJoin('orderBook.nftList', 'nftList')
+                .leftJoin('orderBook.loans', 'loan');
             if ((_a = args === null || args === void 0 ? void 0 : args.filter) === null || _a === void 0 ? void 0 : _a.search) {
-                query.where("nftList.collectionName ILIKE :name", { name: `%${args.filter.search}%` });
+                query.where('nftList.collectionName ILIKE :name', { name: `%${args.filter.search}%` });
             }
             const count = yield query.getCount();
             if ((_b = args === null || args === void 0 ? void 0 : args.pagination) === null || _b === void 0 ? void 0 : _b.offset) {
@@ -62,25 +62,25 @@ let OrderBookService = class OrderBookService {
             if ((_c = args === null || args === void 0 ? void 0 : args.pagination) === null || _c === void 0 ? void 0 : _c.limit) {
                 query.limit(args.pagination.limit);
             }
-            query.groupBy("orderBook.id, nftList.collectionName, nftList.collectionImage, nftList.floorPrice");
+            query.groupBy('orderBook.id, nftList.collectionName, nftList.collectionImage, nftList.floorPrice');
             switch ((_d = args === null || args === void 0 ? void 0 : args.sort) === null || _d === void 0 ? void 0 : _d.type) {
                 case types_1.OrderBookSortType.Apy:
-                    query.orderBy("apy", (_f = (_e = args === null || args === void 0 ? void 0 : args.sort) === null || _e === void 0 ? void 0 : _e.order) !== null && _f !== void 0 ? _f : types_1.SortOrder.Desc);
+                    query.orderBy('apy', (_f = (_e = args === null || args === void 0 ? void 0 : args.sort) === null || _e === void 0 ? void 0 : _e.order) !== null && _f !== void 0 ? _f : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.Collection:
-                    query.orderBy("nftList.collectionName", (_h = (_g = args === null || args === void 0 ? void 0 : args.sort) === null || _g === void 0 ? void 0 : _g.order) !== null && _h !== void 0 ? _h : types_1.SortOrder.Desc);
+                    query.orderBy('nftList.collectionName', (_h = (_g = args === null || args === void 0 ? void 0 : args.sort) === null || _g === void 0 ? void 0 : _g.order) !== null && _h !== void 0 ? _h : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.Duration:
-                    query.orderBy("duration", (_k = (_j = args === null || args === void 0 ? void 0 : args.sort) === null || _j === void 0 ? void 0 : _j.order) !== null && _k !== void 0 ? _k : types_1.SortOrder.Desc);
+                    query.orderBy('duration', (_k = (_j = args === null || args === void 0 ? void 0 : args.sort) === null || _j === void 0 ? void 0 : _j.order) !== null && _k !== void 0 ? _k : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.TotalPool:
-                    query.orderBy("totalpool", (_m = (_l = args === null || args === void 0 ? void 0 : args.sort) === null || _l === void 0 ? void 0 : _l.order) !== null && _m !== void 0 ? _m : types_1.SortOrder.Desc);
+                    query.orderBy('totalpool', (_m = (_l = args === null || args === void 0 ? void 0 : args.sort) === null || _l === void 0 ? void 0 : _l.order) !== null && _m !== void 0 ? _m : types_1.SortOrder.Desc);
                     break;
                 case types_1.OrderBookSortType.BestOffer:
-                    query.orderBy("bestoffer", (_p = (_o = args === null || args === void 0 ? void 0 : args.sort) === null || _o === void 0 ? void 0 : _o.order) !== null && _p !== void 0 ? _p : types_1.SortOrder.Desc);
+                    query.orderBy('bestoffer', (_p = (_o = args === null || args === void 0 ? void 0 : args.sort) === null || _o === void 0 ? void 0 : _o.order) !== null && _p !== void 0 ? _p : types_1.SortOrder.Desc);
                     break;
                 default:
-                    query.orderBy("totalpool", (_r = (_q = args === null || args === void 0 ? void 0 : args.sort) === null || _q === void 0 ? void 0 : _q.order) !== null && _r !== void 0 ? _r : types_1.SortOrder.Desc);
+                    query.orderBy('totalpool', (_r = (_q = args === null || args === void 0 ? void 0 : args.sort) === null || _q === void 0 ? void 0 : _q.order) !== null && _r !== void 0 ? _r : types_1.SortOrder.Desc);
                     break;
             }
             const rawData = yield query.getRawMany();

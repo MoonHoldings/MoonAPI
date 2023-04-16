@@ -47,14 +47,14 @@ let LoanResolver = class LoanResolver {
 };
 __decorate([
     (0, type_graphql_1.Query)(() => entities_1.Loan),
-    __param(0, (0, type_graphql_1.Arg)("id", () => Number)),
+    __param(0, (0, type_graphql_1.Arg)('id', () => Number)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], LoanResolver.prototype, "getLoan", null);
 __decorate([
     (0, type_graphql_1.Query)(() => types_1.PaginatedLoanResponse),
-    __param(0, (0, type_graphql_1.Arg)("args", { nullable: true })),
+    __param(0, (0, type_graphql_1.Arg)('args', { nullable: true })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [types_1.GetLoansArgs]),
     __metadata("design:returntype", Promise)

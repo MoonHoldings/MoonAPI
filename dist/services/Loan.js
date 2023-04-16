@@ -58,31 +58,31 @@ let LoanService = class LoanService {
                 activeCount = yield entities_1.Loan.count({ where: { state: types_1.LoanType.Taken, orderBook: { id: (_j = args === null || args === void 0 ? void 0 : args.filter) === null || _j === void 0 ? void 0 : _j.orderBookId, pubKey: (_k = args === null || args === void 0 ? void 0 : args.filter) === null || _k === void 0 ? void 0 : _k.orderBookPubKey } } });
             }
             if ((_l = args === null || args === void 0 ? void 0 : args.filter) === null || _l === void 0 ? void 0 : _l.orderBookPubKey) {
-                where["orderBook"] = {
+                where['orderBook'] = {
                     pubKey: (_m = args === null || args === void 0 ? void 0 : args.filter) === null || _m === void 0 ? void 0 : _m.orderBookPubKey,
                 };
                 const orderBook = yield entities_1.OrderBook.findOneBy({ pubKey: (_o = args === null || args === void 0 ? void 0 : args.filter) === null || _o === void 0 ? void 0 : _o.orderBookPubKey });
-                const loanQuery = entities_1.Loan.createQueryBuilder("loan")
-                    .select("SUM(CASE WHEN loan.state = :offer THEN loan.principalLamports ELSE 0 END)", "totalOffers")
-                    .addSelect("SUM(CASE WHEN loan.state = :taken THEN loan.principalLamports ELSE 0 END)", "totalActive")
-                    .where("loan.orderBookId = :id", { id: orderBook === null || orderBook === void 0 ? void 0 : orderBook.id })
-                    .setParameter("offer", types_1.LoanType.Offer)
-                    .setParameter("taken", types_1.LoanType.Taken);
+                const loanQuery = entities_1.Loan.createQueryBuilder('loan')
+                    .select('SUM(CASE WHEN loan.state = :offer THEN loan.principalLamports ELSE 0 END)', 'totalOffers')
+                    .addSelect('SUM(CASE WHEN loan.state = :taken THEN loan.principalLamports ELSE 0 END)', 'totalActive')
+                    .where('loan.orderBookId = :id', { id: orderBook === null || orderBook === void 0 ? void 0 : orderBook.id })
+                    .setParameter('offer', types_1.LoanType.Offer)
+                    .setParameter('taken', types_1.LoanType.Taken);
                 const [result] = yield loanQuery.getRawMany();
                 const { totalOffers: offers, totalActive: active } = result;
                 totalOffers = parseFloat(offers !== null && offers !== void 0 ? offers : 0) / web3_js_1.LAMPORTS_PER_SOL;
                 totalActive = parseFloat(active !== null && active !== void 0 ? active : 0) / web3_js_1.LAMPORTS_PER_SOL;
             }
             if ((_p = args === null || args === void 0 ? void 0 : args.filter) === null || _p === void 0 ? void 0 : _p.orderBookId) {
-                where["orderBook"] = {
+                where['orderBook'] = {
                     id: (_q = args === null || args === void 0 ? void 0 : args.filter) === null || _q === void 0 ? void 0 : _q.orderBookId,
                 };
-                const loanQuery = entities_1.Loan.createQueryBuilder("loan")
-                    .select("SUM(CASE WHEN loan.state = :offer THEN loan.principalLamports ELSE 0 END)", "totalOffers")
-                    .addSelect("SUM(CASE WHEN loan.state = :taken THEN loan.principalLamports ELSE 0 END)", "totalActive")
-                    .where("loan.orderBookId = :id", { id: (_r = args === null || args === void 0 ? void 0 : args.filter) === null || _r === void 0 ? void 0 : _r.orderBookId })
-                    .setParameter("offer", types_1.LoanType.Offer)
-                    .setParameter("taken", types_1.LoanType.Taken);
+                const loanQuery = entities_1.Loan.createQueryBuilder('loan')
+                    .select('SUM(CASE WHEN loan.state = :offer THEN loan.principalLamports ELSE 0 END)', 'totalOffers')
+                    .addSelect('SUM(CASE WHEN loan.state = :taken THEN loan.principalLamports ELSE 0 END)', 'totalActive')
+                    .where('loan.orderBookId = :id', { id: (_r = args === null || args === void 0 ? void 0 : args.filter) === null || _r === void 0 ? void 0 : _r.orderBookId })
+                    .setParameter('offer', types_1.LoanType.Offer)
+                    .setParameter('taken', types_1.LoanType.Taken);
                 const [result] = yield loanQuery.getRawMany();
                 const { totalOffers: offers, totalActive: active } = result;
                 totalOffers = parseFloat(offers !== null && offers !== void 0 ? offers : 0) / web3_js_1.LAMPORTS_PER_SOL;

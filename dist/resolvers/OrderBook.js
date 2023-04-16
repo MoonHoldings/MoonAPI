@@ -47,14 +47,14 @@ let OrderBookResolver = class OrderBookResolver {
 };
 __decorate([
     (0, type_graphql_1.Query)(() => entities_1.OrderBook),
-    __param(0, (0, type_graphql_1.Arg)("id", () => Number)),
+    __param(0, (0, type_graphql_1.Arg)('id', () => Number)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], OrderBookResolver.prototype, "getOrderBook", null);
 __decorate([
     (0, type_graphql_1.Query)(() => types_1.PaginatedOrderBookResponse),
-    __param(0, (0, type_graphql_1.Arg)("args", { nullable: true })),
+    __param(0, (0, type_graphql_1.Arg)('args', { nullable: true })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [types_1.GetOrderBooksArgs]),
     __metadata("design:returntype", Promise)

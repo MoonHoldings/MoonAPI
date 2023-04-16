@@ -15,7 +15,7 @@ const app_module_1 = require("./app.module");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const nest = yield core_1.NestFactory.create(app_module_1.AppModule);
     nest.listen(8001, () => {
-        console.log("nest started at localhost:8001");
+        console.log('nest started at localhost:8001');
     });
 });
 main().catch((err) => {

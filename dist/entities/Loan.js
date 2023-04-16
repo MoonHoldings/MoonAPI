@@ -29,17 +29,17 @@ __decorate([
 ], Loan.prototype, "id", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Loan.prototype, "pubKey", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int),
-    (0, typeorm_1.Column)("integer"),
+    (0, typeorm_1.Column)('integer'),
     __metadata("design:type", Number)
 ], Loan.prototype, "version", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Number),
-    (0, typeorm_1.Column)("bigint"),
+    (0, typeorm_1.Column)('bigint'),
     __metadata("design:type", Number)
 ], Loan.prototype, "principalLamports", void 0);
 __decorate([
@@ -49,77 +49,77 @@ __decorate([
 ], Loan.prototype, "orderBook", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Loan.prototype, "valueTokenMint", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Boolean, { defaultValue: true }),
-    (0, typeorm_1.Column)({ type: "boolean", default: true }),
+    (0, typeorm_1.Column)({ type: 'boolean', default: true }),
     __metadata("design:type", Boolean)
 ], Loan.prototype, "supportsFreezingCollateral", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Boolean, { defaultValue: false }),
-    (0, typeorm_1.Column)({ type: "boolean", default: false }),
+    (0, typeorm_1.Column)({ type: 'boolean', default: false }),
     __metadata("design:type", Boolean)
 ], Loan.prototype, "isCollateralFrozen", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Boolean, { defaultValue: false }),
-    (0, typeorm_1.Column)({ type: "boolean", default: false }),
+    (0, typeorm_1.Column)({ type: 'boolean', default: false }),
     __metadata("design:type", Boolean)
 ], Loan.prototype, "isHistorical", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Boolean, { defaultValue: false }),
-    (0, typeorm_1.Column)({ type: "boolean", default: false }),
+    (0, typeorm_1.Column)({ type: 'boolean', default: false }),
     __metadata("design:type", Boolean)
 ], Loan.prototype, "isForeclosable", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Loan.prototype, "state", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Number, { nullable: true }),
-    (0, typeorm_1.Column)("bigint", { nullable: true }),
+    (0, typeorm_1.Column)('bigint', { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "duration", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String, { nullable: true }),
-    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
 ], Loan.prototype, "lenderWallet", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Number, { nullable: true }),
-    (0, typeorm_1.Column)("bigint", { nullable: true }),
+    (0, typeorm_1.Column)('bigint', { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "offerTime", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String, { nullable: true }),
-    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
 ], Loan.prototype, "nftCollateralMint", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String, { nullable: true }),
-    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
 ], Loan.prototype, "lenderNoteMint", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String, { nullable: true }),
-    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
 ], Loan.prototype, "borrowerNoteMint", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)("integer", { nullable: true }),
+    (0, typeorm_1.Column)('integer', { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "apy", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Number, { nullable: true }),
-    (0, typeorm_1.Column)("bigint", { nullable: true }),
+    (0, typeorm_1.Column)('bigint', { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "start", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => Number, { nullable: true }),
-    (0, typeorm_1.Column)("bigint", { nullable: true }),
+    (0, typeorm_1.Column)('bigint', { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "totalOwedLamports", void 0);
 Loan = __decorate([

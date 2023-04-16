@@ -35,30 +35,30 @@ let OrderBook = class OrderBook extends typeorm_1.BaseEntity {
     }
     bestOffer() {
         return __awaiter(this, void 0, void 0, function* () {
-            const query = Loan_1.Loan.createQueryBuilder("loan")
-                .select("MAX(loan.principalLamports)", "bestOffer")
-                .where("loan.orderBookId = :id", { id: this.id })
-                .andWhere("loan.state = :state", { state: types_1.LoanType.Offer });
+            const query = Loan_1.Loan.createQueryBuilder('loan')
+                .select('MAX(loan.principalLamports)', 'bestOffer')
+                .where('loan.orderBookId = :id', { id: this.id })
+                .andWhere('loan.state = :state', { state: types_1.LoanType.Offer });
             const { bestOffer } = yield query.getRawOne();
             return bestOffer ? parseInt(bestOffer) / web3_js_1.LAMPORTS_PER_SOL : 0;
         });
     }
     totalPool() {
         return __awaiter(this, void 0, void 0, function* () {
-            const query = Loan_1.Loan.createQueryBuilder("loan")
-                .select("SUM(loan.principalLamports)", "totalPool")
-                .where("loan.orderBookId = :id", { id: this.id })
-                .andWhere("loan.state = :state", { state: types_1.LoanType.Offer });
+            const query = Loan_1.Loan.createQueryBuilder('loan')
+                .select('SUM(loan.principalLamports)', 'totalPool')
+                .where('loan.orderBookId = :id', { id: this.id })
+                .andWhere('loan.state = :state', { state: types_1.LoanType.Offer });
             const { totalPool } = yield query.getRawOne();
             return totalPool ? parseInt(totalPool) / web3_js_1.LAMPORTS_PER_SOL : 0;
         });
     }
     totalActiveLoans() {
         return __awaiter(this, void 0, void 0, function* () {
-            const query = Loan_1.Loan.createQueryBuilder("loan")
-                .select("SUM(loan.principalLamports)", "totalActiveLoans")
-                .where("loan.orderBookId = :id", { id: this.id })
-                .andWhere("loan.state = :state", { state: types_1.LoanType.Taken });
+            const query = Loan_1.Loan.createQueryBuilder('loan')
+                .select('SUM(loan.principalLamports)', 'totalActiveLoans')
+                .where('loan.orderBookId = :id', { id: this.id })
+                .andWhere('loan.state = :state', { state: types_1.LoanType.Taken });
             const { totalActiveLoans } = yield query.getRawOne();
             return totalActiveLoans ? parseInt(totalActiveLoans) / web3_js_1.LAMPORTS_PER_SOL : 0;
         });
@@ -71,17 +71,17 @@ __decorate([
 ], OrderBook.prototype, "id", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text", { unique: true }),
+    (0, typeorm_1.Column)('text', { unique: true }),
     __metadata("design:type", String)
 ], OrderBook.prototype, "pubKey", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int),
-    (0, typeorm_1.Column)("integer"),
+    (0, typeorm_1.Column)('integer'),
     __metadata("design:type", Number)
 ], OrderBook.prototype, "version", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)("integer", { nullable: true }),
+    (0, typeorm_1.Column)('integer', { nullable: true }),
     __metadata("design:type", Number)
 ], OrderBook.prototype, "apy", void 0);
 __decorate([
@@ -92,22 +92,22 @@ __decorate([
 ], OrderBook.prototype, "apyAfterFee", null);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], OrderBook.prototype, "listAccount", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)("integer", { nullable: true }),
+    (0, typeorm_1.Column)('integer', { nullable: true }),
     __metadata("design:type", Number)
 ], OrderBook.prototype, "duration", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)("integer", { nullable: true }),
+    (0, typeorm_1.Column)('integer', { nullable: true }),
     __metadata("design:type", Number)
 ], OrderBook.prototype, "feePermillicentage", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String),
-    (0, typeorm_1.Column)("text"),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], OrderBook.prototype, "feeAuthority", void 0);
 __decorate([

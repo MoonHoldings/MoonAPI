@@ -1,14 +1,14 @@
-import { Injectable, Logger } from "@nestjs/common"
-import { Interval } from "@nestjs/schedule"
-import { InjectRepository } from "@nestjs/typeorm"
-import { format } from "date-fns"
-import { NftList } from "../entities/NftList"
-import { Loan } from "./../entities/Loan"
-import { OrderBook } from "../entities/OrderBook"
-import sharkyClient from "../utils/sharkyClient"
-import { In, IsNull, Not, Repository } from "typeorm"
-import axios from "axios"
-import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL, AXIOS_CONFIG_SHYFT_KEY, SHYFT_URL } from "../constants"
+import { Injectable, Logger } from '@nestjs/common'
+import { Interval } from '@nestjs/schedule'
+import { InjectRepository } from '@nestjs/typeorm'
+import { format } from 'date-fns'
+import { NftList } from '../entities/NftList'
+import { Loan } from './../entities/Loan'
+import { OrderBook } from '../entities/OrderBook'
+import sharkyClient from '../utils/sharkyClient'
+import { In, IsNull, Not, Repository } from 'typeorm'
+import axios from 'axios'
+import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL, AXIOS_CONFIG_SHYFT_KEY, SHYFT_URL } from '../constants'
 
 @Injectable()
 export class SharkifyService {
@@ -95,7 +95,7 @@ export class SharkifyService {
           supportsFreezingCollateral: loan.supportsFreezingCollateral,
           isCollateralFrozen: loan.isCollateralFrozen,
           isHistorical: loan.isHistorical,
-          isForeclosable: loan.isForeclosable("mainnet"),
+          isForeclosable: loan.isForeclosable('mainnet'),
           state: loan.state,
           duration: loan.data.loanState?.offer?.offer.termsSpec.time?.duration?.toNumber() || loan.data.loanState.taken?.taken.terms.time?.duration?.toNumber(),
           lenderWallet: loan.data.loanState.offer?.offer.lenderWallet.toBase58(),
@@ -206,7 +206,7 @@ export class SharkifyService {
         await this.nftListRepository.save(nftListEntities)
       }
     } catch (e) {
-      console.log("ERROR", e)
+      console.log('ERROR', e)
     }
 
     this.logger.debug(format(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"))
@@ -244,7 +244,7 @@ export class SharkifyService {
       await Promise.allSettled(imagePromises)
       await this.nftListRepository.save(nftLists)
     } catch (e) {
-      console.log("ERROR", e)
+      console.log('ERROR', e)
     }
 
     this.logger.debug(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"))
@@ -308,7 +308,7 @@ export class SharkifyService {
         collectionIdToNftListMap[data.helloMoonCollectionId] = nftMintToListMap[data.nftMint]
       })
 
-      console.log("collectionIds", allIds.length)
+      console.log('collectionIds', allIds.length)
 
       const promises = allIds.map(async (id: any) => {
         const { floorPriceLamports, helloMoonCollectionId } = (await fetchFloorPrice(id.helloMoonCollectionId)) ?? {}
@@ -317,7 +317,7 @@ export class SharkifyService {
 
       const floorPrices = await Promise.all(promises)
 
-      console.log("floorPrices", floorPrices.length)
+      console.log('floorPrices', floorPrices.length)
 
       const nftListsToSave: NftList[] = []
 
@@ -332,7 +332,7 @@ export class SharkifyService {
 
       await this.nftListRepository.save(nftListsToSave)
     } catch (e) {
-      console.log("ERROR", e)
+      console.log('ERROR', e)
     }
 
     this.logger.debug(format(new Date(), "'saveNftListPrices end:' MMMM d, yyyy hh:mma"))

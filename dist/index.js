@@ -27,7 +27,7 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
-    const whitelist = (_c = (_b = (_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.CORS_ALLOW_ORIGIN) === null || _b === void 0 ? void 0 : _b.split(",")) !== null && _c !== void 0 ? _c : [];
+    const whitelist = (_c = (_b = (_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.CORS_ALLOW_ORIGIN) === null || _b === void 0 ? void 0 : _b.split(',')) !== null && _c !== void 0 ? _c : [];
     const corsOptions = {
         origin: function (origin, callback) {
             if (whitelist.indexOf(origin) !== -1) {
@@ -41,17 +41,17 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     };
     app.use((0, cors_1.default)(corsOptions));
     app.use((0, cookie_parser_1.default)());
-    app.use("/", restapi_1.default);
+    app.use('/', restapi_1.default);
     app.use((0, express_session_1.default)({
-        name: "qid",
+        name: 'qid',
         cookie: {
             maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: 'lax',
             secure: !constants_1.__prod__,
         },
         saveUninitialized: false,
-        secret: process.env.SESSION_SECRET ? process.env.SESSION_SECRET : "",
+        secret: process.env.SESSION_SECRET ? process.env.SESSION_SECRET : '',
         resave: false,
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
@@ -75,7 +75,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     apolloServer.applyMiddleware({ app, cors: false });
     app.listen(process.env.PORT || 80, () => {
         var _a;
-        console.log(`server started at http://localhost:${(_a = process.env.PORT) !== null && _a !== void 0 ? _a : ""}/graphql`);
+        console.log(`server started at http://localhost:${(_a = process.env.PORT) !== null && _a !== void 0 ? _a : ''}/graphql`);
     });
 });
 main().catch((err) => {

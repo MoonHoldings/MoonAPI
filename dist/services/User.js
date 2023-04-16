@@ -104,7 +104,6 @@ let UserService = class UserService {
     getUserByEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield entities_1.User.findOne({ where: { email } });
-            ;
         });
     }
     incrementRefreshVersion(id) {
@@ -125,7 +124,7 @@ let UserService = class UserService {
             const msg = {
                 to: email,
                 from: `${constants_1.SG_SENDER}`,
-                subject: "MoonHoldings Email Confirmation",
+                subject: 'MoonHoldings Email Confirmation',
                 html: message,
             };
             try {

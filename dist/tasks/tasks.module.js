@@ -29,7 +29,7 @@ TasksModule = __decorate([
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             nestjs_command_1.CommandModule,
             typeorm_1.TypeOrmModule.forRoot({
-                type: "postgres",
+                type: 'postgres',
                 host: process.env.DB_HOST,
                 port: 5432,
                 username: process.env.DB_USER,
@@ -37,7 +37,7 @@ TasksModule = __decorate([
                 database: process.env.DB_NAME,
                 entities: [Loan_1.Loan, OrderBook_1.OrderBook, NftList_1.NftList],
                 synchronize: true,
-                logging: ["log", "info", "error", "warn"],
+                logging: ['log', 'info', 'error', 'warn'],
             }),
             typeorm_1.TypeOrmModule.forFeature([Loan_1.Loan, OrderBook_1.OrderBook, NftList_1.NftList]),
         ],

@@ -56,7 +56,7 @@ let EmailTokenService = class EmailTokenService {
                     yield entities_1.EmailToken.save(Object.assign(emailToken, {
                         token: token,
                         generatedAt: now,
-                        expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS })
+                        expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS }),
                     }));
                 }
                 else {
@@ -68,7 +68,7 @@ let EmailTokenService = class EmailTokenService {
                     email: email,
                     token: token,
                     generatedAt: now,
-                    expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS })
+                    expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS }),
                 });
             }
             return token;

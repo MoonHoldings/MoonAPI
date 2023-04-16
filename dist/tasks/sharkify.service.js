@@ -101,7 +101,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                         supportsFreezingCollateral: loan.supportsFreezingCollateral,
                         isCollateralFrozen: loan.isCollateralFrozen,
                         isHistorical: loan.isHistorical,
-                        isForeclosable: loan.isForeclosable("mainnet"),
+                        isForeclosable: loan.isForeclosable('mainnet'),
                         state: loan.state,
                         duration: ((_d = (_c = (_b = (_a = loan.data.loanState) === null || _a === void 0 ? void 0 : _a.offer) === null || _b === void 0 ? void 0 : _b.offer.termsSpec.time) === null || _c === void 0 ? void 0 : _c.duration) === null || _d === void 0 ? void 0 : _d.toNumber()) || ((_g = (_f = (_e = loan.data.loanState.taken) === null || _e === void 0 ? void 0 : _e.taken.terms.time) === null || _f === void 0 ? void 0 : _f.duration) === null || _g === void 0 ? void 0 : _g.toNumber()),
                         lenderWallet: (_h = loan.data.loanState.offer) === null || _h === void 0 ? void 0 : _h.offer.lenderWallet.toBase58(),
@@ -188,7 +188,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                 }
             }
             catch (e) {
-                console.log("ERROR", e);
+                console.log('ERROR', e);
             }
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"));
@@ -216,7 +216,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                 yield this.nftListRepository.save(nftLists);
             }
             catch (e) {
-                console.log("ERROR", e);
+                console.log('ERROR', e);
             }
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"));
@@ -258,14 +258,14 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                 allIds === null || allIds === void 0 ? void 0 : allIds.forEach((data) => {
                     collectionIdToNftListMap[data.helloMoonCollectionId] = nftMintToListMap[data.nftMint];
                 });
-                console.log("collectionIds", allIds.length);
+                console.log('collectionIds', allIds.length);
                 const promises = allIds.map((id) => __awaiter(this, void 0, void 0, function* () {
                     var _d;
                     const { floorPriceLamports, helloMoonCollectionId } = (_d = (yield fetchFloorPrice(id.helloMoonCollectionId))) !== null && _d !== void 0 ? _d : {};
                     return { floorPriceLamports, helloMoonCollectionId };
                 }));
                 const floorPrices = yield Promise.all(promises);
-                console.log("floorPrices", floorPrices.length);
+                console.log('floorPrices', floorPrices.length);
                 const nftListsToSave = [];
                 for (const { floorPriceLamports, helloMoonCollectionId } of floorPrices) {
                     if (floorPriceLamports && helloMoonCollectionId) {
@@ -277,7 +277,7 @@ let SharkifyService = SharkifyService_1 = class SharkifyService {
                 yield this.nftListRepository.save(nftListsToSave);
             }
             catch (e) {
-                console.log("ERROR", e);
+                console.log('ERROR', e);
             }
             this.logger.debug((0, date_fns_1.format)(new Date(), "'saveNftListPrices end:' MMMM d, yyyy hh:mma"));
             console.log((0, date_fns_1.format)(new Date(), "'saveNftListPrices end:' MMMM d, yyyy hh:mma"));
