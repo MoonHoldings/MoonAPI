@@ -1,10 +1,4 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -15,27 +9,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SigninTypeService = void 0;
-const typedi_1 = require("typedi");
+exports.createSigninType = exports.hasSigninType = void 0;
 const entities_1 = require("../entities");
-let SigninTypeService = class SigninTypeService {
-    hasSigninType(email, signinType) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const signupTypeObect = yield entities_1.SigninType.findOne({ where: { email, signinType } });
-            if (!signupTypeObect) {
-                return false;
-            }
-            return true;
-        });
+const hasSigninType = (email, signinType) => __awaiter(void 0, void 0, void 0, function* () {
+    const signupTypeObect = yield entities_1.SigninType.findOne({ where: { email, signinType } });
+    if (!signupTypeObect) {
+        return false;
     }
-    createSigninType(email, signinType) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield entities_1.SigninType.save({ email, signinType });
-        });
-    }
-};
-SigninTypeService = __decorate([
-    (0, typedi_1.Service)()
-], SigninTypeService);
-exports.SigninTypeService = SigninTypeService;
+    return true;
+});
+exports.hasSigninType = hasSigninType;
+const createSigninType = (email, signinType) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield entities_1.SigninType.save({ email, signinType });
+});
+exports.createSigninType = createSigninType;
 //# sourceMappingURL=SigninType.js.map

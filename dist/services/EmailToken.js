@@ -15,12 +15,6 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
@@ -38,80 +32,77 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EmailTokenService = void 0;
-const typedi_1 = require("typedi");
+exports.validateUserToken = exports.generateUserConfirmationToken = void 0;
 const string_1 = require("../utils/string");
 const entities_1 = require("../entities");
 const constants_1 = require("../constants");
 const utils = __importStar(require("../utils"));
 const date_fns_1 = require("date-fns");
 const enums_1 = require("../enums");
-let EmailTokenService = class EmailTokenService {
-    generateUserConfirmationToken(email, type) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const token = (0, string_1.generateRandomString)(32);
-            const emailToken = yield entities_1.EmailToken.findOne({ where: { email } });
-            const now = new Date();
-            if (emailToken) {
-                if (emailToken.isExpired()) {
-                    yield entities_1.EmailToken.save(Object.assign(emailToken, {
-                        token: token,
-                        generatedAt: now,
-                        expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS }),
-                    }));
-                }
-                else {
-                    return emailToken.token;
-                }
-            }
-            else {
-                yield entities_1.EmailToken.save({
-                    email: email,
-                    token: token,
-                    generatedAt: now,
-                    expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS }),
-                    emailTokenType: type
-                });
-            }
-            return token;
+const generateUserConfirmationToken = (email, type) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = (0, string_1.generateRandomString)(32);
+    const emailToken = yield entities_1.EmailToken.findOne({ where: { email } });
+    const now = new Date();
+    if (emailToken) {
+        if (emailToken.isExpired()) {
+            yield entities_1.EmailToken.save(Object.assign(emailToken, {
+                token: token,
+                generatedAt: now,
+                expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS }),
+                emailTokenType: type
+            }));
+        }
+        else {
+            return emailToken.token;
+        }
+    }
+    else {
+        yield entities_1.EmailToken.save({
+            email: email,
+            token: token,
+            generatedAt: now,
+            expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS }),
+            emailTokenType: type
         });
     }
-    validateUserToken(hashedToken) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const token = utils.decryptToken(utils.removedKey(hashedToken));
-            const emailToken = yield entities_1.EmailToken.findOne({ where: { token } });
-            if (!emailToken) {
-                return null;
-            }
-            if (emailToken.isExpired()) {
-                return null;
-            }
-            const user = yield entities_1.User.findOne({ where: { email: emailToken.email } });
-            if (!user) {
-                return null;
-            }
-            if (emailToken.emailTokenType == enums_1.EmailTokenType.CONFIRMATION_EMAIL) {
-                if (user.isVerified) {
-                    return null;
-                }
-                else {
-                    return yield entities_1.User.save(Object.assign(user, {
-                        isVerified: true,
-                        verifiedAt: new Date(),
-                    }));
-                }
-            }
-            else {
-                if (!user.isVerified) {
-                    return null;
-                }
-                return user;
-            }
-        });
+    return token;
+});
+exports.generateUserConfirmationToken = generateUserConfirmationToken;
+const validateUserToken = (hashedToked) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(hashedToked);
+    const token = utils.decryptToken(utils.removedKey(hashedToked));
+    console.log(token);
+    const emailToken = yield entities_1.EmailToken.findOne({ where: { token } });
+    console.log(emailToken);
+    console.log(emailToken === null || emailToken === void 0 ? void 0 : emailToken.isExpired());
+    if (!emailToken) {
+        return null;
     }
-};
-EmailTokenService = __decorate([
-    (0, typedi_1.Service)()
-], EmailTokenService);
-exports.EmailTokenService = EmailTokenService;
+    if (emailToken.isExpired()) {
+        return null;
+    }
+    const user = yield entities_1.User.findOne({ where: { email: emailToken.email } });
+    console.log(user);
+    if (!user) {
+        return null;
+    }
+    if (emailToken.emailTokenType == enums_1.EmailTokenType.CONFIRMATION_EMAIL) {
+        if (user.isVerified) {
+            return null;
+        }
+        else {
+            return yield entities_1.User.save(Object.assign(user, {
+                isVerified: true,
+                verifiedAt: new Date(),
+            }));
+        }
+    }
+    else {
+        if (!user.isVerified) {
+            return null;
+        }
+        return user;
+    }
+});
+exports.validateUserToken = validateUserToken;
 //# sourceMappingURL=EmailToken.js.map

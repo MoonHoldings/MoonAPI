@@ -1,33 +1,30 @@
 import { Context } from 'apollo-server-core'
 import { User } from '../entities'
-import { SigninType } from '../enums'
-import { UserService } from '../services'
+import * as userService from '../services/User'
 import { Arg, Ctx, Int, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql'
 import { isAuth } from '../utils'
-import Container from 'typedi'
 import * as utils from '../utils'
 
 
 
 @Resolver()
 export class UserResolver {
-    private userService = Container.get(UserService)
 
     @Mutation(() => User)
     async register(@Arg('email') email: string, @Arg('password') password: string): Promise<User> {
-        return await this.userService.register(email, password)
+        return await userService.register(email, password)
     }
 
     @Mutation(() => User)
     async login(@Arg('email') email: string, @Arg('password') password: string, @Ctx() ctx: Context<any>): Promise<User> {
-        return await this.userService.login(email, password, ctx)
+        return await userService.login(email, password, ctx)
     }
 
     //like a logout function
     @Mutation(() => Boolean)
     @UseMiddleware(isAuth)
     async revokeRefreshTokensForUser(@Arg('userId', () => Int) userId: number) {
-        await this.userService.incrementRefreshVersion(userId)
+        await userService.incrementRefreshVersion(userId)
         return true
     }
 
@@ -38,7 +35,7 @@ export class UserResolver {
 
     @Query(() => Boolean)
     async getPasswordResetUrl(@Arg('email') email: string,): Promise<boolean> {
-        return await this.userService.getPasswordResetEmail(email);
+        return await userService.getPasswordResetEmail(email);
     }
 
     @Query(() => Boolean)
@@ -46,7 +43,7 @@ export class UserResolver {
     async updatePassword(@Arg('password') email: string, @Ctx() ctx: Context<any>): Promise<boolean> {
         const token = ctx.req.cookies.jid
 
-        return await this.userService.updatePassword(email, token);
+        return await userService.updatePassword(email, token);
     }
 
 
