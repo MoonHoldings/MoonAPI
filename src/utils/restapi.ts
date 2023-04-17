@@ -2,8 +2,8 @@ import { verify } from 'jsonwebtoken'
 import { createAccessToken } from './auth'
 import express from 'express'
 
-import { EmailTokenService, UserService } from '../services'
-import { Container } from 'typedi'
+import * as emailTokenService from '../services/EmailToken'
+import * as userService from '../services/User'
 import { User } from '../entities'
 import * as utils from '../utils'
 import oauth from './discord'
@@ -11,9 +11,6 @@ import { memoryCache } from './cache';
 
 
 const router = express.Router()
-
-const emailTokenService = Container.get(EmailTokenService)
-const userService = Container.get(UserService)
 
 router.post('/refresh_token', async (req, res) => {
   const token = req.cookies.jid
@@ -44,7 +41,9 @@ router.post('/refresh_token', async (req, res) => {
 })
 
 router.get('/verify_email/:token', async (req, res) => {
+  console.log('hi');
   const success = await emailTokenService.validateUserToken(req.params.token)
+  console.log(success);
   //TODO CORRECT ROUTING IN FE PAGE login page
   if (success) {
     return res.status(200).redirect('http://localhost/graphql')
@@ -85,23 +84,23 @@ router.get('/auth/discord', async (req, res) => {
     const userInfo = await oauth.getUser(accessToken.access_token)
 
     if (userInfo.email) {
-      const user = await userService.discordAuth(userInfo.email, res)
+      const user = await userService.discordAuth(userInfo.email)
 
       if (!user?.isVerified) {
-        res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' })
+        return res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' })
       }
       if (user) {
         //TODO fix client side url
         return res.send({ ok: true, accessToken: createAccessToken(user) })
       } else {
-        res.status(200).redirect(`/login`)
+        return res.status(200).redirect(`/login`)
       }
     } else {
-      res.status(200).json({ error: 'Verify if discord email is confirmed' })
+      return res.status(200).json({ error: 'Verify if discord email is confirmed' })
     }
   } catch (error) {
     console.error(error)
-    res.status(200).json({ error: 'Discord might have maintenance' })
+    return res.status(200).json({ error: 'Discord might have maintenance' })
   }
 })
 

@@ -38,15 +38,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const jsonwebtoken_1 = require("jsonwebtoken");
 const auth_1 = require("./auth");
 const express_1 = __importDefault(require("express"));
-const services_1 = require("../services");
-const typedi_1 = require("typedi");
+const emailTokenService = __importStar(require("../services/EmailToken"));
+const userService = __importStar(require("../services/User"));
 const entities_1 = require("../entities");
 const utils = __importStar(require("../utils"));
 const discord_1 = __importDefault(require("./discord"));
 const cache_1 = require("./cache");
 const router = express_1.default.Router();
-const emailTokenService = typedi_1.Container.get(services_1.EmailTokenService);
-const userService = typedi_1.Container.get(services_1.UserService);
 router.post('/refresh_token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.cookies.jid;
     if (!token) {
@@ -69,7 +67,9 @@ router.post('/refresh_token', (req, res) => __awaiter(void 0, void 0, void 0, fu
     return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user) });
 }));
 router.get('/verify_email/:token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('hi');
     const success = yield emailTokenService.validateUserToken(req.params.token);
+    console.log(success);
     if (success) {
         return res.status(200).redirect('http://localhost/graphql');
     }
@@ -101,24 +101,24 @@ router.get('/auth/discord', (req, res) => __awaiter(void 0, void 0, void 0, func
         });
         const userInfo = yield discord_1.default.getUser(accessToken.access_token);
         if (userInfo.email) {
-            const user = yield userService.discordAuth(userInfo.email, res);
+            const user = yield userService.discordAuth(userInfo.email);
             if (!(user === null || user === void 0 ? void 0 : user.isVerified)) {
-                res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' });
+                return res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' });
             }
             if (user) {
                 return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user) });
             }
             else {
-                res.status(200).redirect(`/login`);
+                return res.status(200).redirect(`/login`);
             }
         }
         else {
-            res.status(200).json({ error: 'Verify if discord email is confirmed' });
+            return res.status(200).json({ error: 'Verify if discord email is confirmed' });
         }
     }
     catch (error) {
         console.error(error);
-        res.status(200).json({ error: 'Discord might have maintenance' });
+        return res.status(200).json({ error: 'Discord might have maintenance' });
     }
 }));
 exports.default = router;

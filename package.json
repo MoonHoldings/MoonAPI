@@ -75,7 +75,6 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.5",
     "type-graphql": "^1.1.1",
-    "typedi": "^0.10.0",
     "typeorm": "^0.3.6",
     "uuid": "^8.3.2",
     "yargs": "^17.7.1"

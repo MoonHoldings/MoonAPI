@@ -43,34 +43,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserResolver = void 0;
 const entities_1 = require("../entities");
-const services_1 = require("../services");
+const userService = __importStar(require("../services/User"));
 const type_graphql_1 = require("type-graphql");
 const utils_1 = require("../utils");
-const typedi_1 = __importDefault(require("typedi"));
 const utils = __importStar(require("../utils"));
 let UserResolver = class UserResolver {
-    constructor() {
-        this.userService = typedi_1.default.get(services_1.UserService);
-    }
     register(email, password) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.userService.register(email, password);
+            return yield userService.register(email, password);
         });
     }
     login(email, password, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.userService.login(email, password, ctx);
+            return yield userService.login(email, password, ctx);
         });
     }
     revokeRefreshTokensForUser(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.userService.incrementRefreshVersion(userId);
+            yield userService.incrementRefreshVersion(userId);
             return true;
         });
     }
@@ -81,13 +74,13 @@ let UserResolver = class UserResolver {
     }
     getPasswordResetUrl(email) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.userService.getPasswordResetEmail(email);
+            return yield userService.getPasswordResetEmail(email);
         });
     }
     updatePassword(email, ctx) {
         return __awaiter(this, void 0, void 0, function* () {
             const token = ctx.req.cookies.jid;
-            return yield this.userService.updatePassword(email, token);
+            return yield userService.updatePassword(email, token);
         });
     }
 };
