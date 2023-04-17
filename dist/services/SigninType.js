@@ -14,7 +14,7 @@ const entities_1 = require("../entities");
 const hasSigninType = (email, signInType) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield entities_1.User.findOne({ where: { email } });
     if (user) {
-        const signupTypeObect = yield entities_1.SigninType.findOne({ where: { user, signinType: { signInType } } });
+        const signupTypeObect = yield entities_1.SigninType.findOne({ where: { user: { id: user.id }, signinType: signInType } });
         if (!signupTypeObect) {
             return false;
         }
