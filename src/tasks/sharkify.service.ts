@@ -200,6 +200,7 @@ export class SharkifyService {
             pubKey: nftList.pubKey.toBase58(),
             version: nftList.version,
             nftMint: nftList.mints[nftList.mints.length - 1].toBase58(),
+            mints: nftList.mints.map((mint) => mint.toBase58()),
           })
         })
 

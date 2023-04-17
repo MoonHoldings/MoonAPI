@@ -55,6 +55,10 @@ __decorate([
     __metadata("design:type", Number)
 ], NftList.prototype, "floorPrice", void 0);
 __decorate([
+    (0, typeorm_1.Column)('simple-json', { nullable: true }),
+    __metadata("design:type", Array)
+], NftList.prototype, "mints", void 0);
+__decorate([
     (0, type_graphql_1.Field)(() => Number, { nullable: true }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),

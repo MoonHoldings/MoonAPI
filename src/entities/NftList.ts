@@ -34,6 +34,9 @@ export class NftList extends BaseEntity {
   @Column('bigint', { nullable: true })
   floorPrice!: number
 
+  @Column('simple-json', { nullable: true })
+  mints!: string[]
+
   @Field(() => Number, { nullable: true })
   floorPriceSol(): number | null {
     return this.floorPrice ? this.floorPrice / LAMPORTS_PER_SOL : null

@@ -7,6 +7,18 @@ export class SharkifyCommands {
   constructor(private readonly sharkifyService: SharkifyService) {}
 
   @Command({
+    command: 'initdb',
+    describe: 'Fetches all loans using sharkify client and saves in our database',
+  })
+  async initDb() {
+    await this.sharkifyService.saveNftList()
+    await this.sharkifyService.saveOrderBooks()
+    await this.sharkifyService.saveLoans()
+    await this.sharkifyService.saveNftListImages()
+    await this.sharkifyService.saveNftListFloorPrices()
+  }
+
+  @Command({
     command: 'save:loans',
     describe: 'Fetches all loans using sharkify client and saves in our database',
   })
