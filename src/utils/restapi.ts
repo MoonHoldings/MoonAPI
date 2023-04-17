@@ -5,7 +5,10 @@ import express from 'express'
 import { EmailTokenService, UserService } from '../services'
 import { Container } from 'typedi'
 import { User } from '../entities'
+import * as utils from '../utils'
 import oauth from './discord'
+import { memoryCache } from './cache';
+
 
 const router = express.Router()
 
@@ -42,8 +45,19 @@ router.post('/refresh_token', async (req, res) => {
 
 router.get('/verify_email/:token', async (req, res) => {
   const success = await emailTokenService.validateUserToken(req.params.token)
-  //TODO CORRECT ROUTING IN FE PAGE
+  //TODO CORRECT ROUTING IN FE PAGE login page
   if (success) {
+    return res.status(200).redirect('http://localhost/graphql')
+  } else {
+    //route somewhere
+  }
+})
+
+router.get('/reset_password_callback/:token', async (req, res) => {
+  const success = await emailTokenService.validateUserToken(req.params.token)
+  //TODO CORRECT ROUTING IN FE PAGE update password UI
+  if (success) {
+    res.cookie('jid', utils.createRefreshToken(success), { httpOnly: true })
     return res.status(200).redirect('http://localhost/graphql')
   } else {
     //route somewhere
@@ -52,6 +66,15 @@ router.get('/verify_email/:token', async (req, res) => {
 
 router.get('/auth/discord', async (req, res) => {
   const code = req.query.code as string
+  const state = req.query.state as string
+  const value = await memoryCache
+
+  const isValidState = await value.get(state);
+
+  if (!isValidState) {
+    return res.status(200).json({ error: 'Authorization link has expired' })
+  }
+
   try {
     const accessToken = await oauth.tokenRequest({
       code,
@@ -62,21 +85,26 @@ router.get('/auth/discord', async (req, res) => {
     const userInfo = await oauth.getUser(accessToken.access_token)
 
     if (userInfo.email) {
-      const accessToken = await userService.discordAuth(userInfo.email, res)
+      const user = await userService.discordAuth(userInfo.email, res)
 
-      if (accessToken) {
+      if (!user?.isVerified) {
+        res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' })
+      }
+      if (user) {
         //TODO fix client side url
-        res.status(200).redirect(`/dashboard`)
+        return res.send({ ok: true, accessToken: createAccessToken(user) })
       } else {
-        res.status(200).redirect(`/login}`)
+        res.status(200).redirect(`/login`)
       }
     } else {
       res.status(200).json({ error: 'Verify if discord email is confirmed' })
     }
   } catch (error) {
-    console.error(error.response)
+    console.error(error)
     res.status(200).json({ error: 'Discord might have maintenance' })
   }
 })
+
+
 
 export default router

@@ -25,6 +25,10 @@ export class EmailToken extends BaseEntity {
   @CreateDateColumn()
   expireAt: Date
 
+  @Field(() => String, { nullable: false })
+  @Column({ type: 'varchar', nullable: true })
+  emailTokenType: string
+
   isExpired(): boolean {
     return isAfter(new Date(), this.expireAt)
   }

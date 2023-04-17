@@ -45,8 +45,9 @@ const entities_1 = require("../entities");
 const constants_1 = require("../constants");
 const utils = __importStar(require("../utils"));
 const date_fns_1 = require("date-fns");
+const enums_1 = require("../enums");
 let EmailTokenService = class EmailTokenService {
-    generateUserConfirmationToken(email) {
+    generateUserConfirmationToken(email, type) {
         return __awaiter(this, void 0, void 0, function* () {
             const token = (0, string_1.generateRandomString)(32);
             const emailToken = yield entities_1.EmailToken.findOne({ where: { email } });
@@ -69,6 +70,7 @@ let EmailTokenService = class EmailTokenService {
                     token: token,
                     generatedAt: now,
                     expireAt: (0, date_fns_1.add)(now, { days: constants_1.EMAIL_EXPIRY_IN_DAYS }),
+                    emailTokenType: type
                 });
             }
             return token;
@@ -79,25 +81,32 @@ let EmailTokenService = class EmailTokenService {
             const token = utils.decryptToken(utils.removedKey(hashedToken));
             const emailToken = yield entities_1.EmailToken.findOne({ where: { token } });
             if (!emailToken) {
-                return false;
+                return null;
             }
             if (emailToken.isExpired()) {
-                return false;
+                return null;
             }
             const user = yield entities_1.User.findOne({ where: { email: emailToken.email } });
             if (!user) {
-                return false;
+                return null;
             }
-            if (user.isVerified) {
-                return false;
+            if (emailToken.emailTokenType == enums_1.EmailTokenType.CONFIRMATION_EMAIL) {
+                if (user.isVerified) {
+                    return null;
+                }
+                else {
+                    return yield entities_1.User.save(Object.assign(user, {
+                        isVerified: true,
+                        verifiedAt: new Date(),
+                    }));
+                }
             }
             else {
-                yield entities_1.User.save(Object.assign(user, {
-                    isVerified: true,
-                    verifiedAt: new Date(),
-                }));
+                if (!user.isVerified) {
+                    return null;
+                }
+                return user;
             }
-            return true;
         });
     }
 };

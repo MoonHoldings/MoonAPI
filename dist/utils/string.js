@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateEmailHTML = exports.removedKey = exports.removeEmailAddressesFromString = exports.generateRandomString = void 0;
+exports.generatePasswordReset = exports.generateEmailHTML = exports.removedKey = exports.removeEmailAddressesFromString = exports.generateRandomString = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 function generateRandomString(length) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -62,4 +62,41 @@ function generateEmailHTML(username, randomToken) {
     </div>`;
 }
 exports.generateEmailHTML = generateEmailHTML;
+function generatePasswordReset(username, randomToken) {
+    return `<h1>Hello ${username}!</h1>
+    <div style="font-size: 17px; font-weight: semi-bold; color: #494949;">
+    You are receiving this email because you have requested to reset your password. 
+    To complete the password reset process, please click on the link below:
+    </div>
+
+    <br/><br/>
+
+    <a style="
+        text-decoration: none;
+        padding: 15px 30px;
+        background-color: #13f195;
+        border-radius: 3px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #000;
+        "
+      href="http://localhost:80/change_password/token=${randomToken}"
+      target="_blank"
+    >
+    Reset your password
+    </a>
+
+    <br/><br/>
+
+    <div style="font-size: 17px; font-weight: semi-bold; color: #494949;">
+      Thanks!
+    </div>
+
+    <br/><br/>
+
+    <div style="font-size: 17px; font-weight: semi-bold; color: #494949;">
+      The Moon Holdings Team
+    </div>`;
+}
+exports.generatePasswordReset = generatePasswordReset;
 //# sourceMappingURL=string.js.map

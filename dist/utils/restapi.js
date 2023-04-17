@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -18,7 +41,9 @@ const express_1 = __importDefault(require("express"));
 const services_1 = require("../services");
 const typedi_1 = require("typedi");
 const entities_1 = require("../entities");
+const utils = __importStar(require("../utils"));
 const discord_1 = __importDefault(require("./discord"));
+const cache_1 = require("./cache");
 const router = express_1.default.Router();
 const emailTokenService = typedi_1.Container.get(services_1.EmailTokenService);
 const userService = typedi_1.Container.get(services_1.UserService);
@@ -51,8 +76,23 @@ router.get('/verify_email/:token', (req, res) => __awaiter(void 0, void 0, void 
     else {
     }
 }));
+router.get('/reset_password_callback/:token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const success = yield emailTokenService.validateUserToken(req.params.token);
+    if (success) {
+        res.cookie('jid', utils.createRefreshToken(success), { httpOnly: true });
+        return res.status(200).redirect('http://localhost/graphql');
+    }
+    else {
+    }
+}));
 router.get('/auth/discord', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const code = req.query.code;
+    const state = req.query.state;
+    const value = yield cache_1.memoryCache;
+    const isValidState = yield value.get(state);
+    if (!isValidState) {
+        return res.status(200).json({ error: 'Authorization link has expired' });
+    }
     try {
         const accessToken = yield discord_1.default.tokenRequest({
             code,
@@ -61,12 +101,15 @@ router.get('/auth/discord', (req, res) => __awaiter(void 0, void 0, void 0, func
         });
         const userInfo = yield discord_1.default.getUser(accessToken.access_token);
         if (userInfo.email) {
-            const accessToken = yield userService.discordAuth(userInfo.email, res);
-            if (accessToken) {
-                res.status(200).redirect(`/dashboard`);
+            const user = yield userService.discordAuth(userInfo.email, res);
+            if (!(user === null || user === void 0 ? void 0 : user.isVerified)) {
+                res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' });
+            }
+            if (user) {
+                return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user) });
             }
             else {
-                res.status(200).redirect(`/login}`);
+                res.status(200).redirect(`/login`);
             }
         }
         else {
@@ -74,7 +117,7 @@ router.get('/auth/discord', (req, res) => __awaiter(void 0, void 0, void 0, func
         }
     }
     catch (error) {
-        console.error(error.response);
+        console.error(error);
         res.status(200).json({ error: 'Discord might have maintenance' });
     }
 }));
