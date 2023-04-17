@@ -1,5 +1,5 @@
 import { Field, ID, Int, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation, JoinColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm'
 import { Loan } from './Loan'
 import { NftList } from './NftList'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
@@ -92,4 +92,10 @@ export class OrderBook extends BaseEntity {
 
     return totalActiveLoans ? parseInt(totalActiveLoans) / LAMPORTS_PER_SOL : 0
   }
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date
 }

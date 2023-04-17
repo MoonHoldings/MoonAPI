@@ -122,6 +122,14 @@ __decorate([
     (0, typeorm_1.Column)('bigint', { nullable: true }),
     __metadata("design:type", Object)
 ], Loan.prototype, "totalOwedLamports", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
+    __metadata("design:type", Date)
+], Loan.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)({ name: 'updated_at' }),
+    __metadata("design:type", Date)
+], Loan.prototype, "updatedAt", void 0);
 Loan = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()

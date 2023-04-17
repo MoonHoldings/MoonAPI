@@ -1,5 +1,5 @@
 import { Field, ID, Int, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Relation } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { OrderBook } from './OrderBook'
 
 @ObjectType()
@@ -86,4 +86,10 @@ export class Loan extends BaseEntity {
   @Field(() => Number, { nullable: true })
   @Column('bigint', { nullable: true })
   totalOwedLamports?: number | null
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date
 }
