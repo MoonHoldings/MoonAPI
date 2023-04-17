@@ -5,8 +5,6 @@ import { Arg, Ctx, Int, Mutation, Query, Resolver, UseMiddleware } from 'type-gr
 import { isAuth } from '../utils'
 import * as utils from '../utils'
 
-
-
 @Resolver()
 export class UserResolver {
 
@@ -39,10 +37,8 @@ export class UserResolver {
     }
 
     @Query(() => Boolean)
-    @UseMiddleware(isAuth)
     async updatePassword(@Arg('password') email: string, @Ctx() ctx: Context<any>): Promise<boolean> {
         const token = ctx.req.cookies.jid
-
         return await userService.updatePassword(email, token);
     }
 

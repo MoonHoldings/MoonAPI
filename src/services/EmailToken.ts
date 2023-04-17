@@ -38,27 +38,20 @@ export const generateUserConfirmationToken = async (email: string, type: string)
 }
 
 export const validateUserToken = async (hashedToked: string) => {
-  console.log(hashedToked);
   const token = utils.decryptToken(utils.removedKey(hashedToked))
-  console.log(token);
   const emailToken = await EmailToken.findOne({ where: { token } })
 
-  console.log(emailToken);
-  console.log(emailToken?.isExpired());
   if (!emailToken) {
     return null
   }
-
   if (emailToken.isExpired()) {
     return null
   }
 
   const user = await User.findOne({ where: { email: emailToken.email } })
-  console.log(user);
   if (!user) {
     return null
   }
-
 
   if (emailToken.emailTokenType == EmailTokenType.CONFIRMATION_EMAIL) {
     if (user.isVerified) {

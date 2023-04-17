@@ -31,19 +31,8 @@ export function generateEmailHTML(username: string, randomToken: string): string
 
     <br/><br/>
 
-    <a style="
-        text-decoration: none;
-        padding: 15px 30px;
-        background-color: #13f195;
-        border-radius: 3px;
-        font-size: 20px;
-        font-weight: bold;
-        color: #000;
-        "
-      href="http://localhost:80/verify_email/token=${randomToken}"
-      target="_blank"
-    >
-    Confirm your email
+    <a href="http://localhost:80/verify_email/token=${randomToken}">
+    <button style="background-color: #00FFFF; color: #000000; font-size: 16px; font-weight: bold; padding: 12px 24px; border: 2px solid #FFFFFF; border-radius: 5px;">Confirm Email</button>
     </a>
 
     <br/><br/>
@@ -69,20 +58,9 @@ export function generatePasswordReset(username: string, randomToken: string): st
 
     <br/><br/>
 
-    <a style="
-        text-decoration: none;
-        padding: 15px 30px;
-        background-color: #13f195;
-        border-radius: 3px;
-        font-size: 20px;
-        font-weight: bold;
-        color: #000;
-        "
-      href="http://localhost:80/change_password/token=${randomToken}"
-      target="_blank"
-    >
-    Reset your password
-    </a>
+    <a href="http://localhost:80/reset_password_callback/token=${randomToken}"">
+     <button style="background-color: #00FFFF; color: #000000; font-size: 16px; font-weight: bold; padding: 12px 24px; border: 2px solid #FFFFFF; border-radius: 5px;">Confirm Email</button>
+   </a>
 
     <br/><br/>
 

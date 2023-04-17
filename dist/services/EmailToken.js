@@ -69,12 +69,8 @@ const generateUserConfirmationToken = (email, type) => __awaiter(void 0, void 0,
 });
 exports.generateUserConfirmationToken = generateUserConfirmationToken;
 const validateUserToken = (hashedToked) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(hashedToked);
     const token = utils.decryptToken(utils.removedKey(hashedToked));
-    console.log(token);
     const emailToken = yield entities_1.EmailToken.findOne({ where: { token } });
-    console.log(emailToken);
-    console.log(emailToken === null || emailToken === void 0 ? void 0 : emailToken.isExpired());
     if (!emailToken) {
         return null;
     }
@@ -82,7 +78,6 @@ const validateUserToken = (hashedToked) => __awaiter(void 0, void 0, void 0, fun
         return null;
     }
     const user = yield entities_1.User.findOne({ where: { email: emailToken.email } });
-    console.log(user);
     if (!user) {
         return null;
     }

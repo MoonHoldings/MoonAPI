@@ -19,8 +19,8 @@ const constants_1 = require("../constants");
 const discord_1 = __importDefault(require("./discord"));
 const crypto = require('crypto');
 const cache_1 = require("./cache");
-const createAccessToken = (user) => {
-    return (0, jsonwebtoken_1.sign)({ userId: user.id }, `${constants_1.ACCESS_TOKEN_SECRET}`, { expiresIn: '1d' });
+const createAccessToken = (user, expiry) => {
+    return (0, jsonwebtoken_1.sign)({ userId: user.id }, `${constants_1.ACCESS_TOKEN_SECRET}`, { expiresIn: expiry });
 };
 exports.createAccessToken = createAccessToken;
 const createRefreshToken = (user) => {

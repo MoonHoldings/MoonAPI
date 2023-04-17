@@ -124,7 +124,6 @@ __decorate([
 ], UserResolver.prototype, "getPasswordResetUrl", null);
 __decorate([
     (0, type_graphql_1.Query)(() => Boolean),
-    (0, type_graphql_1.UseMiddleware)(utils_1.isAuth),
     __param(0, (0, type_graphql_1.Arg)('password')),
     __param(1, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),

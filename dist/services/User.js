@@ -92,7 +92,7 @@ const login = (email, password, ctx) => __awaiter(void 0, void 0, void 0, functi
     user.lastLoginTimestamp = new Date();
     entities_1.User.save(user);
     ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true });
-    user.accessToken = utils.createAccessToken(user);
+    user.accessToken = utils.createAccessToken(user, '1d');
     return user;
 });
 exports.login = login;
@@ -100,14 +100,14 @@ const getUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* ()
     return yield entities_1.User.findOne({ where: { email } });
 });
 exports.getUserByEmail = getUserByEmail;
-const incrementRefreshVersion = (id) => {
+const incrementRefreshVersion = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        entities_1.User.incrementTokenVersion(id);
+        yield entities_1.User.incrementTokenVersion(id);
     }
     catch (err) {
         console.log(err);
     }
-};
+});
 exports.incrementRefreshVersion = incrementRefreshVersion;
 const sendConfirmationEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
     const randomToken = yield emailTokenService.generateUserConfirmationToken(email, enums_1.EmailTokenType.CONFIRMATION_EMAIL);
@@ -137,7 +137,7 @@ const getPasswordResetEmail = (email) => __awaiter(void 0, void 0, void 0, funct
     else {
         const randomToken = yield emailTokenService.generateUserConfirmationToken(email, enums_1.EmailTokenType.RESET_PASSWORD);
         const username = utils.removeEmailAddressesFromString(email);
-        const message = utils.generateEmailHTML(username, utils.encryptToken(randomToken));
+        const message = utils.generatePasswordReset(username, utils.encryptToken(randomToken));
         const msg = {
             to: email,
             from: `${constants_1.SG_SENDER}`,
@@ -161,7 +161,7 @@ const updatePassword = (password, token) => __awaiter(void 0, void 0, void 0, fu
     }
     let payload = null;
     try {
-        payload = (0, jsonwebtoken_1.verify)(token, process.env.REFRESH_TOKEN_SECRET);
+        payload = (0, jsonwebtoken_1.verify)(token, constants_1.ACCESS_TOKEN_SECRET);
     }
     catch (err) {
         throw new apollo_server_express_1.UserInputError("Invalid token");

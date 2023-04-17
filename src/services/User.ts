@@ -2,7 +2,7 @@ import { ExpressContext, UserInputError } from 'apollo-server-express'
 import { User } from '../entities'
 import { passwordStrength } from 'check-password-strength'
 import { EmailTokenType, SigninType } from '../enums'
-import { SENDGRID_KEY, SG_SENDER } from '../constants'
+import { ACCESS_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
 
 import sgMail from '@sendgrid/mail'
 import * as utils from '../utils'
@@ -67,7 +67,7 @@ export const login = async (email: string, password: string, ctx: ExpressContext
   User.save(user)
 
   ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true })
-  user.accessToken = utils.createAccessToken(user)
+  user.accessToken = utils.createAccessToken(user, '1d')
 
   return user
 }
@@ -77,9 +77,9 @@ export const getUserByEmail = async (email: string) => {
 }
 
 //to invalidate refresh token
-export const incrementRefreshVersion = (id: number) => {
+export const incrementRefreshVersion = async (id: number) => {
   try {
-    User.incrementTokenVersion(id)
+    await User.incrementTokenVersion(id)
   } catch (err) {
     console.log(err)
   }
@@ -116,7 +116,7 @@ export const getPasswordResetEmail = async (email: string) => {
   } else {
     const randomToken = await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.RESET_PASSWORD)
     const username = utils.removeEmailAddressesFromString(email)
-    const message = utils.generateEmailHTML(username, utils.encryptToken(randomToken))
+    const message = utils.generatePasswordReset(username, utils.encryptToken(randomToken))
     const msg: sgMail.MailDataRequired = {
       to: email,
       from: `${SG_SENDER}`,
@@ -144,7 +144,7 @@ export const updatePassword = async (password: string, token: string) => {
   let payload: any = null
 
   try {
-    payload = verify(token, process.env.REFRESH_TOKEN_SECRET!)
+    payload = verify(token, ACCESS_TOKEN_SECRET!)
   } catch (err) {
     throw new UserInputError("Invalid token");
   }
