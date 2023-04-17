@@ -15,7 +15,7 @@ exports.AppDataSource = new typeorm_1.DataSource({
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
     port: 5432,
-    entities: [entities_1.Loan, entities_1.OrderBook, entities_1.NftList, entities_1.User, entities_1.EmailToken],
+    entities: [entities_1.Loan, entities_1.OrderBook, entities_1.NftList, entities_1.User, entities_1.EmailToken, entities_1.SigninType],
     synchronize: true,
     logging: process.env.NODE_ENV === 'development',
 });

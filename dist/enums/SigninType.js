@@ -6,4 +6,4 @@ var SigninType;
     SigninType["EMAIL"] = "EMAIL";
     SigninType["DISCORD"] = "DISCORD";
 })(SigninType = exports.SigninType || (exports.SigninType = {}));
-//# sourceMappingURL=SignupType.js.map
+//# sourceMappingURL=SigninType.js.map

@@ -79,6 +79,17 @@ let UserResolver = class UserResolver {
             return utils.generateDiscordUrl();
         });
     }
+    getPasswordResetUrl(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.userService.getPasswordResetEmail(email);
+        });
+    }
+    updatePassword(email, ctx) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const token = ctx.req.cookies.jid;
+            return yield this.userService.updatePassword(email, token);
+        });
+    }
 };
 __decorate([
     (0, type_graphql_1.Mutation)(() => entities_1.User),
@@ -111,6 +122,22 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "generateDiscordUrl", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => Boolean),
+    __param(0, (0, type_graphql_1.Arg)('email')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "getPasswordResetUrl", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => Boolean),
+    (0, type_graphql_1.UseMiddleware)(utils_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)('password')),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "updatePassword", null);
 UserResolver = __decorate([
     (0, type_graphql_1.Resolver)()
 ], UserResolver);

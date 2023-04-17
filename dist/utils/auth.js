@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -9,6 +18,7 @@ const jsonwebtoken_2 = require("jsonwebtoken");
 const constants_1 = require("../constants");
 const discord_1 = __importDefault(require("./discord"));
 const crypto = require('crypto');
+const cache_1 = require("./cache");
 const createAccessToken = (user) => {
     return (0, jsonwebtoken_1.sign)({ userId: user.id }, `${constants_1.ACCESS_TOKEN_SECRET}`, { expiresIn: '1d' });
 };
@@ -34,12 +44,15 @@ const isAuth = ({ context }, next) => {
     return next();
 };
 exports.isAuth = isAuth;
-const generateDiscordUrl = () => {
+const generateDiscordUrl = () => __awaiter(void 0, void 0, void 0, function* () {
+    const state = crypto.randomBytes(16).toString('hex');
+    const cache = yield cache_1.memoryCache;
+    yield cache.set(state, 60000);
     const url = discord_1.default.generateAuthUrl({
         scope: ['identify', 'email'],
-        state: crypto.randomBytes(16).toString('hex'),
+        state: state,
     });
     return url;
-};
+});
 exports.generateDiscordUrl = generateDiscordUrl;
 //# sourceMappingURL=auth.js.map
