@@ -19,5 +19,5 @@ __exportStar(require("./OrderBook"), exports);
 __exportStar(require("./NftList"), exports);
 __exportStar(require("./User"), exports);
 __exportStar(require("./EmailToken"), exports);
-__exportStar(require("./SigninType"), exports);
+__exportStar(require("./SignInType"), exports);
 //# sourceMappingURL=index.js.map

@@ -10,8 +10,8 @@ const crypto = require('crypto')
 
 import { memoryCache } from './cache';
 
-export const createAccessToken = (user: User) => {
-  return sign({ userId: user.id }, `${ACCESS_TOKEN_SECRET}`, { expiresIn: '1d' })
+export const createAccessToken = (user: User, expiry: string) => {
+  return sign({ userId: user.id }, `${ACCESS_TOKEN_SECRET}`, { expiresIn: expiry })
 }
 
 export const createRefreshToken = (user: User) => {
@@ -31,7 +31,6 @@ export const isAuth: MiddlewareFn<Session> = ({ context }, next) => {
     const payload = verify(token, `${ACCESS_TOKEN_SECRET}`)
     context.payload = payload as any
   } catch (err) {
-    console.log(err)
     throw new Error('Not Authenticated')
   }
 

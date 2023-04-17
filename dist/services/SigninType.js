@@ -9,18 +9,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createSigninType = exports.hasSigninType = void 0;
+exports.createSignInType = exports.hasSignInType = void 0;
 const entities_1 = require("../entities");
-const hasSigninType = (email, signinType) => __awaiter(void 0, void 0, void 0, function* () {
-    const signupTypeObect = yield entities_1.SigninType.findOne({ where: { email, signinType } });
-    if (!signupTypeObect) {
-        return false;
+const hasSignInType = (email, signInType) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield entities_1.User.findOne({ where: { email } });
+    if (user) {
+        const signInTypeObject = yield entities_1.SignInType.findOne({ where: { user: { id: user.id }, signInType: signInType } });
+        if (!signInTypeObject) {
+            return false;
+        }
+        return true;
     }
-    return true;
+    else {
+        return true;
+    }
 });
-exports.hasSigninType = hasSigninType;
-const createSigninType = (email, signinType) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield entities_1.SigninType.save({ email, signinType });
+exports.hasSignInType = hasSignInType;
+const createSignInType = (email, signInType) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield entities_1.User.findOne({ where: { email } });
+    if (user)
+        return yield entities_1.SignInType.save({ user, signInType });
+    else
+        return false;
 });
-exports.createSigninType = createSigninType;
-//# sourceMappingURL=SigninType.js.map
+exports.createSignInType = createSignInType;
+//# sourceMappingURL=SignInType.js.map

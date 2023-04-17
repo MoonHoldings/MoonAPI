@@ -43,7 +43,7 @@ const enums_1 = require("../enums");
 const constants_1 = require("../constants");
 const mail_1 = __importDefault(require("@sendgrid/mail"));
 const utils = __importStar(require("../utils"));
-const signinTypeService = __importStar(require("./SigninType"));
+const signInTypeService = __importStar(require("./SignInType"));
 const emailTokenService = __importStar(require("./EmailToken"));
 const jsonwebtoken_1 = require("jsonwebtoken");
 mail_1.default.setApiKey(`${constants_1.SENDGRID_KEY}`);
@@ -60,7 +60,7 @@ const register = (email, password) => __awaiter(void 0, void 0, void 0, function
     if (user) {
         isRegUser = yield (0, exports.isRegisteredUser)(user, enums_1.SigninType.EMAIL);
         if (!isRegUser) {
-            yield signinTypeService.createSigninType(email, enums_1.SigninType.EMAIL);
+            yield signInTypeService.createSignInType(email, enums_1.SigninType.EMAIL);
             return yield entities_1.User.save(Object.assign(user, { hashedPassword }));
         }
         else {
@@ -81,6 +81,10 @@ const login = (email, password, ctx) => __awaiter(void 0, void 0, void 0, functi
     if (!user) {
         throw new apollo_server_express_1.UserInputError('User does not exist');
     }
+    const hasEmailType = yield signInTypeService.hasSignInType(user.email, enums_1.SigninType.EMAIL);
+    if (!hasEmailType) {
+        throw new apollo_server_express_1.UserInputError('Email login not Available. Please signup to login.');
+    }
     if (!user.isVerified) {
         throw new apollo_server_express_1.UserInputError('Please verify email');
     }
@@ -90,9 +94,9 @@ const login = (email, password, ctx) => __awaiter(void 0, void 0, void 0, functi
         throw new apollo_server_express_1.UserInputError('Email or Password is incorrect.');
     }
     user.lastLoginTimestamp = new Date();
-    entities_1.User.save(user);
+    yield entities_1.User.save(user);
     ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true });
-    user.accessToken = utils.createAccessToken(user);
+    user.accessToken = utils.createAccessToken(user, '1d');
     return user;
 });
 exports.login = login;
@@ -100,14 +104,14 @@ const getUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* ()
     return yield entities_1.User.findOne({ where: { email } });
 });
 exports.getUserByEmail = getUserByEmail;
-const incrementRefreshVersion = (id) => {
+const incrementRefreshVersion = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        entities_1.User.incrementTokenVersion(id);
+        yield entities_1.User.incrementTokenVersion(id);
     }
     catch (err) {
         console.log(err);
     }
-};
+});
 exports.incrementRefreshVersion = incrementRefreshVersion;
 const sendConfirmationEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
     const randomToken = yield emailTokenService.generateUserConfirmationToken(email, enums_1.EmailTokenType.CONFIRMATION_EMAIL);
@@ -137,7 +141,7 @@ const getPasswordResetEmail = (email) => __awaiter(void 0, void 0, void 0, funct
     else {
         const randomToken = yield emailTokenService.generateUserConfirmationToken(email, enums_1.EmailTokenType.RESET_PASSWORD);
         const username = utils.removeEmailAddressesFromString(email);
-        const message = utils.generateEmailHTML(username, utils.encryptToken(randomToken));
+        const message = utils.generatePasswordReset(username, utils.encryptToken(randomToken));
         const msg = {
             to: email,
             from: `${constants_1.SG_SENDER}`,
@@ -161,7 +165,7 @@ const updatePassword = (password, token) => __awaiter(void 0, void 0, void 0, fu
     }
     let payload = null;
     try {
-        payload = (0, jsonwebtoken_1.verify)(token, process.env.REFRESH_TOKEN_SECRET);
+        payload = (0, jsonwebtoken_1.verify)(token, constants_1.ACCESS_TOKEN_SECRET);
     }
     catch (err) {
         throw new apollo_server_express_1.UserInputError("Invalid token");
@@ -197,27 +201,28 @@ const discordAuth = (email) => __awaiter(void 0, void 0, void 0, function* () {
         isRegUser = yield (0, exports.isRegisteredUser)(user, enums_1.SigninType.DISCORD);
     }
     if (!isRegUser) {
-        yield signinTypeService.createSigninType(user.email, enums_1.SigninType.DISCORD);
+        yield signInTypeService.createSignInType(user.email, enums_1.SigninType.DISCORD);
     }
+    user.lastLoginTimestamp = new Date();
+    yield entities_1.User.save(user);
     return user;
 });
 exports.discordAuth = discordAuth;
-const createUser = (email, signupType, password) => {
+const createUser = (email, signInType, password) => __awaiter(void 0, void 0, void 0, function* () {
     const newUser = new entities_1.User();
     const generatedUsername = utils.removeEmailAddressesFromString(email);
     newUser.email = email;
     newUser.username = generatedUsername;
-    newUser.signupType = signupType;
     if (password) {
         newUser.password = password;
     }
-    signinTypeService.createSigninType(email, signupType);
-    return entities_1.User.save(newUser);
-};
+    signInTypeService.createSignInType(email, signInType);
+    return yield entities_1.User.save(newUser);
+});
 exports.createUser = createUser;
-const isRegisteredUser = (user, signupType) => __awaiter(void 0, void 0, void 0, function* () {
-    const hasSignupType = yield signinTypeService.hasSigninType(user.email, signupType);
-    if (hasSignupType) {
+const isRegisteredUser = (user, signInType) => __awaiter(void 0, void 0, void 0, function* () {
+    const hasSignInType = yield signInTypeService.hasSignInType(user.email, signInType);
+    if (hasSignInType) {
         return true;
     }
     else {

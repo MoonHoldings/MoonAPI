@@ -64,10 +64,9 @@ router.post('/refresh_token', (req, res) => __awaiter(void 0, void 0, void 0, fu
     if (user.tokenVersion != payload.tokenVersion) {
         return res.send({ ok: false, accessToken: '' });
     }
-    return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user) });
+    return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user, '1d') });
 }));
 router.get('/verify_email/:token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('hi');
     const success = yield emailTokenService.validateUserToken(req.params.token);
     console.log(success);
     if (success) {
@@ -79,7 +78,7 @@ router.get('/verify_email/:token', (req, res) => __awaiter(void 0, void 0, void 
 router.get('/reset_password_callback/:token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const success = yield emailTokenService.validateUserToken(req.params.token);
     if (success) {
-        res.cookie('jid', utils.createRefreshToken(success), { httpOnly: true });
+        res.cookie('jid', utils.createAccessToken(success, '5m'), { httpOnly: true });
         return res.status(200).redirect('http://localhost/graphql');
     }
     else {
@@ -102,11 +101,11 @@ router.get('/auth/discord', (req, res) => __awaiter(void 0, void 0, void 0, func
         const userInfo = yield discord_1.default.getUser(accessToken.access_token);
         if (userInfo.email) {
             const user = yield userService.discordAuth(userInfo.email);
-            if (!(user === null || user === void 0 ? void 0 : user.isVerified)) {
-                return res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' });
-            }
             if (user) {
-                return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user) });
+                if (!user.isVerified) {
+                    return res.status(200).json({ message: 'Please verify your profile sent via email to login.' });
+                }
+                return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user, '1d') });
             }
             else {
                 return res.status(200).redirect(`/login`);

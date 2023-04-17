@@ -9,29 +9,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SigninType = void 0;
+exports.SignInType = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
-let SigninType = class SigninType extends typeorm_1.BaseEntity {
+const User_1 = require("./User");
+let SignInType = class SignInType extends typeorm_1.BaseEntity {
 };
 __decorate([
     (0, type_graphql_1.Field)(() => type_graphql_1.ID),
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], SigninType.prototype, "id", void 0);
+], SignInType.prototype, "id", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => User_1.User),
+    (0, typeorm_1.ManyToOne)(() => User_1.User, (user) => user.signInTypes),
+    __metadata("design:type", Object)
+], SignInType.prototype, "user", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String, { nullable: false }),
     (0, typeorm_1.Column)({ nullable: false }),
     __metadata("design:type", String)
-], SigninType.prototype, "email", void 0);
-__decorate([
-    (0, type_graphql_1.Field)(() => String, { nullable: false }),
-    (0, typeorm_1.Column)({ nullable: false }),
-    __metadata("design:type", String)
-], SigninType.prototype, "signinType", void 0);
-SigninType = __decorate([
+], SignInType.prototype, "signInType", void 0);
+SignInType = __decorate([
     (0, type_graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)()
-], SigninType);
-exports.SigninType = SigninType;
-//# sourceMappingURL=SigninType.js.map
+], SignInType);
+exports.SignInType = SignInType;
+//# sourceMappingURL=SignInType.js.map

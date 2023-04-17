@@ -37,11 +37,10 @@ router.post('/refresh_token', async (req, res) => {
     return res.send({ ok: false, accessToken: '' })
   }
 
-  return res.send({ ok: true, accessToken: createAccessToken(user) })
+  return res.send({ ok: true, accessToken: createAccessToken(user, '1d') })
 })
 
 router.get('/verify_email/:token', async (req, res) => {
-  console.log('hi');
   const success = await emailTokenService.validateUserToken(req.params.token)
   console.log(success);
   //TODO CORRECT ROUTING IN FE PAGE login page
@@ -56,7 +55,7 @@ router.get('/reset_password_callback/:token', async (req, res) => {
   const success = await emailTokenService.validateUserToken(req.params.token)
   //TODO CORRECT ROUTING IN FE PAGE update password UI
   if (success) {
-    res.cookie('jid', utils.createRefreshToken(success), { httpOnly: true })
+    res.cookie('jid', utils.createAccessToken(success, '5m'), { httpOnly: true })
     return res.status(200).redirect('http://localhost/graphql')
   } else {
     //route somewhere
@@ -86,12 +85,12 @@ router.get('/auth/discord', async (req, res) => {
     if (userInfo.email) {
       const user = await userService.discordAuth(userInfo.email)
 
-      if (!user?.isVerified) {
-        return res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' })
-      }
       if (user) {
+        if (!user.isVerified) {
+          return res.status(200).json({ message: 'Please verify your profile sent via email to login.' })
+        }
         //TODO fix client side url
-        return res.send({ ok: true, accessToken: createAccessToken(user) })
+        return res.send({ ok: true, accessToken: createAccessToken(user, '1d') })
       } else {
         return res.status(200).redirect(`/login`)
       }
