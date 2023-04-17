@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SigninType = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
+const User_1 = require("./User");
 let SigninType = class SigninType extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -20,10 +21,10 @@ __decorate([
     __metadata("design:type", Number)
 ], SigninType.prototype, "id", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => String, { nullable: false }),
-    (0, typeorm_1.Column)({ nullable: false }),
-    __metadata("design:type", String)
-], SigninType.prototype, "email", void 0);
+    (0, type_graphql_1.Field)(() => User_1.User),
+    (0, typeorm_1.ManyToOne)(() => User_1.User, (user) => user.signInTypes),
+    __metadata("design:type", Object)
+], SigninType.prototype, "user", void 0);
 __decorate([
     (0, type_graphql_1.Field)(() => String, { nullable: false }),
     (0, typeorm_1.Column)({ nullable: false }),

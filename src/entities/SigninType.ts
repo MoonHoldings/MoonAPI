@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Relation } from 'typeorm'
+import { User } from './User'
 
 @ObjectType()
 @Entity()
@@ -8,9 +9,10 @@ export class SigninType extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number
 
-    @Field(() => String, { nullable: false })
-    @Column({ nullable: false })
-    email: string
+
+    @Field(() => User)
+    @ManyToOne(() => User, (user) => user.signInTypes)
+    user!: Relation<User>
 
     @Field(() => String, { nullable: false })
     @Column({ nullable: false })

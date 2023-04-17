@@ -1,14 +1,25 @@
-import { SigninType } from '../entities'
+import { SigninType, User } from '../entities'
 
 
-export const hasSigninType = async (email: string, signinType: string) => {
-   const signupTypeObect = await SigninType.findOne({ where: { email, signinType } })
-   if (!signupTypeObect) {
-      return false
+export const hasSigninType = async (email: string, signInType: string) => {
+   const user = await User.findOne({ where: { email } });
+   if (user) {
+      const signupTypeObect = await SigninType.findOne({ where: { user, signinType: { signInType } } })
+      if (!signupTypeObect) {
+         return false
+      }
+      return true;
+   } else {
+      return true;
    }
-   return true;
 }
 
 export const createSigninType = async (email: string, signinType: string) => {
-   return await SigninType.save({ email, signinType })
+   const user = await User.findOne({ where: { email } });
+
+   if (user)
+      return await SigninType.save({ user, signinType })
+   else
+      return false;
+
 }

@@ -67,7 +67,6 @@ router.post('/refresh_token', (req, res) => __awaiter(void 0, void 0, void 0, fu
     return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user, '1d') });
 }));
 router.get('/verify_email/:token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('hi');
     const success = yield emailTokenService.validateUserToken(req.params.token);
     console.log(success);
     if (success) {

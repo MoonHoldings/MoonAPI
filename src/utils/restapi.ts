@@ -41,7 +41,6 @@ router.post('/refresh_token', async (req, res) => {
 })
 
 router.get('/verify_email/:token', async (req, res) => {
-  console.log('hi');
   const success = await emailTokenService.validateUserToken(req.params.token)
   console.log(success);
   //TODO CORRECT ROUTING IN FE PAGE login page

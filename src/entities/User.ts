@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn, Relation } from 'typeorm'
+import { SigninType } from './SigninType'
 
 @ObjectType()
 @Entity()
@@ -38,6 +39,12 @@ export class User extends BaseEntity {
 
   @Field(() => String, { nullable: true })
   accessToken: string
+
+  @OneToMany(() => SigninType, (signInType) => signInType.user, {
+    cascade: true,
+  })
+  @Field(() => String, { nullable: true })
+  signInTypes: Relation<SigninType>[]
 
   static async incrementTokenVersion(id: number) {
     await this.createQueryBuilder()
