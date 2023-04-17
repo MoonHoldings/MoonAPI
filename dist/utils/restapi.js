@@ -101,10 +101,10 @@ router.get('/auth/discord', (req, res) => __awaiter(void 0, void 0, void 0, func
         const userInfo = yield discord_1.default.getUser(accessToken.access_token);
         if (userInfo.email) {
             const user = yield userService.discordAuth(userInfo.email);
-            if (!(user === null || user === void 0 ? void 0 : user.isVerified)) {
-                return res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' });
-            }
             if (user) {
+                if (!user.isVerified) {
+                    return res.status(200).json({ message: 'Please verify your profile sent via email to login.' });
+                }
                 return res.send({ ok: true, accessToken: (0, auth_1.createAccessToken)(user, '1d') });
             }
             else {

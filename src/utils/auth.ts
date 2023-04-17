@@ -31,7 +31,6 @@ export const isAuth: MiddlewareFn<Session> = ({ context }, next) => {
     const payload = verify(token, `${ACCESS_TOKEN_SECRET}`)
     context.payload = payload as any
   } catch (err) {
-    console.log(err)
     throw new Error('Not Authenticated')
   }
 

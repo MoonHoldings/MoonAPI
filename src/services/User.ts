@@ -6,7 +6,7 @@ import { ACCESS_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
 
 import sgMail from '@sendgrid/mail'
 import * as utils from '../utils'
-import * as signinTypeService from './SigninType'
+import * as signInTypeService from './SignInType'
 import * as emailTokenService from './EmailToken'
 import { verify } from 'jsonwebtoken'
 
@@ -29,7 +29,7 @@ export const register = async (email: string, password: string) => {
   if (user) {
     isRegUser = await isRegisteredUser(user, SigninType.EMAIL)
     if (!isRegUser) {
-      await signinTypeService.createSigninType(email, SigninType.EMAIL);
+      await signInTypeService.createSignInType(email, SigninType.EMAIL);
       return await User.save(Object.assign(user!, { hashedPassword }));
     } else {
       throw new Error("User is already existing");
@@ -52,19 +52,23 @@ export const login = async (email: string, password: string, ctx: ExpressContext
     throw new UserInputError('User does not exist')
   }
 
+  const hasEmailType = await signInTypeService.hasSignInType(user.email, SigninType.EMAIL);
+  if (!hasEmailType) {
+    throw new UserInputError('Email login not Available. Please signup to login.')
+  }
+
   if (!user.isVerified) {
     throw new UserInputError('Please verify email')
   }
 
   let passwordMatched: boolean
   passwordMatched = await utils.comparePassword(password, user.password)
-
   if (!passwordMatched) {
     throw new UserInputError('Email or Password is incorrect.')
   }
 
   user.lastLoginTimestamp = new Date()
-  User.save(user)
+  await User.save(user)
 
   ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true })
   user.accessToken = utils.createAccessToken(user, '1d')
@@ -184,30 +188,32 @@ export const discordAuth = async (email: string) => {
   }
 
   if (!isRegUser) {
-    await signinTypeService.createSigninType(user.email, SigninType.DISCORD);
+    await signInTypeService.createSignInType(user.email, SigninType.DISCORD);
   }
+
+  user.lastLoginTimestamp = new Date()
+  await User.save(user)
 
   return user
 }
 
-export const createUser = (email: string, signupType: string, password?: string | null) => {
+export const createUser = async (email: string, signInType: string, password?: string | null) => {
   const newUser = new User()
   const generatedUsername = utils.removeEmailAddressesFromString(email)
 
   newUser.email = email
   newUser.username = generatedUsername
-  newUser.signupType = signupType
 
   if (password) {
     newUser.password = password
   }
-  signinTypeService.createSigninType(email, signupType);
-  return User.save(newUser)
+  signInTypeService.createSignInType(email, signInType);
+  return await User.save(newUser)
 }
 
-export const isRegisteredUser = async (user: User, signupType: string) => {
-  const hasSignupType = await signinTypeService.hasSigninType(user.email, signupType);
-  if (hasSignupType) {
+export const isRegisteredUser = async (user: User, signInType: string) => {
+  const hasSignInType = await signInTypeService.hasSignInType(user.email, signInType);
+  if (hasSignInType) {
     return true;
   }
   else {

@@ -38,7 +38,6 @@ const isAuth = ({ context }, next) => {
         context.payload = payload;
     }
     catch (err) {
-        console.log(err);
         throw new Error('Not Authenticated');
     }
     return next();

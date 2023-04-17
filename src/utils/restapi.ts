@@ -85,10 +85,10 @@ router.get('/auth/discord', async (req, res) => {
     if (userInfo.email) {
       const user = await userService.discordAuth(userInfo.email)
 
-      if (!user?.isVerified) {
-        return res.status(200).json({ error: 'Your email has been linked to your discord profile. Please verify your email to login.' })
-      }
       if (user) {
+        if (!user.isVerified) {
+          return res.status(200).json({ message: 'Please verify your profile sent via email to login.' })
+        }
         //TODO fix client side url
         return res.send({ ok: true, accessToken: createAccessToken(user, '1d') })
       } else {

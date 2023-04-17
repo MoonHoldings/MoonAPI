@@ -4,7 +4,7 @@ import { User } from './User'
 
 @ObjectType()
 @Entity()
-export class SigninType extends BaseEntity {
+export class SignInType extends BaseEntity {
     @Field(() => ID)
     @PrimaryGeneratedColumn()
     id!: number
@@ -16,5 +16,5 @@ export class SigninType extends BaseEntity {
 
     @Field(() => String, { nullable: false })
     @Column({ nullable: false })
-    signinType: string
+    signInType: string
 }

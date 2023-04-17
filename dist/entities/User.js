@@ -21,7 +21,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
-const SigninType_1 = require("./SigninType");
+const SignInType_1 = require("./SignInType");
 let User = class User extends typeorm_1.BaseEntity {
     static incrementTokenVersion(id) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -54,11 +54,6 @@ __decorate([
     __metadata("design:type", Boolean)
 ], User.prototype, "isVerified", void 0);
 __decorate([
-    (0, type_graphql_1.Field)(() => String, { nullable: false }),
-    (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
-    __metadata("design:type", String)
-], User.prototype, "signupType", void 0);
-__decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
@@ -79,10 +74,10 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "accessToken", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => SigninType_1.SigninType, (signInType) => signInType.user, {
+    (0, typeorm_1.OneToMany)(() => SignInType_1.SignInType, (signInType) => signInType.user, {
         cascade: true,
     }),
-    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    (0, type_graphql_1.Field)(() => [SignInType_1.SignInType], { nullable: true }),
     __metadata("design:type", Array)
 ], User.prototype, "signInTypes", void 0);
 User = __decorate([
