@@ -63,4 +63,6 @@ export class GetOrderBooksArgs {
   pagination?: LimitOffset
   @Field({ nullable: true })
   sort?: OrderBookSort
+  @Field({ nullable: true })
+  borrowWalletAddress?: string
 }

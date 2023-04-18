@@ -18,6 +18,18 @@ export class PaginatedLoanResponse {
 }
 
 @ObjectType()
+export class OwnedNft {
+  @Field(() => String)
+  name: string
+  @Field(() => String, { nullable: true })
+  image?: string
+  @Field(() => String)
+  mint: string
+  @Field(() => String)
+  symbol: string
+}
+
+@ObjectType()
 export class OrderBookList {
   @Field(() => Int)
   id: number
@@ -43,6 +55,8 @@ export class OrderBookList {
   totalPool?: number
   @Field(() => Number, { nullable: true })
   bestOffer?: number
+  @Field(() => [OwnedNft], { nullable: true })
+  ownedNfts?: OwnedNft[]
 }
 
 @ObjectType()
