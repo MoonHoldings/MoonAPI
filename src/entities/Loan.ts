@@ -1,6 +1,6 @@
 import { Field, ID, Int, ObjectType } from 'type-graphql'
 import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
-import { OrderBook } from './OrderBook'
+import { OrderBook } from '.'
 
 @ObjectType()
 @Entity()

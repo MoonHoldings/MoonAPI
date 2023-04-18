@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType, Int } from 'type-graphql'
-import { BaseEntity, Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
-import { OrderBook } from './OrderBook'
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { OrderBook, NftMint } from '.'
 
 @ObjectType()
 @Entity()
@@ -34,8 +34,11 @@ export class NftList extends BaseEntity {
   @Column('bigint', { nullable: true })
   floorPrice!: number
 
-  @Column('simple-array', { nullable: true })
-  mints!: string[]
+  @Field(() => [NftMint], { nullable: true })
+  @OneToMany(() => NftMint, (nftMint) => nftMint.nftList, {
+    cascade: true,
+  })
+  mints!: Relation<NftMint>[]
 
   @Field(() => Number, { nullable: true })
   floorPriceSol(): number | null {

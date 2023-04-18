@@ -2,9 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Interval } from '@nestjs/schedule'
 import { InjectRepository } from '@nestjs/typeorm'
 import { format } from 'date-fns'
-import { NftList } from '../entities/NftList'
-import { Loan } from './../entities/Loan'
-import { OrderBook } from '../entities/OrderBook'
+import { NftList, Loan, OrderBook, NftMint } from '../entities'
 import sharkyClient from '../utils/sharkyClient'
 import { In, IsNull, Not, Repository } from 'typeorm'
 import axios from 'axios'
@@ -19,6 +17,9 @@ export class SharkifyService {
     @InjectRepository(NftList)
     private readonly nftListRepository: Repository<NftList>,
     // @ts-ignore
+    @InjectRepository(NftMint)
+    private readonly nftMintRepository: Repository<NftMint>,
+    // @ts-ignore
     @InjectRepository(OrderBook)
     private readonly orderBookRepository: Repository<OrderBook>,
     // @ts-ignore
@@ -26,7 +27,7 @@ export class SharkifyService {
     private readonly loanRepository: Repository<Loan>
   ) {}
 
-  @Interval(60000) // Every 1 min
+  // @Interval(60000) // Every 1 min
   async saveLoans() {
     this.logger.debug(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
     console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
@@ -178,18 +179,42 @@ export class SharkifyService {
       let newNftLists = await sharkyClient.fetchAllNftLists({ program })
       let newNftListPubKeys = newNftLists.map((nftList) => nftList.pubKey.toBase58())
 
-      // Delete nft list that are not in the new nft list
-      await this.nftListRepository.delete({ pubKey: Not(In(newNftListPubKeys)) })
-
       // Create new order books that are not yet created
-      const existingNftList = await this.nftListRepository.find({ where: { pubKey: In(newNftListPubKeys) } })
+      const existingNftList = await this.nftListRepository.find({ where: { pubKey: In(newNftListPubKeys) }, relations: { mints: true } })
+      const existingNftListsByPubKey = existingNftList.reduce((accumulator: any, nftList) => {
+        accumulator[nftList.pubKey] = nftList
+        return accumulator
+      }, {})
       const existingNftListPubKeys = new Set(existingNftList.map((nftList) => nftList.pubKey))
 
       const newlyAddedNftLists = []
+      let newlyAddedNftMints: NftMint[] = []
 
       for (const newNftList of newNftLists) {
         if (!existingNftListPubKeys.has(newNftList.pubKey.toBase58())) {
           newlyAddedNftLists.push(newNftList)
+        } else {
+          // If nft list exists already, check if mints count changed
+          const newNftListPubKey = newNftList.pubKey.toBase58()
+          const savedNftList: NftList = existingNftListsByPubKey[newNftListPubKey]
+          const newNftListMints = newNftList.mints.map((newNftList) => newNftList.toBase58())
+
+          if (savedNftList.mints.length !== newNftList.mints.length) {
+            const existingNftMintEntities = await NftMint.find({ where: { mint: In(newNftListMints) } })
+            const existingNftMints = existingNftMintEntities.map((mint) => mint.mint)
+            const notExistingNftMints = newNftListMints.filter((item) => !existingNftMints.includes(item))
+
+            if (notExistingNftMints.length > 0) {
+              const notExistingNftMintEntities = notExistingNftMints.map((mint) =>
+                this.nftMintRepository.create({
+                  mint: mint,
+                  nftList: savedNftList,
+                })
+              )
+
+              newlyAddedNftMints = [...newlyAddedNftMints, ...notExistingNftMintEntities]
+            }
+          }
         }
       }
 
@@ -200,11 +225,20 @@ export class SharkifyService {
             pubKey: nftList.pubKey.toBase58(),
             version: nftList.version,
             nftMint: nftList.mints[nftList.mints.length - 1].toBase58(),
-            mints: nftList.mints.map((mint) => mint.toBase58()),
           })
         })
 
         await this.nftListRepository.save(nftListEntities)
+        console.log(`Added ${nftListEntities.length} new nft lists`)
+      } else {
+        console.log(`No new nft lists`)
+      }
+
+      if (newlyAddedNftMints.length > 0) {
+        await this.nftMintRepository.save(newlyAddedNftMints, { chunk: 500 })
+        console.log(`Added ${newlyAddedNftMints.length} new nft mints`)
+      } else {
+        console.log(`No new nft mints`)
       }
     } catch (e) {
       console.log('ERROR', e)

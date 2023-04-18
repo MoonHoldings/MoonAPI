@@ -1,7 +1,6 @@
 import { Field, ID, Int, ObjectType } from 'type-graphql'
 import { BaseEntity, Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm'
-import { Loan } from './Loan'
-import { NftList } from './NftList'
+import { Loan, NftList } from '.'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { LoanType } from '../types'
 import apyAfterFee from '../utils/apyAfterFee'
