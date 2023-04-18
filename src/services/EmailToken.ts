@@ -39,8 +39,9 @@ export const generateUserConfirmationToken = async (email: string, type: string)
 
 export const validateUserToken = async (hashedToked: string) => {
   const token = utils.decryptToken(utils.removedKey(hashedToked))
+  console.log(token);
   const emailToken = await EmailToken.findOne({ where: { token } })
-
+  console.log(emailToken);
   if (!emailToken) {
     return null
   }

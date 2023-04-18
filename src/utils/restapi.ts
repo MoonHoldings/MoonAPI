@@ -41,14 +41,15 @@ router.post('/refresh_token', async (req, res) => {
 })
 
 router.get('/verify_email/:token', async (req, res) => {
-  const success = await emailTokenService.validateUserToken(req.params.token)
-  console.log(success);
-  //TODO CORRECT ROUTING IN FE PAGE login page
-  if (success) {
-    return res.status(200).redirect('http://localhost/graphql')
-  } else {
-    //route somewhere
+  try {
+    await emailTokenService.validateUserToken(req.params.token)
   }
+  catch (error) {
+    console.log(error)
+  }
+
+  return res.status(200).redirect('http://localhost:3000/login')
+
 })
 
 router.get('/reset_password_callback/:token', async (req, res) => {
