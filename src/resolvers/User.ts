@@ -36,15 +36,10 @@ export class UserResolver {
   }
 
   @Query(() => Boolean)
-  @UseMiddleware(isAuth)
   async updatePassword(@Arg('password') email: string, @Ctx() ctx: Context<any>): Promise<boolean> {
     const token = ctx.req.cookies.jid
-
-    @Query(() => Boolean)
-    async updatePassword(@Arg('password') email: string, @Ctx() ctx: Context<any>): Promise<boolean> {
-        const token = ctx.req.cookies.jid
-        return await userService.updatePassword(email, token);
-    }
+    return await userService.updatePassword(email, token)
+  }
 
   //     const url = oauth.generateAuthUrl({
   //         scope: ["identify", "email"],
