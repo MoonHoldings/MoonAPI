@@ -1,2 +1,2 @@
-export * from './SigninType'
+export * from './SignInType'
 export * from './EmailTokenType'
