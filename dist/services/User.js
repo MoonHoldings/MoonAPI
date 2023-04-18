@@ -58,9 +58,9 @@ const register = (email, password) => __awaiter(void 0, void 0, void 0, function
         throw new apollo_server_express_1.UserInputError('Password is too weak');
     }
     if (user) {
-        isRegUser = yield (0, exports.isRegisteredUser)(user, enums_1.SigninType.EMAIL);
+        isRegUser = yield (0, exports.isRegisteredUser)(user, enums_1.SignInType.EMAIL);
         if (!isRegUser) {
-            yield signInTypeService.createSignInType(email, enums_1.SigninType.EMAIL);
+            yield signInTypeService.createSignInType(email, enums_1.SignInType.EMAIL);
             return yield entities_1.User.save(Object.assign(user, { hashedPassword }));
         }
         else {
@@ -69,7 +69,7 @@ const register = (email, password) => __awaiter(void 0, void 0, void 0, function
     }
     const hasSent = yield (0, exports.sendConfirmationEmail)(email);
     if (hasSent) {
-        return yield (0, exports.createUser)(email, enums_1.SigninType.EMAIL, hashedPassword);
+        return yield (0, exports.createUser)(email, enums_1.SignInType.EMAIL, hashedPassword);
     }
     else {
         throw new apollo_server_express_1.UserInputError('Signup is unavailable at the moment. Please try again later.');
@@ -81,7 +81,7 @@ const login = (email, password, ctx) => __awaiter(void 0, void 0, void 0, functi
     if (!user) {
         throw new apollo_server_express_1.UserInputError('User does not exist');
     }
-    const hasEmailType = yield signInTypeService.hasSignInType(user.email, enums_1.SigninType.EMAIL);
+    const hasEmailType = yield signInTypeService.hasSignInType(user.email, enums_1.SignInType.EMAIL);
     if (!hasEmailType) {
         throw new apollo_server_express_1.UserInputError('Email login not Available. Please signup to login.');
     }
@@ -191,17 +191,17 @@ const discordAuth = (email) => __awaiter(void 0, void 0, void 0, function* () {
     if (!user) {
         const hasSent = yield (0, exports.sendConfirmationEmail)(email);
         if (hasSent) {
-            return yield (0, exports.createUser)(email, enums_1.SigninType.DISCORD);
+            return yield (0, exports.createUser)(email, enums_1.SignInType.DISCORD);
         }
         else {
             throw new apollo_server_express_1.UserInputError('Signup is unavailable at the moment. Please try again later.');
         }
     }
     else {
-        isRegUser = yield (0, exports.isRegisteredUser)(user, enums_1.SigninType.DISCORD);
+        isRegUser = yield (0, exports.isRegisteredUser)(user, enums_1.SignInType.DISCORD);
     }
     if (!isRegUser) {
-        yield signInTypeService.createSignInType(user.email, enums_1.SigninType.DISCORD);
+        yield signInTypeService.createSignInType(user.email, enums_1.SignInType.DISCORD);
     }
     user.lastLoginTimestamp = new Date();
     yield entities_1.User.save(user);

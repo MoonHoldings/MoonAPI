@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SigninType = void 0;
-var SigninType;
-(function (SigninType) {
-    SigninType["EMAIL"] = "EMAIL";
-    SigninType["DISCORD"] = "DISCORD";
-})(SigninType = exports.SigninType || (exports.SigninType = {}));
-//# sourceMappingURL=SigninType.js.map
+exports.SignInType = void 0;
+var SignInType;
+(function (SignInType) {
+    SignInType["EMAIL"] = "EMAIL";
+    SignInType["DISCORD"] = "DISCORD";
+})(SignInType = exports.SignInType || (exports.SignInType = {}));
+//# sourceMappingURL=SignInType.js.map

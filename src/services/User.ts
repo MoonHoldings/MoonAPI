@@ -1,7 +1,7 @@
 import { ExpressContext, UserInputError } from 'apollo-server-express'
 import { User } from '../entities'
 import { passwordStrength } from 'check-password-strength'
-import { EmailTokenType, SigninType } from '../enums'
+import { EmailTokenType, SignInType } from '../enums'
 import { ACCESS_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
 
 import sgMail from '@sendgrid/mail'
@@ -25,9 +25,9 @@ export const register = async (email: string, password: string) => {
   }
 
   if (user) {
-    isRegUser = await isRegisteredUser(user, SigninType.EMAIL)
+    isRegUser = await isRegisteredUser(user, SignInType.EMAIL)
     if (!isRegUser) {
-      await signInTypeService.createSignInType(email, SigninType.EMAIL)
+      await signInTypeService.createSignInType(email, SignInType.EMAIL)
       return await User.save(Object.assign(user!, { hashedPassword }))
     } else {
       throw new Error('User is already existing')
@@ -37,7 +37,7 @@ export const register = async (email: string, password: string) => {
   const hasSent = await sendConfirmationEmail(email)
 
   if (hasSent) {
-    return await createUser(email, SigninType.EMAIL, hashedPassword)
+    return await createUser(email, SignInType.EMAIL, hashedPassword)
   } else {
     throw new UserInputError('Signup is unavailable at the moment. Please try again later.')
   }
@@ -50,7 +50,7 @@ export const login = async (email: string, password: string, ctx: ExpressContext
     throw new UserInputError('User does not exist')
   }
 
-  const hasEmailType = await signInTypeService.hasSignInType(user.email, SigninType.EMAIL)
+  const hasEmailType = await signInTypeService.hasSignInType(user.email, SignInType.EMAIL)
   if (!hasEmailType) {
     throw new UserInputError('Email login not Available. Please signup to login.')
   }
@@ -176,16 +176,16 @@ export const discordAuth = async (email: string) => {
     const hasSent = await sendConfirmationEmail(email)
 
     if (hasSent) {
-      return await createUser(email, SigninType.DISCORD)
+      return await createUser(email, SignInType.DISCORD)
     } else {
       throw new UserInputError('Signup is unavailable at the moment. Please try again later.')
     }
   } else {
-    isRegUser = await isRegisteredUser(user, SigninType.DISCORD)
+    isRegUser = await isRegisteredUser(user, SignInType.DISCORD)
   }
 
   if (!isRegUser) {
-    await signInTypeService.createSignInType(user.email, SigninType.DISCORD)
+    await signInTypeService.createSignInType(user.email, SignInType.DISCORD)
   }
 
   user.lastLoginTimestamp = new Date()
