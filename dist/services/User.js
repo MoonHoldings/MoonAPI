@@ -64,7 +64,7 @@ const register = (email, password) => __awaiter(void 0, void 0, void 0, function
             return yield entities_1.User.save(Object.assign(user, { hashedPassword }));
         }
         else {
-            throw new Error("User is already existing");
+            throw new Error('User is already existing');
         }
     }
     const hasSent = yield (0, exports.sendConfirmationEmail)(email);
@@ -161,18 +161,18 @@ const getPasswordResetEmail = (email) => __awaiter(void 0, void 0, void 0, funct
 exports.getPasswordResetEmail = getPasswordResetEmail;
 const updatePassword = (password, token) => __awaiter(void 0, void 0, void 0, function* () {
     if (!token) {
-        throw new apollo_server_express_1.UserInputError("Not Authenticated");
+        throw new apollo_server_express_1.UserInputError('Not Authenticated');
     }
     let payload = null;
     try {
         payload = (0, jsonwebtoken_1.verify)(token, constants_1.ACCESS_TOKEN_SECRET);
     }
     catch (err) {
-        throw new apollo_server_express_1.UserInputError("Invalid token");
+        throw new apollo_server_express_1.UserInputError('Invalid token');
     }
     const user = yield entities_1.User.findOne({ where: { id: payload.id } });
     if (!user) {
-        throw new apollo_server_express_1.UserInputError("User Not found");
+        throw new apollo_server_express_1.UserInputError('User Not found');
     }
     let hashedPassword;
     if ((0, check_password_strength_1.passwordStrength)(password).id == 0 || (0, check_password_strength_1.passwordStrength)(password).id == 1) {
