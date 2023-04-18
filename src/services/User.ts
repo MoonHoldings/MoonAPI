@@ -10,15 +10,13 @@ import * as signInTypeService from './SignInType'
 import * as emailTokenService from './EmailToken'
 import { verify } from 'jsonwebtoken'
 
-
 sgMail.setApiKey(`${SENDGRID_KEY}`)
-
 
 export const register = async (email: string, password: string) => {
   let user = await getUserByEmail(email)
-  let isRegUser = null;
+  let isRegUser = null
 
-  let hashedPassword: string | null = null;
+  let hashedPassword: string | null = null
 
   if (passwordStrength(password).id != 0 && passwordStrength(password).id != 1) {
     hashedPassword = await utils.generatePassword(password)
@@ -29,14 +27,14 @@ export const register = async (email: string, password: string) => {
   if (user) {
     isRegUser = await isRegisteredUser(user, SigninType.EMAIL)
     if (!isRegUser) {
-      await signInTypeService.createSignInType(email, SigninType.EMAIL);
-      return await User.save(Object.assign(user!, { hashedPassword }));
+      await signInTypeService.createSignInType(email, SigninType.EMAIL)
+      return await User.save(Object.assign(user!, { hashedPassword }))
     } else {
-      throw new Error("User is already existing");
+      throw new Error('User is already existing')
     }
   }
 
-  const hasSent = await sendConfirmationEmail(email);
+  const hasSent = await sendConfirmationEmail(email)
 
   if (hasSent) {
     return await createUser(email, SigninType.EMAIL, hashedPassword)
@@ -52,7 +50,7 @@ export const login = async (email: string, password: string, ctx: ExpressContext
     throw new UserInputError('User does not exist')
   }
 
-  const hasEmailType = await signInTypeService.hasSignInType(user.email, SigninType.EMAIL);
+  const hasEmailType = await signInTypeService.hasSignInType(user.email, SigninType.EMAIL)
   if (!hasEmailType) {
     throw new UserInputError('Email login not Available. Please signup to login.')
   }
@@ -140,9 +138,8 @@ export const getPasswordResetEmail = async (email: string) => {
 }
 
 export const updatePassword = async (password: string, token: string) => {
-
   if (!token) {
-    throw new UserInputError("Not Authenticated");
+    throw new UserInputError('Not Authenticated')
   }
 
   let payload: any = null
@@ -150,13 +147,13 @@ export const updatePassword = async (password: string, token: string) => {
   try {
     payload = verify(token, ACCESS_TOKEN_SECRET!)
   } catch (err) {
-    throw new UserInputError("Invalid token");
+    throw new UserInputError('Invalid token')
   }
 
   const user = await User.findOne({ where: { id: payload.id } })
 
   if (!user) {
-    throw new UserInputError("User Not found");
+    throw new UserInputError('User Not found')
   }
 
   let hashedPassword: string
@@ -167,13 +164,13 @@ export const updatePassword = async (password: string, token: string) => {
   }
 
   await User.save(Object.assign(user, { hashedPassword }))
-  return true;
+  return true
 }
 
 export const discordAuth = async (email: string) => {
-  const user = await getUserByEmail(email);
+  const user = await getUserByEmail(email)
 
-  let isRegUser = null;
+  let isRegUser = null
 
   if (!user) {
     const hasSent = await sendConfirmationEmail(email)
@@ -184,11 +181,11 @@ export const discordAuth = async (email: string) => {
       throw new UserInputError('Signup is unavailable at the moment. Please try again later.')
     }
   } else {
-    isRegUser = await isRegisteredUser(user, SigninType.DISCORD);
+    isRegUser = await isRegisteredUser(user, SigninType.DISCORD)
   }
 
   if (!isRegUser) {
-    await signInTypeService.createSignInType(user.email, SigninType.DISCORD);
+    await signInTypeService.createSignInType(user.email, SigninType.DISCORD)
   }
 
   user.lastLoginTimestamp = new Date()
@@ -207,44 +204,42 @@ export const createUser = async (email: string, signInType: string, password?: s
   if (password) {
     newUser.password = password
   }
-  signInTypeService.createSignInType(email, signInType);
+  signInTypeService.createSignInType(email, signInType)
   return await User.save(newUser)
 }
 
 export const isRegisteredUser = async (user: User, signInType: string) => {
-  const hasSignInType = await signInTypeService.hasSignInType(user.email, signInType);
+  const hasSignInType = await signInTypeService.hasSignInType(user.email, signInType)
   if (hasSignInType) {
-    return true;
-  }
-  else {
-    return false;
+    return true
+  } else {
+    return false
   }
 }
 
-  //TODO: To hold in function
-  // async refreshAccessToken({ req, res }: ExpressContext): Promise<string> {
+//TODO: To hold in function
+// async refreshAccessToken({ req, res }: ExpressContext): Promise<string> {
 
-  //    if (!req.cookies.token) {
-  //       throw new Error("Token not valid")
-  //    }
-  //    let payload: any = null
+//    if (!req.cookies.token) {
+//       throw new Error("Token not valid")
+//    }
+//    let payload: any = null
 
-  //    try {
-  //       payload = verify(req.cookies.token, process.env.REFRESH_TOKEN_SECRET!);
-  //    } catch (err) {
-  //       throw new Error("Token not valid")
-  //    }
+//    try {
+//       payload = verify(req.cookies.token, process.env.REFRESH_TOKEN_SECRET!);
+//    } catch (err) {
+//       throw new Error("Token not valid")
+//    }
 
-  //    const user = await User.findOne({ where: { id: payload.userId } })
+//    const user = await User.findOne({ where: { id: payload.userId } })
 
-  //    if (!user) {
-  //       throw new Error("Token not valid")
-  //    }
+//    if (!user) {
+//       throw new Error("Token not valid")
+//    }
 
-  //    if (user.tokenVersion != payload.tokenVersion) {
-  //       throw new Error("Token not valid")
-  //    }
+//    if (user.tokenVersion != payload.tokenVersion) {
+//       throw new Error("Token not valid")
+//    }
 
-  //    return utils.createAccessToken(user);
-  // }
-
+//    return utils.createAccessToken(user);
+// }

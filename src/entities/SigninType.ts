@@ -5,16 +5,15 @@ import { User } from './User'
 @ObjectType()
 @Entity()
 export class SignInType extends BaseEntity {
-    @Field(() => ID)
-    @PrimaryGeneratedColumn()
-    id!: number
+  @Field(() => ID)
+  @PrimaryGeneratedColumn()
+  id!: number
 
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.signInTypes)
+  user!: Relation<User>
 
-    @Field(() => User)
-    @ManyToOne(() => User, (user) => user.signInTypes)
-    user!: Relation<User>
-
-    @Field(() => String, { nullable: false })
-    @Column({ nullable: false })
-    signInType: string
+  @Field(() => String, { nullable: false })
+  @Column({ nullable: false })
+  signInType: string
 }
