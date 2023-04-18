@@ -26,6 +26,15 @@ let SharkifyCommands = class SharkifyCommands {
     constructor(sharkifyService) {
         this.sharkifyService = sharkifyService;
     }
+    initDb() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.sharkifyService.saveNftList();
+            yield this.sharkifyService.saveOrderBooks();
+            yield this.sharkifyService.saveLoans();
+            yield this.sharkifyService.saveNftListImages();
+            yield this.sharkifyService.saveNftListFloorPrices();
+        });
+    }
     saveLoans() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.sharkifyService.saveLoans();
@@ -52,6 +61,15 @@ let SharkifyCommands = class SharkifyCommands {
         });
     }
 };
+__decorate([
+    (0, nestjs_command_1.Command)({
+        command: 'initdb',
+        describe: 'Fetches all loans using sharkify client and saves in our database',
+    }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], SharkifyCommands.prototype, "initDb", null);
 __decorate([
     (0, nestjs_command_1.Command)({
         command: 'save:loans',

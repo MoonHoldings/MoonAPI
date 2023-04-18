@@ -3,7 +3,6 @@ import { Loan, OrderBook } from '../entities'
 
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
-
 export const getLoanById = async (id: number): Promise<Loan> => {
   return await Loan.findOneOrFail({ where: { id } })
 }

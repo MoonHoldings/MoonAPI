@@ -5,8 +5,6 @@ import { PaginatedOrderBookResponse, GetOrderBooksArgs } from '../types'
 
 @Resolver()
 export class OrderBookResolver {
-
-
   @Query(() => OrderBook)
   async getOrderBook(@Arg('id', () => Number) id: number): Promise<OrderBook> {
     return await orderBookService.getOrderBookById(id)
