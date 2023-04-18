@@ -1,8 +1,7 @@
-import { GetOrderBooksArgs, OrderBookSortType, OwnedNft, PaginatedOrderBookResponse, SortOrder } from '../types'
-import { NftList, NftMint, OrderBook } from '../entities'
+import { GetOrderBooksArgs, OrderBookSortType, PaginatedOrderBookResponse, SortOrder } from '../types'
+import { NftMint, OrderBook } from '../entities'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import apyAfterFee from '../utils/apyAfterFee'
-import { In } from 'typeorm'
 import axios from 'axios'
 import { SHYFT_URL, AXIOS_CONFIG_SHYFT_KEY } from '../constants'
 
