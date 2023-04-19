@@ -13,6 +13,15 @@ export function generateRandomString(length: number): string {
   return result.join('')
 }
 
+export function isValidEmail(email: string) {
+  // Define the regular expression for valid email addresses
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Test the provided email address against the regex
+  return emailRegex.test(email);
+}
+
+
 export function removeEmailAddressesFromString(str: string): string {
   return str.split('@')[0]
 }

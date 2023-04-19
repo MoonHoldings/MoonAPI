@@ -18,6 +18,11 @@ export const register = async (email: string, password: string) => {
 
   let hashedPassword: string | null = null
 
+
+  if (!utils.isValidEmail(email)) {
+    throw new UserInputError('Please enter a valid email')
+  }
+
   if (passwordStrength(password).id != 0 && passwordStrength(password).id != 1) {
     hashedPassword = await utils.generatePassword(password)
   } else {
@@ -30,11 +35,11 @@ export const register = async (email: string, password: string) => {
       await signInTypeService.createSignInType(email, SignInType.EMAIL)
       return await User.save(Object.assign(user, { password: hashedPassword }))
     } else {
-      throw new Error('User is already existing')
+      throw new Error('Incorrect credentials')
     }
   }
-
   const hasSent = await sendConfirmationEmail(email)
+  // const hasSent = true
 
   if (hasSent) {
     const user = await createUser(email, SignInType.EMAIL, hashedPassword)
@@ -58,13 +63,13 @@ export const login = async (email: string, password: string, ctx: ExpressContext
   }
 
   if (!user.isVerified) {
-    throw new UserInputError('Please verify email')
+    throw new UserInputError('Please verify your email to continue.')
   }
 
   let passwordMatched: boolean
   passwordMatched = await utils.comparePassword(password, user.password)
   if (!passwordMatched) {
-    throw new UserInputError('Email or Password is incorrect.')
+    throw new UserInputError('Incorrect credentials.')
   }
 
   user.lastLoginTimestamp = new Date()
