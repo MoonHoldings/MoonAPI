@@ -227,10 +227,12 @@ export class SharkifyService {
 
       for (const nftList of nftLists) {
         const mints = nftList.mints.map((mint) => mint.toBase58())
-        const savedNftList = savedNftListsByPubKey[nftList.pubKey.toBase58()]
+        const savedNftList: NftList = savedNftListsByPubKey[nftList.pubKey.toBase58()]
+        const existingMints = new Set((await this.nftMintRepository.find({ where: { nftList: { id: savedNftList.id }, mint: In(mints) } })).map((mint) => mint.mint))
+        const notExistingMints = mints.filter((mint) => !existingMints.has(mint))
 
         if (savedNftList) {
-          const mintEntities = mints.map((mint) =>
+          const mintEntities = notExistingMints.map((mint) =>
             this.nftMintRepository.create({
               mint,
               nftList: savedNftList,

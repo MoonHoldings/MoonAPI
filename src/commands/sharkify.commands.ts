@@ -12,6 +12,7 @@ export class SharkifyCommands {
   })
   async initDb() {
     await this.sharkifyService.saveNftList()
+    await this.sharkifyService.saveNftMints()
     await this.sharkifyService.saveOrderBooks()
     await this.sharkifyService.saveLoans()
     await this.sharkifyService.saveNftListImages()
