@@ -43,6 +43,14 @@ export class SharkifyCommands {
   }
 
   @Command({
+    command: 'save:nftmints',
+    describe: 'Fetches all nft mints using sharkify client and saves in our database',
+  })
+  async saveNftMints() {
+    await this.sharkifyService.saveNftMints()
+  }
+
+  @Command({
     command: 'save:nftlistimages',
     describe: 'Fetches all nft list images using hello moon and shyft and saves in our database',
   })

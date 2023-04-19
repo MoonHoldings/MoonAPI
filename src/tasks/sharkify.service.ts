@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Interval } from '@nestjs/schedule'
+import { Interval, Timeout } from '@nestjs/schedule'
 import { InjectRepository } from '@nestjs/typeorm'
 import { format } from 'date-fns'
 import { NftList, Loan, OrderBook, NftMint } from '../entities'
@@ -29,8 +29,8 @@ export class SharkifyService {
 
   // @Interval(60000) // Every 1 min
   async saveLoans() {
-    this.logger.debug(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveLoans start:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy h:mma"))
 
     const { program } = sharkyClient
     let newLoans = await sharkyClient.fetchAllLoans({ program })
@@ -114,14 +114,14 @@ export class SharkifyService {
       await this.loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) })
     }
 
-    this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
   }
 
   @Interval(3600000) // Every hour
   async saveOrderBooks() {
-    this.logger.debug(format(new Date(), "'saveOrderBooks start:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveOrderBooks start:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveOrderBooks start:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveOrderBooks start:' MMMM d, yyyy h:mma"))
 
     const { program } = sharkyClient
 
@@ -163,58 +163,27 @@ export class SharkifyService {
       await this.orderBookRepository.save(orderBookEntities)
     }
 
-    this.logger.debug(format(new Date(), "'saveOrderBooks end:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveOrderBooks end:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveOrderBooks end:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveOrderBooks end:' MMMM d, yyyy h:mma"))
   }
 
   @Interval(3600000) // Every hour
   async saveNftList() {
-    this.logger.debug(format(new Date(), "'saveNftList start:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveNftList start:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveNftList start:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveNftList start:' MMMM d, yyyy h:mma"))
 
     try {
       const { program } = sharkyClient
 
-      // const currentNftList = await this.nftListRepository.find()
-      let newNftLists = await sharkyClient.fetchAllNftLists({ program })
-      let newNftListPubKeys = newNftLists.map((nftList) => nftList.pubKey.toBase58())
-
-      // Create new order books that are not yet created
-      const existingNftList = await this.nftListRepository.find({ where: { pubKey: In(newNftListPubKeys) }, relations: { mints: true } })
-      const existingNftListsByPubKey = existingNftList.reduce((accumulator: any, nftList) => {
-        accumulator[nftList.pubKey] = nftList
-        return accumulator
-      }, {})
+      const newNftLists = await sharkyClient.fetchAllNftLists({ program })
+      const newNftListPubKeys = newNftLists.map((nftList) => nftList.pubKey.toBase58())
+      const existingNftList = await this.nftListRepository.find({ select: ['pubKey'], where: { pubKey: In(newNftListPubKeys) } })
       const existingNftListPubKeys = new Set(existingNftList.map((nftList) => nftList.pubKey))
-
       const newlyAddedNftLists = []
-      let newlyAddedNftMints: NftMint[] = []
 
       for (const newNftList of newNftLists) {
         if (!existingNftListPubKeys.has(newNftList.pubKey.toBase58())) {
           newlyAddedNftLists.push(newNftList)
-        } else {
-          // If nft list exists already, check if mints count changed
-          const newNftListPubKey = newNftList.pubKey.toBase58()
-          const savedNftList: NftList = existingNftListsByPubKey[newNftListPubKey]
-          const newNftListMints = newNftList.mints.map((newNftList) => newNftList.toBase58())
-
-          if (savedNftList.mints.length !== newNftList.mints.length) {
-            const existingNftMintEntities = await NftMint.find({ where: { mint: In(newNftListMints) } })
-            const existingNftMints = existingNftMintEntities.map((mint) => mint.mint)
-            const notExistingNftMints = newNftListMints.filter((item) => !existingNftMints.includes(item))
-
-            if (notExistingNftMints.length > 0) {
-              const notExistingNftMintEntities = notExistingNftMints.map((mint) =>
-                this.nftMintRepository.create({
-                  mint: mint,
-                  nftList: savedNftList,
-                })
-              )
-
-              newlyAddedNftMints = [...newlyAddedNftMints, ...notExistingNftMintEntities]
-            }
-          }
         }
       }
 
@@ -233,25 +202,58 @@ export class SharkifyService {
       } else {
         console.log(`No new nft lists`)
       }
+    } catch (e) {
+      console.log('ERROR', e)
+    }
 
-      if (newlyAddedNftMints.length > 0) {
-        await this.nftMintRepository.save(newlyAddedNftMints, { chunk: 500 })
-        console.log(`Added ${newlyAddedNftMints.length} new nft mints`)
-      } else {
-        console.log(`No new nft mints`)
+    this.logger.debug(format(new Date(), "'saveNftList end:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveNftList end:' MMMM d, yyyy h:mma"))
+  }
+
+  @Interval(5400000) // Every 1 hour and 30 minutes
+  async saveNftMints() {
+    this.logger.debug(format(new Date(), "'saveNftMints start:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveNftMints start:' MMMM d, yyyy h:mma"))
+
+    try {
+      const { program } = sharkyClient
+
+      const nftLists = await sharkyClient.fetchAllNftLists({ program })
+      const savedNftLists = await this.nftListRepository.find({ select: ['pubKey', 'id'] })
+      const savedNftListsByPubKey = savedNftLists.reduce((accumulator: any, nftList) => {
+        accumulator[nftList.pubKey] = nftList
+        return accumulator
+      }, {})
+
+      for (const nftList of nftLists) {
+        const mints = nftList.mints.map((mint) => mint.toBase58())
+        const savedNftList = savedNftListsByPubKey[nftList.pubKey.toBase58()]
+
+        if (savedNftList) {
+          const mintEntities = mints.map((mint) =>
+            this.nftMintRepository.create({
+              mint,
+              nftList: savedNftList,
+            })
+          )
+
+          this.logger.debug(`Saving mints of nftList: ${nftList.pubKey.toBase58()} (${format(new Date(), 'MMMM d, yyyy h:mma')})`)
+          console.log(`Saving mints of nftList: ${nftList.pubKey.toBase58()} (${format(new Date(), 'MMMM d, yyyy h:mma')})`)
+          await this.nftMintRepository.save(mintEntities, { chunk: 500 })
+        }
       }
     } catch (e) {
       console.log('ERROR', e)
     }
 
-    this.logger.debug(format(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveNftList end:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveNftMints end:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveNftMints end:' MMMM d, yyyy h:mma"))
   }
 
   @Interval(3600000) // Every hour
   async saveNftListImages() {
-    this.logger.debug(format(new Date(), "'saveNftListImages start:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveNftListImages start:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveNftListImages start:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveNftListImages start:' MMMM d, yyyy h:mma"))
 
     try {
       const nftLists = await this.nftListRepository.find({ where: { collectionImage: IsNull() } })
@@ -282,14 +284,14 @@ export class SharkifyService {
       console.log('ERROR', e)
     }
 
-    this.logger.debug(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy h:mma"))
   }
 
   @Interval(300000) // Every 5 mins
   async saveNftListFloorPrices() {
-    this.logger.debug(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy h:mma"))
 
     const fetchHelloMoonCollectionIds = async (addresses: any[], paginationToken?: string) => {
       const { data: collectionIdResponse } = await axios.post(
@@ -370,7 +372,7 @@ export class SharkifyService {
       console.log('ERROR', e)
     }
 
-    this.logger.debug(format(new Date(), "'saveNftListPrices end:' MMMM d, yyyy hh:mma"))
-    console.log(format(new Date(), "'saveNftListPrices end:' MMMM d, yyyy hh:mma"))
+    this.logger.debug(format(new Date(), "'saveNftListPrices end:' MMMM d, yyyy h:mma"))
+    console.log(format(new Date(), "'saveNftListPrices end:' MMMM d, yyyy h:mma"))
   }
 }
