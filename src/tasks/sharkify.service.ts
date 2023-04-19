@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Interval, Timeout } from '@nestjs/schedule'
+import { Interval } from '@nestjs/schedule'
 import { InjectRepository } from '@nestjs/typeorm'
 import { format } from 'date-fns'
 import { NftList, Loan, OrderBook, NftMint } from '../entities'
