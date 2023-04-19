@@ -4,11 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { CommandModule } from 'nestjs-command'
 import { SharkifyService } from './sharkify.service'
 import { SharkifyCommands } from '../commands/sharkify.commands'
-import { Loan } from '../entities/Loan'
-import { OrderBook } from '../entities/OrderBook'
-import { NftList } from '../entities/NftList'
+import { Loan, OrderBook, NftList, NftMint } from '../entities'
 
 import dotenv from 'dotenv'
+
 dotenv.config()
 
 @Module({
@@ -22,11 +21,11 @@ dotenv.config()
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
-      entities: [Loan, OrderBook, NftList],
+      entities: [Loan, OrderBook, NftList, NftMint],
       synchronize: true,
       logging: ['log', 'info', 'error', 'warn'],
     }),
-    TypeOrmModule.forFeature([Loan, OrderBook, NftList]),
+    TypeOrmModule.forFeature([Loan, OrderBook, NftList, NftMint]),
   ],
   providers: [SharkifyService, SharkifyCommands],
 })
