@@ -48,7 +48,7 @@ router.get('/verify_email/:token', async (req, res) => {
     console.log(error)
   }
 
-  return res.status(200).redirect('http://localhost:3000/login')
+  return res.status(200).redirect(`${WEBAPP_URL}/login`)
 })
 
 router.get('/reset_password_callback/:token', async (req, res) => {
@@ -56,7 +56,7 @@ router.get('/reset_password_callback/:token', async (req, res) => {
   //TODO CORRECT ROUTING IN FE PAGE update password UI
   if (success) {
     res.cookie('jid', utils.createAccessToken(success, '5m'), { httpOnly: true })
-    return res.status(200).redirect('http://localhost/graphql')
+    return res.status(200).redirect(`${WEBAPP_URL}/login`)
   } else {
     //route somewhere
   }
