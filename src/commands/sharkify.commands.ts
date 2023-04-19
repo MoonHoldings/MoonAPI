@@ -12,6 +12,7 @@ export class SharkifyCommands {
   })
   async initDb() {
     await this.sharkifyService.saveNftList()
+    await this.sharkifyService.saveNftMints()
     await this.sharkifyService.saveOrderBooks()
     await this.sharkifyService.saveLoans()
     await this.sharkifyService.saveNftListImages()
@@ -40,6 +41,14 @@ export class SharkifyCommands {
   })
   async saveNftList() {
     await this.sharkifyService.saveNftList()
+  }
+
+  @Command({
+    command: 'save:nftmints',
+    describe: 'Fetches all nft mints using sharkify client and saves in our database',
+  })
+  async saveNftMints() {
+    await this.sharkifyService.saveNftMints()
   }
 
   @Command({
