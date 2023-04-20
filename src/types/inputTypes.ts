@@ -65,4 +65,6 @@ export class GetOrderBooksArgs {
   sort?: OrderBookSort
   @Field({ nullable: true })
   borrowWalletAddress?: string
+  @Field({ nullable: true })
+  isBorrowPage?: boolean
 }

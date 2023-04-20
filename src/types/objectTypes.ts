@@ -41,6 +41,8 @@ export class OrderBookList {
   apy: number
   @Field(() => Number, { nullable: true })
   apyAfterFee?: number
+  @Field(() => Number, { nullable: true })
+  interest?: number
   @Field(() => Number)
   duration: number
   @Field(() => Number)
