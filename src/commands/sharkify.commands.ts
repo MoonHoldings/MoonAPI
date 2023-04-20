@@ -1,22 +1,22 @@
 import { Command } from 'nestjs-command'
 import { Injectable } from '@nestjs/common'
-import { SharkifyService } from '../tasks/sharkify.service'
+import { SharkifyCommandsService } from '../tasks/sharkify.commands.service'
 
 @Injectable()
 export class SharkifyCommands {
-  constructor(private readonly sharkifyService: SharkifyService) {}
+  constructor(private readonly sharkifyCommandsService: SharkifyCommandsService) {}
 
   @Command({
     command: 'initdb',
     describe: 'Fetches all loans using sharkify client and saves in our database',
   })
   async initDb() {
-    await this.sharkifyService.saveNftList()
-    await this.sharkifyService.saveNftMints()
-    await this.sharkifyService.saveOrderBooks()
-    await this.sharkifyService.saveLoans()
-    await this.sharkifyService.saveNftListImages()
-    await this.sharkifyService.saveNftListFloorPrices()
+    await this.sharkifyCommandsService.saveNftList()
+    await this.sharkifyCommandsService.saveNftMints()
+    await this.sharkifyCommandsService.saveOrderBooks()
+    await this.sharkifyCommandsService.saveLoans()
+    await this.sharkifyCommandsService.saveNftListImages()
+    await this.sharkifyCommandsService.saveNftListFloorPrices()
   }
 
   @Command({
@@ -24,7 +24,7 @@ export class SharkifyCommands {
     describe: 'Fetches all loans using sharkify client and saves in our database',
   })
   async saveLoans() {
-    await this.sharkifyService.saveLoans()
+    await this.sharkifyCommandsService.saveLoans()
   }
 
   @Command({
@@ -32,7 +32,7 @@ export class SharkifyCommands {
     describe: 'Fetches all order books using sharkify client and saves in our database',
   })
   async saveOrderBooks() {
-    await this.sharkifyService.saveOrderBooks()
+    await this.sharkifyCommandsService.saveOrderBooks()
   }
 
   @Command({
@@ -40,7 +40,7 @@ export class SharkifyCommands {
     describe: 'Fetches all nft list using sharkify client and saves in our database',
   })
   async saveNftList() {
-    await this.sharkifyService.saveNftList()
+    await this.sharkifyCommandsService.saveNftList()
   }
 
   @Command({
@@ -48,7 +48,7 @@ export class SharkifyCommands {
     describe: 'Fetches all nft mints using sharkify client and saves in our database',
   })
   async saveNftMints() {
-    await this.sharkifyService.saveNftMints()
+    await this.sharkifyCommandsService.saveNftMints()
   }
 
   @Command({
@@ -56,7 +56,7 @@ export class SharkifyCommands {
     describe: 'Fetches all nft list images using hello moon and shyft and saves in our database',
   })
   async saveNftListImages() {
-    await this.sharkifyService.saveNftListImages()
+    await this.sharkifyCommandsService.saveNftListImages()
   }
 
   @Command({
@@ -64,6 +64,6 @@ export class SharkifyCommands {
     describe: 'Fetches all nft list floor prices using hello moon and saves in our database',
   })
   async saveNftListFloorPrices() {
-    await this.sharkifyService.saveNftListFloorPrices()
+    await this.sharkifyCommandsService.saveNftListFloorPrices()
   }
 }

@@ -79,6 +79,7 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
 
       const nftMints = await NftMint.createQueryBuilder('nft_mint')
         .select('nft_mint.mint', 'mint')
+        .addSelect('nft_mint.nftListIndex', 'nftListIndex')
         .addSelect('order_book.id', 'orderBookId')
         .leftJoin('nft_mint.nftList', 'nft_list')
         .leftJoin('nft_list.orderBook', 'order_book')
@@ -86,12 +87,13 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
         .andWhere('order_book.id IN (:...orderBookIds)', { orderBookIds })
         .getRawMany()
 
-      const ownedNftsByMint = nftMints.reduce((map: any, { mint }) => {
+      const ownedNftsByMint = nftMints.reduce((map: any, { mint, nftListIndex }) => {
         const ownedNftDetail = ownedNftDetails.find(({ mint: ownedNftMint }: any) => ownedNftMint === mint)
 
         if (ownedNftDetail) {
           map[mint] = {
             mint: ownedNftDetail.mint,
+            nftListIndex: nftListIndex,
             name: ownedNftDetail.name,
             symbol: ownedNftDetail.symbol,
             image: ownedNftDetail?.cached_image_uri ?? ownedNftDetail?.image_uri,

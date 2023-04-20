@@ -2,7 +2,7 @@
 
 ## Getting Started
 
-Run the development server:
+Run the development graphql server:
 
 Terminal 1:
 
@@ -20,7 +20,7 @@ npm run dev
 yarn dev
 ```
 
-Run development worker:
+Run development cron jobs:
 
 Terminal 3:
 
