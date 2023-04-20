@@ -25,6 +25,8 @@ export class OwnedNft {
   image?: string
   @Field(() => String)
   mint: string
+  @Field(() => Int, { nullable: true })
+  nftListIndex?: number
   @Field(() => String)
   symbol: string
 }
@@ -39,6 +41,8 @@ export class OrderBookList {
   apy: number
   @Field(() => Number, { nullable: true })
   apyAfterFee?: number
+  @Field(() => Number, { nullable: true })
+  interest?: number
   @Field(() => Number)
   duration: number
   @Field(() => Number)

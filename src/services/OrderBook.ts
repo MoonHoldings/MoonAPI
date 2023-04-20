@@ -27,8 +27,18 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
     .addSelect('orderBook.feePermillicentage', 'feePermillicentage')
     .addSelect("COALESCE(SUM(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", 'totalpool')
     .addSelect("COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0)", 'bestoffer')
-    .innerJoin('orderBook.nftList', 'nftList')
-    .leftJoin('orderBook.loans', 'loan')
+
+  if (args?.isBorrowPage) {
+    query.addSelect(
+      `(
+          COALESCE(MAX(CASE WHEN loan.state = 'offered' THEN loan.principalLamports ELSE 0 END), 0) *
+          (EXP((orderBook.duration / 31536000.0) * (orderBook.apy / 100000.0)) - 1)
+      ) / 1000000000.0`,
+      'interest'
+    )
+  }
+
+  query.innerJoin('orderBook.nftList', 'nftList').leftJoin('orderBook.loans', 'loan')
 
   if (args?.filter?.search) {
     query.where('nftList.collectionName ILIKE :name', { name: `%${args.filter.search}%` })
@@ -62,6 +72,9 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
     case OrderBookSortType.BestOffer:
       query.orderBy('bestoffer', args?.sort?.order ?? SortOrder.Desc)
       break
+    case OrderBookSortType.Interest:
+      if (args?.isBorrowPage) query.orderBy('interest', args?.sort?.order ?? SortOrder.Desc)
+      break
     default:
       query.orderBy('totalpool', args?.sort?.order ?? SortOrder.Desc)
       break
@@ -79,6 +92,7 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
 
       const nftMints = await NftMint.createQueryBuilder('nft_mint')
         .select('nft_mint.mint', 'mint')
+        .addSelect('nft_mint.nftListIndex', 'nftListIndex')
         .addSelect('order_book.id', 'orderBookId')
         .leftJoin('nft_mint.nftList', 'nft_list')
         .leftJoin('nft_list.orderBook', 'order_book')
@@ -86,12 +100,13 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
         .andWhere('order_book.id IN (:...orderBookIds)', { orderBookIds })
         .getRawMany()
 
-      const ownedNftsByMint = nftMints.reduce((map: any, { mint }) => {
+      const ownedNftsByMint = nftMints.reduce((map: any, { mint, nftListIndex }) => {
         const ownedNftDetail = ownedNftDetails.find(({ mint: ownedNftMint }: any) => ownedNftMint === mint)
 
         if (ownedNftDetail) {
           map[mint] = {
             mint: ownedNftDetail.mint,
+            nftListIndex: nftListIndex,
             name: ownedNftDetail.name,
             symbol: ownedNftDetail.symbol,
             image: ownedNftDetail?.cached_image_uri ?? ownedNftDetail?.image_uri,
@@ -112,21 +127,26 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
     }
   }
 
-  const orderBooks = rawData.map((orderBook) => ({
-    id: orderBook.id,
-    pubKey: orderBook.pubKey,
-    apy: orderBook.apy,
-    apyAfterFee: apyAfterFee(orderBook.apy, orderBook.duration, orderBook.feePermillicentage),
-    duration: orderBook.duration,
-    feePermillicentage: orderBook.feePermillicentage,
-    collectionName: orderBook.collectionName,
-    collectionImage: orderBook.collectionImage,
-    floorPrice: orderBook.floorPrice,
-    floorPriceSol: orderBook.floorPrice ? parseFloat(orderBook.floorPrice) / LAMPORTS_PER_SOL : undefined,
-    totalPool: parseFloat(orderBook.totalpool) / LAMPORTS_PER_SOL,
-    bestOffer: parseFloat(orderBook.bestoffer) / LAMPORTS_PER_SOL,
-    ownedNfts: orderBook?.ownedNfts,
-  }))
+  const orderBooks = rawData.map((orderBook) => {
+    const bestOffer = parseFloat(orderBook.bestoffer) / LAMPORTS_PER_SOL
+
+    return {
+      id: orderBook.id,
+      pubKey: orderBook.pubKey,
+      apy: orderBook.apy,
+      apyAfterFee: apyAfterFee(orderBook.apy, orderBook.duration, orderBook.feePermillicentage),
+      interest: orderBook?.interest,
+      duration: orderBook.duration,
+      feePermillicentage: orderBook.feePermillicentage,
+      collectionName: orderBook.collectionName,
+      collectionImage: orderBook.collectionImage,
+      floorPrice: orderBook.floorPrice,
+      floorPriceSol: orderBook.floorPrice ? parseFloat(orderBook.floorPrice) / LAMPORTS_PER_SOL : undefined,
+      totalPool: parseFloat(orderBook.totalpool) / LAMPORTS_PER_SOL,
+      bestOffer,
+      ownedNfts: orderBook?.ownedNfts,
+    }
+  })
 
   return {
     count,

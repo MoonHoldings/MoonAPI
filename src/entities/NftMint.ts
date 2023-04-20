@@ -9,6 +9,10 @@ export class NftMint extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number
 
+  @Field(() => Number, { nullable: true })
+  @Column('integer', { nullable: true })
+  nftListIndex!: number
+
   @Field(() => String)
   @Column({ nullable: false })
   mint: string

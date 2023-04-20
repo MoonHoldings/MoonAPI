@@ -4,6 +4,7 @@ export enum OrderBookSortType {
   BestOffer = 'Best Offer',
   Apy = 'APY',
   Duration = 'Duration',
+  Interest = 'Interest',
 }
 
 export enum LoanSortType {
