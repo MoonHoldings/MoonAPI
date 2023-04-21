@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { SERVER_URL } from 'src/constants'
+import { SERVER_URL } from '../constants'
 
 export function generateRandomString(length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'

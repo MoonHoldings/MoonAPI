@@ -35,7 +35,7 @@ export class UserResolver {
     return await userService.getPasswordResetEmail(email)
   }
 
-  @Query(() => Boolean)
+  @Mutation(() => Boolean)
   async updatePassword(@Arg('password') email: string, @Ctx() ctx: Context<any>): Promise<boolean> {
     const token = ctx.req.cookies.jid
     return await userService.updatePassword(email, token)

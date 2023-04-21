@@ -2,7 +2,7 @@ import { ExpressContext, UserInputError } from 'apollo-server-express'
 import { User } from '../entities'
 import { passwordStrength } from 'check-password-strength'
 import { EmailTokenType, SignInType } from '../enums'
-import { ACCESS_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
+import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
 
 import sgMail from '@sendgrid/mail'
 import * as utils from '../utils'
@@ -38,8 +38,8 @@ export const register = async (email: string, password: string) => {
       throw new Error('Incorrect credentials')
     }
   }
-  const hasSent = await sendConfirmationEmail(email)
-  // const hasSent = true
+  // const hasSent = await sendConfirmationEmail(email)
+  const hasSent = true
 
   if (hasSent) {
     const user = await createUser(email, SignInType.EMAIL, hashedPassword)
@@ -51,10 +51,23 @@ export const register = async (email: string, password: string) => {
 }
 
 export const login = async (email: string, password: string, ctx: ExpressContext) => {
-  let user = await getUserByEmail(email)
-
+  const user = await getUserByEmail(email)
+  await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.CONFIRMATION_EMAIL)
   if (!user) {
     throw new UserInputError('User does not exist')
+  }
+
+  if (user.isLocked) {
+    const isUnlocked = await user.checkToUnlock()
+    if (!isUnlocked)
+      throw new UserInputError('You are locked out please try again after 5 minutes.')
+  }
+
+  let passwordMatched: boolean
+  passwordMatched = await utils.comparePassword(password, user.password)
+  if (!passwordMatched) {
+    await user.incrementFailedAttempts();
+    throw new UserInputError('Incorrect credentials.')
   }
 
   const hasEmailType = await signInTypeService.hasSignInType(user.email, SignInType.EMAIL)
@@ -64,12 +77,6 @@ export const login = async (email: string, password: string, ctx: ExpressContext
 
   if (!user.isVerified) {
     throw new UserInputError('Please verify your email to continue.')
-  }
-
-  let passwordMatched: boolean
-  passwordMatched = await utils.comparePassword(password, user.password)
-  if (!passwordMatched) {
-    throw new UserInputError('Incorrect credentials.')
   }
 
   user.lastLoginTimestamp = new Date()
@@ -157,20 +164,28 @@ export const updatePassword = async (password: string, token: string) => {
     throw new UserInputError('Invalid token')
   }
 
-  const user = await User.findOne({ where: { id: payload.id } })
+  const user = await User.findOne({ where: { id: payload.userId } })
 
   if (!user) {
     throw new UserInputError('User Not found')
   }
 
   let hashedPassword: string
-  if (passwordStrength(password).id == 0 || passwordStrength(password).id == 1) {
+  if (passwordStrength(password).id != 0 && passwordStrength(password).id != 1) {
     hashedPassword = await utils.generatePassword(password)
   } else {
     throw new UserInputError('Password is too weak')
   }
 
-  await User.save(Object.assign(user, { hashedPassword }))
+  if (user.password) {
+    let passwordMatched: boolean
+    passwordMatched = await utils.comparePassword(password, user.password)
+    if (passwordMatched) {
+      throw new UserInputError('Please use a different password.')
+    }
+  }
+
+  await User.save(Object.assign(user, { password: hashedPassword }))
   return true
 }
 
