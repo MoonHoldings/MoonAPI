@@ -52,7 +52,7 @@ export const register = async (email: string, password: string) => {
 
 export const login = async (email: string, password: string, ctx: ExpressContext) => {
   const user = await getUserByEmail(email)
-  await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.CONFIRMATION_EMAIL)
+
   if (!user) {
     throw new UserInputError('User does not exist')
   }
