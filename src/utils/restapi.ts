@@ -14,7 +14,7 @@ import { EmailTokenType } from '../enums'
 
 const router = express.Router()
 
-router.post('/refresh_token', async (req, res) => {
+router.post('/api/refresh_token', async (req, res) => {
   const token = req.cookies.jid
   if (!token) {
     return res.send({ ok: false, accessToken: '', email: '' })
@@ -41,7 +41,7 @@ router.post('/refresh_token', async (req, res) => {
   return res.send({ ok: true, accessToken: createAccessToken(user, '1d'), email: user.email })
 })
 
-router.get('/verify_email/:token', async (req, res) => {
+router.get('/api/verify_email/:token', async (req, res) => {
   try {
     await emailTokenService.validateUserToken(req.params.token, EmailTokenType.CONFIRMATION_EMAIL)
   }
@@ -52,7 +52,7 @@ router.get('/verify_email/:token', async (req, res) => {
   return res.status(200).redirect(`${WEBAPP_URL}/login`)
 })
 
-router.get('/reset_password_callback/:token', async (req, res) => {
+router.get('/api/api/reset_password_callback/:token', async (req, res) => {
 
   try {
     const user = await emailTokenService.validateUserToken(req.params.token, EmailTokenType.CONFIRMATION_EMAIL)
@@ -68,7 +68,7 @@ router.get('/reset_password_callback/:token', async (req, res) => {
   }
 })
 
-router.get('/auth/discord', async (req, res) => {
+router.get('/apiauth/discord', async (req, res) => {
   const code = req.query.code as string
   const state = req.query.state as string
   const value = await memoryCache
