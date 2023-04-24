@@ -65,7 +65,7 @@ router.get('/api/api/reset_password_callback/:token', async (req, res) => {
       return res.status(200).redirect(`${WEBAPP_URL}/login`)
     }
   } catch (error) {
-    console.log(error)
+    return res.status(200).redirect(`${WEBAPP_URL}/login`)
   }
 })
 
