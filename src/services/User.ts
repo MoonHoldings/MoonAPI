@@ -38,8 +38,7 @@ export const register = async (email: string, password: string) => {
       throw new Error('Incorrect credentials')
     }
   }
-  // const hasSent = await sendConfirmationEmail(email)
-  const hasSent = true
+  const hasSent = await sendConfirmationEmail(email)
 
   if (hasSent) {
     const user = await createUser(email, SignInType.EMAIL, hashedPassword)
