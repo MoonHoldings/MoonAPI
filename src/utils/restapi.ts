@@ -38,7 +38,8 @@ router.post('/api/refresh_token', async (req, res) => {
     return res.send({ ok: false, accessToken: '' })
   }
 
-  return res.send({ ok: true, accessToken: createAccessToken(user, '1d'), email: user.email })
+  res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true })
+  return res.send({ ok: true, })
 })
 
 router.get('/api/verify_email/:token', async (req, res) => {
@@ -68,7 +69,7 @@ router.get('/api/api/reset_password_callback/:token', async (req, res) => {
   }
 })
 
-router.get('/apiauth/discord', async (req, res) => {
+router.get('/auth/discord', async (req, res) => {
   const code = req.query.code as string
   const state = req.query.state as string
   const value = await memoryCache
