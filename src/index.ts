@@ -63,6 +63,10 @@ const main = async () => {
     })
   )
 
+  try {
+    await AppDataSource.initialize()
+  } catch (_) {
+  }
   // APOLLO
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
@@ -71,9 +75,6 @@ const main = async () => {
     }),
     csrfPrevention: false,
     context: async ({ req, res }: IContext) => {
-      try {
-        await AppDataSource.initialize()
-      } catch (_) {}
 
       return {
         req,

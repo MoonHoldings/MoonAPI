@@ -13,6 +13,7 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
+
   async login(@Arg('email') email: string, @Arg('password') password: string, @Ctx() ctx: Context<any>): Promise<User> {
     return await userService.login(email, password, ctx)
   }
@@ -35,7 +36,7 @@ export class UserResolver {
     return await userService.getPasswordResetEmail(email)
   }
 
-  @Query(() => Boolean)
+  @Mutation(() => Boolean)
   async updatePassword(@Arg('password') email: string, @Ctx() ctx: Context<any>): Promise<boolean> {
     const token = ctx.req.cookies.jid
     return await userService.updatePassword(email, token)

@@ -11,16 +11,16 @@ const crypto = require('crypto')
 import { memoryCache } from './cache';
 
 export const createAccessToken = (user: User, expiry: string) => {
-  return sign({ userId: user.id }, `${ACCESS_TOKEN_SECRET}`, { expiresIn: expiry })
+  return sign({ userId: user.id, email: user.email }, `${ACCESS_TOKEN_SECRET}`, { expiresIn: expiry })
 }
 
 export const createRefreshToken = (user: User) => {
-  return sign({ userId: user.id, tokenVersion: user.tokenVersion }, `${REFRESH_TOKEN_SECRET}`, { expiresIn: '7d' })
+  return sign({ userId: user.id, email: user.email, tokenVersion: user.tokenVersion }, `${REFRESH_TOKEN_SECRET}`, { expiresIn: '7d' })
 }
 
 //Middleware for Authenticated routes
 export const isAuth: MiddlewareFn<Session> = ({ context }, next) => {
-  const authorization = context.req.headers['authorization']
+  const authorization = context.req.cookies.aid
 
   if (!authorization) {
     throw new Error('Not Authenticated')

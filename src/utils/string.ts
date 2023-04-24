@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { SERVER_URL } from 'src/constants'
+import { SERVER_URL } from '../constants'
 
 export function generateRandomString(length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -41,7 +41,7 @@ export function generateEmailHTML(username: string, randomToken: string): string
 
     <br/><br/>
 
-    <a href="${SERVER_URL}:80/verify_email/token=${randomToken}">
+    <a href="${SERVER_URL}:80/api/verify_email/token=${randomToken}">
     <button style="background-color: #00FFFF; color: #000000; font-size: 16px; font-weight: bold; padding: 12px 24px; border: 2px solid #FFFFFF; border-radius: 5px;">Confirm Email</button>
     </a>
 
@@ -68,7 +68,7 @@ export function generatePasswordReset(username: string, randomToken: string): st
 
     <br/><br/>
 
-    <a href="${SERVER_URL}:80/reset_password_callback/token=${randomToken}"">
+    <a href="${SERVER_URL}:80/api/reset_password_callback/token=${randomToken}"">
      <button style="background-color: #00FFFF; color: #000000; font-size: 16px; font-weight: bold; padding: 12px 24px; border: 2px solid #FFFFFF; border-radius: 5px;">Confirm Email</button>
    </a>
 

@@ -9,11 +9,12 @@ import * as utils from '../utils'
 import oauth from './discord'
 import { memoryCache } from './cache';
 import { REFRESH_TOKEN_SECRET, WEBAPP_URL } from '../constants'
+import { EmailTokenType } from '../enums'
 
 
 const router = express.Router()
 
-router.post('/refresh_token', async (req, res) => {
+router.post('/api/refresh_token', async (req, res) => {
   const token = req.cookies.jid
   if (!token) {
     return res.send({ ok: false, accessToken: '', email: '' })
@@ -37,12 +38,13 @@ router.post('/refresh_token', async (req, res) => {
     return res.send({ ok: false, accessToken: '' })
   }
 
-  return res.send({ ok: true, accessToken: createAccessToken(user, '1d'), email: user.email })
+  res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true })
+  return res.send({ ok: true, })
 })
 
-router.get('/verify_email/:token', async (req, res) => {
+router.get('/api/verify_email/:token', async (req, res) => {
   try {
-    await emailTokenService.validateUserToken(req.params.token)
+    await emailTokenService.validateUserToken(req.params.token, EmailTokenType.CONFIRMATION_EMAIL)
   }
   catch (error) {
     console.log(error)
@@ -51,14 +53,19 @@ router.get('/verify_email/:token', async (req, res) => {
   return res.status(200).redirect(`${WEBAPP_URL}/login`)
 })
 
-router.get('/reset_password_callback/:token', async (req, res) => {
-  const success = await emailTokenService.validateUserToken(req.params.token)
-  //TODO CORRECT ROUTING IN FE PAGE update password UI
-  if (success) {
-    res.cookie('jid', utils.createAccessToken(success, '5m'), { httpOnly: true })
-    return res.status(200).redirect(`${WEBAPP_URL}/login`)
-  } else {
-    //route somewhere
+router.get('/api/api/reset_password_callback/:token', async (req, res) => {
+
+  try {
+    const user = await emailTokenService.validateUserToken(req.params.token, EmailTokenType.CONFIRMATION_EMAIL)
+
+    if (user) {
+      res.cookie('jid', utils.createAccessToken(user, '5m'), { httpOnly: true })
+      return res.status(200).redirect(`${WEBAPP_URL}/reset-password`)
+    } else {
+      return res.status(200).redirect(`${WEBAPP_URL}/login`)
+    }
+  } catch (error) {
+    console.log(error)
   }
 })
 
@@ -97,7 +104,6 @@ router.get('/auth/discord', async (req, res) => {
       return res.status(200).json({ error: 'Verify if discord email is confirmed' })
     }
   } catch (error) {
-    console.error(error)
     return res.status(200).json({ error: 'Discord might have maintenance' })
   }
 })
