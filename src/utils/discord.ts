@@ -4,7 +4,7 @@ import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, SERVER_URL } from '../constan
 const oauth = new DiscordOauth2({
   clientId: DISCORD_CLIENT_ID,
   clientSecret: DISCORD_CLIENT_SECRET,
-  redirectUri: `${SERVER_URL}:80/auth/discord`,
+  redirectUri: `${SERVER_URL}/auth/discord`,
 })
 
 export default oauth
