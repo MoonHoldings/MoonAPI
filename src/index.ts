@@ -1,15 +1,17 @@
-import { ApolloServer } from "apollo-server-express"
-import express, { Request, Response } from "express"
-import session from "express-session"
-import { buildSchema } from "type-graphql"
-import { NestFactory } from "@nestjs/core"
-import { AppModule } from "./app.module"
-import cors from "cors"
-import { __prod__ } from "./constants"
-import { AppDataSource } from "./utils/db"
-import { LoanResolver } from "./resolvers/Loan"
+import { ApolloServer } from 'apollo-server-express'
+import express, { Request, Response } from 'express'
+import session from 'express-session'
+import { buildSchema } from 'type-graphql'
+// import { NestFactory } from "@nestjs/core"
+// import { AppModule } from "./app.module"
+import cors from 'cors'
+import { __prod__ } from './constants'
+import { AppDataSource } from './utils/db'
+import { LoanResolver, OrderBookResolver, UserResolver } from './resolvers'
+import cookieParser from 'cookie-parser'
+import restRouter from './utils/restapi'
+import dotenv from 'dotenv'
 
-import dotenv from "dotenv"
 dotenv.config()
 
 export type IContext = {
@@ -17,10 +19,12 @@ export type IContext = {
   res: Response
 }
 
+const app = express()
+
 const main = async () => {
   // EXPRESS
-  const app = express()
-  const whitelist = ["http://localhost:3000", "https://studio.apollographql.com"]
+
+  const whitelist = process?.env?.CORS_ALLOW_ORIGIN?.split(',') ?? []
   const corsOptions = {
     origin: function (origin: any, callback: any) {
       if (whitelist.indexOf(origin) !== -1) {
@@ -32,6 +36,8 @@ const main = async () => {
     credentials: true,
   }
   app.use(cors(corsOptions))
+  app.use(cookieParser())
+  app.use('/', restRouter)
 
   // REDIS
   // let RedisStore = require("connect-redis")(session)
@@ -40,7 +46,7 @@ const main = async () => {
 
   app.use(
     session({
-      name: "qid",
+      name: 'qid',
       // store: new RedisStore({
       //   client: redisClient,
       //   disableTouch: true,
@@ -48,26 +54,27 @@ const main = async () => {
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 Years
         httpOnly: true,
-        sameSite: "lax", // csrf
+        sameSite: 'lax', // csrf
         secure: !__prod__, // cookie only works in http
       },
       saveUninitialized: false,
-      secret: process.env.SESSION_SECRET ? process.env.SESSION_SECRET : "",
+      secret: process.env.SESSION_SECRET ? process.env.SESSION_SECRET : '',
       resave: false,
     })
   )
 
+  try {
+    await AppDataSource.initialize()
+  } catch (_) {
+  }
   // APOLLO
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [LoanResolver],
+      resolvers: [LoanResolver, OrderBookResolver, UserResolver],
       validate: false,
     }),
     csrfPrevention: false,
     context: async ({ req, res }: IContext) => {
-      try {
-        await AppDataSource.initialize()
-      } catch (_) {}
 
       return {
         req,
@@ -80,14 +87,14 @@ const main = async () => {
   apolloServer.applyMiddleware({ app, cors: false })
 
   app.listen(process.env.PORT || 80, () => {
-    console.log(`server started at http://localhost:${process.env.PORT ?? ""}/graphql`)
+    console.log(`server started at http://localhost:${process.env.PORT ?? ''}/graphql`)
   })
 
-  const nest = await NestFactory.create(AppModule)
+  // const nest = await NestFactory.create(AppModule)
 
-  nest.listen(8001, () => {
-    console.log("nest started at localhost:8001")
-  })
+  // nest.listen(8001, () => {
+  //   console.log("nest started at localhost:8001")
+  // })
 }
 
 main().catch((err) => {

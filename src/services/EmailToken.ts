@@ -1,0 +1,107 @@
+import { generateRandomString } from '../utils/string'
+import { EmailToken, User } from '../entities'
+import { EMAIL_EXPIRY_IN_DAYS } from '../constants'
+import * as utils from '../utils'
+import { add, addMinutes, isAfter } from 'date-fns'
+import { EmailTokenType } from '../enums'
+import { UserInputError } from 'apollo-server-express'
+
+
+const MAX_EMAIL_TOKEN_ATTEMPTS = 3
+const EMAIL_TOKEN_LOCKOUT_SECONDS = 10
+
+export const generateUserConfirmationToken = async (email: string, type: string) => {
+  const token = generateRandomString(32)
+
+  const emailToken = await EmailToken.findOne({ where: { email, emailTokenType: type } })
+  const now = new Date()
+
+  if (emailToken) {
+
+    if (emailToken.isExpired()) {
+      await EmailToken.save(
+        Object.assign(emailToken, {
+          token: token,
+          generatedAt: now,
+          expireAt: add(now, { days: EMAIL_EXPIRY_IN_DAYS }),
+        })
+      )
+    }
+    else {
+      const originalDate = new Date()
+      const lockoutThresholdTime = addMinutes(emailToken.generatedAt, EMAIL_TOKEN_LOCKOUT_SECONDS)
+      const attempts = emailToken.attempts;
+
+      if (isAfter(lockoutThresholdTime, originalDate)) {
+        if (attempts <= MAX_EMAIL_TOKEN_ATTEMPTS) {
+          await EmailToken.save(
+            Object.assign(emailToken, {
+              token: token,
+              generatedAt: now,
+              expireAt: add(now, { days: EMAIL_EXPIRY_IN_DAYS }),
+              attempts: attempts + 1
+            })
+          )
+        } else {
+          throw new UserInputError('You have requested to many times. Please try again later.')
+        }
+
+      } else {
+        await EmailToken.save(
+          Object.assign(emailToken, {
+            token: token,
+            generatedAt: now,
+            expireAt: add(now, { days: EMAIL_EXPIRY_IN_DAYS }),
+            attempts: 1
+          })
+        )
+      }
+    }
+  } else {
+    await EmailToken.save({
+      email: email,
+      token: token,
+      generatedAt: now,
+      expireAt: add(now, { days: EMAIL_EXPIRY_IN_DAYS }),
+      emailTokenType: type
+    })
+  }
+
+  return token
+}
+
+export const validateUserToken = async (hashedToked: string, type: string) => {
+  const token = utils.decryptToken(utils.removedKey(hashedToked))
+  const emailToken = await EmailToken.findOne({ where: { token, emailTokenType: type } })
+
+  if (!emailToken) {
+    return null
+  }
+  if (emailToken.isExpired()) {
+    return null
+  }
+
+  const user = await User.findOne({ where: { email: emailToken.email } })
+  if (!user) {
+    return null
+  }
+
+  if (emailToken.emailTokenType == EmailTokenType.CONFIRMATION_EMAIL) {
+    if (user.isVerified) {
+      return null
+    } else {
+      return await User.save(
+        Object.assign(user, {
+          isVerified: true,
+          verifiedAt: new Date(),
+        })
+      )
+    }
+  }
+  else {
+    if (!user.isVerified) {
+      return null
+    }
+    return user;
+  }
+}

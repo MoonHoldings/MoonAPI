@@ -1,18 +1,13 @@
-import { AnchorProvider } from "@project-serum/anchor"
-import Wallet from "@project-serum/anchor/dist/cjs/nodewallet"
+import { AnchorProvider } from '@project-serum/anchor'
+import Wallet from '@project-serum/anchor/dist/cjs/nodewallet'
 
-import { Connection, Keypair } from "@solana/web3.js"
-import { RPC_URL } from "../constants"
+import { Connection, Keypair } from '@solana/web3.js'
+import { HELLO_MOON_RPC_URL } from '../constants'
 
-export const connection = new Connection(RPC_URL as string, "confirmed")
-// export const connection = new Connection(RPC_URL, {
-//   httpHeaders: {
-//     Authorization: `Bearer ${HELLO_MOON_KEY}`,
-//   },
-// })
+export const connection = new Connection(HELLO_MOON_RPC_URL as string, 'confirmed')
 
 const createAnchorProvider = (wallet?: Wallet, rpc?: string) => {
-  const provider = new AnchorProvider(new Connection((RPC_URL ?? rpc) as string, "confirmed"), wallet ?? new Wallet(Keypair.generate()), {
+  const provider = new AnchorProvider(new Connection((HELLO_MOON_RPC_URL ?? rpc) as string, 'confirmed'), wallet ?? new Wallet(Keypair.generate()), {
     maxRetries: 2,
   })
 

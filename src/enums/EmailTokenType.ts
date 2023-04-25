@@ -1,0 +1,4 @@
+export enum EmailTokenType {
+    CONFIRMATION_EMAIL = 'CONFIRMATION_EMAIL',
+    RESET_PASSWORD = 'RESET_PASSWORD',
+}

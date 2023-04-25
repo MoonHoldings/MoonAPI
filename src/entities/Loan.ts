@@ -1,6 +1,6 @@
-import { Field, ID, Int, ObjectType } from "type-graphql"
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Relation } from "typeorm"
-import { OrderBook } from "./OrderBook"
+import { Field, ID, Int, ObjectType } from 'type-graphql'
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import { OrderBook } from '.'
 
 @ObjectType()
 @Entity()
@@ -10,76 +10,86 @@ export class Loan extends BaseEntity {
   id!: number
 
   @Field(() => String)
-  @Column("text")
+  @Column('text')
   pubKey!: string
 
-  @Field(() => String)
-  @Column("text")
-  version!: string
+  @Field(() => Int)
+  @Column('integer')
+  version!: number
 
-  @Field(() => String)
-  @Column("text")
-  principalLamports!: string
+  @Field(() => Number)
+  @Column('bigint')
+  principalLamports!: number
 
   @Field(() => OrderBook)
   @ManyToOne(() => OrderBook, (orderBook) => orderBook.loans)
   orderBook!: Relation<OrderBook>
 
   @Field(() => String)
-  @Column("text")
+  @Column('text')
   valueTokenMint!: string
 
   @Field(() => Boolean, { defaultValue: true })
-  @Column({ type: "boolean", default: true })
+  @Column({ type: 'boolean', default: true })
   supportsFreezingCollateral: boolean = true
 
   @Field(() => Boolean, { defaultValue: false })
-  @Column({ type: "boolean", default: false })
+  @Column({ type: 'boolean', default: false })
   isCollateralFrozen: boolean = false
 
   @Field(() => Boolean, { defaultValue: false })
-  @Column({ type: "boolean", default: false })
+  @Column({ type: 'boolean', default: false })
   isHistorical: boolean = false
 
+  @Field(() => Boolean, { defaultValue: false })
+  @Column({ type: 'boolean', default: false })
+  isForeclosable: boolean = false
+
   @Field(() => String)
-  @Column("text")
+  @Column('text')
   state!: string
 
-  @Field(() => Int, { nullable: true })
-  @Column("integer", { nullable: true })
+  @Field(() => Number, { nullable: true })
+  @Column('bigint', { nullable: true })
   duration?: number | null
 
   // Offered loan attributes
   @Field(() => String, { nullable: true })
-  @Column({ type: "text", nullable: true })
+  @Column({ type: 'text', nullable: true })
   lenderWallet?: string
 
-  @Field(() => Int, { nullable: true })
-  @Column("integer", { nullable: true })
+  @Field(() => Number, { nullable: true })
+  @Column('bigint', { nullable: true })
   offerTime?: number | null
 
   // Taken loan attributes
   @Field(() => String, { nullable: true })
-  @Column({ type: "text", nullable: true })
+  @Column({ type: 'text', nullable: true })
   nftCollateralMint?: string
 
   @Field(() => String, { nullable: true })
-  @Column({ type: "text", nullable: true })
+  @Column({ type: 'text', nullable: true })
   lenderNoteMint?: string
 
   @Field(() => String, { nullable: true })
-  @Column({ type: "text", nullable: true })
+  @Column({ type: 'text', nullable: true })
   borrowerNoteMint?: string
 
   @Field(() => Int, { nullable: true })
-  @Column("integer", { nullable: true })
+  @Column('integer', { nullable: true })
   apy?: number | null
 
-  @Field(() => Int, { nullable: true })
-  @Column("integer", { nullable: true })
+  @Field(() => Number, { nullable: true })
+  @Column('bigint', { nullable: true })
   start?: number | null
 
-  @Field(() => Int, { nullable: true })
-  @Column("integer", { nullable: true })
+  @Field(() => Number, { nullable: true })
+  @Column('bigint', { nullable: true })
   totalOwedLamports?: number | null
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date
 }
