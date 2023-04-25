@@ -81,9 +81,8 @@ export const login = async (email: string, password: string, ctx: ExpressContext
   user.lastLoginTimestamp = new Date()
   await User.save(user)
 
-  ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true })
-  ctx.res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true })
-  console.log(user)
+  ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true, secure: true })
+  ctx.res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true, secure: true })
   return user
 }
 
