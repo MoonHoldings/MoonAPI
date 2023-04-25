@@ -2,7 +2,7 @@ import { ExpressContext, UserInputError } from 'apollo-server-express'
 import { User } from '../entities'
 import { passwordStrength } from 'check-password-strength'
 import { EmailTokenType, SignInType } from '../enums'
-import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
+import { ACCESS_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
 
 import sgMail from '@sendgrid/mail'
 import * as utils from '../utils'

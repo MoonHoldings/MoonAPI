@@ -1,5 +1,5 @@
 import { verify } from 'jsonwebtoken'
-import { createAccessToken, createRefreshToken } from './auth'
+import { createRefreshToken } from './auth'
 import express from 'express'
 
 import * as emailTokenService from '../services/EmailToken'
