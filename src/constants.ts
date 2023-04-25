@@ -18,6 +18,7 @@ export const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID
 export const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET
 export const SERVER_URL = process.env.SERVER_URL
 export const WEBAPP_URL = process.env.WEBAPP_URL
+export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN
 
 export const AXIOS_CONFIG_SHYFT_KEY = {
   headers: {
