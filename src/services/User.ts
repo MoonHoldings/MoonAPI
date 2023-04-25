@@ -122,13 +122,21 @@ export const sendConfirmationEmail = async (email: string) => {
   return true
 }
 
-//NOTE: if resend feature, must check if user is already verified before calling this fn
 export const getPasswordResetEmail = async (email: string) => {
+  if (!utils.isValidEmail(email)) {
+    throw new UserInputError('Please enter a valid email')
+  }
+
   let user = await getUserByEmail(email)
 
   if (!user) {
     throw new UserInputError('User does not exist')
   } else {
+
+    if (!user.isVerified) {
+      throw new UserInputError('Please verify your email to reset your password.')
+    }
+
     const randomToken = await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.RESET_PASSWORD)
     const username = utils.removeEmailAddressesFromString(email)
     const message = utils.generatePasswordReset(username, utils.encryptToken(randomToken))

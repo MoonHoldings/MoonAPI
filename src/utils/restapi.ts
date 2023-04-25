@@ -17,7 +17,7 @@ const router = express.Router()
 router.post('/api/refresh_token', async (req, res) => {
   const token = req.cookies.jid
   if (!token) {
-    return res.send({ ok: false, accessToken: '', email: '' })
+    return res.send({ ok: false, message: 'Invalid Token', email: '' })
   }
 
   let payload: any = null
@@ -25,13 +25,13 @@ router.post('/api/refresh_token', async (req, res) => {
   try {
     payload = verify(token, REFRESH_TOKEN_SECRET!)
   } catch (err) {
-    return res.send({ ok: false, accessToken: '3' })
+    return res.send({ ok: false, message: 'Invalid Token', accessToken: '' })
   }
 
   const user = await User.findOne({ where: { id: payload.userId } })
 
   if (!user) {
-    return res.send({ ok: false, accessToken: '' })
+    return res.send({ ok: false, message: 'Invalid Token', accessToken: '' })
   }
 
   if (user.tokenVersion != payload.tokenVersion) {
@@ -53,10 +53,10 @@ router.get('/api/verify_email/:token', async (req, res) => {
   return res.status(200).redirect(`${WEBAPP_URL}/login`)
 })
 
-router.get('/api/api/reset_password_callback/:token', async (req, res) => {
+router.get('/api/reset_password_callback/:token', async (req, res) => {
 
   try {
-    const user = await emailTokenService.validateUserToken(req.params.token, EmailTokenType.CONFIRMATION_EMAIL)
+    const user = await emailTokenService.validateUserToken(req.params.token, EmailTokenType.RESET_PASSWORD)
 
     if (user) {
       res.cookie('jid', utils.createAccessToken(user, '5m'), { httpOnly: true })
