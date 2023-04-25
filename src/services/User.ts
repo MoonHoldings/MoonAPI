@@ -2,7 +2,7 @@ import { ExpressContext, UserInputError } from 'apollo-server-express'
 import { User } from '../entities'
 import { passwordStrength } from 'check-password-strength'
 import { EmailTokenType, SignInType } from '../enums'
-import { ACCESS_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
+import { ACCESS_TOKEN_SECRET, COOKIE_DOMAIN, SENDGRID_KEY, SG_SENDER } from '../constants'
 
 import sgMail from '@sendgrid/mail'
 import * as utils from '../utils'
@@ -81,8 +81,8 @@ export const login = async (email: string, password: string, ctx: ExpressContext
   user.lastLoginTimestamp = new Date()
   await User.save(user)
 
-  ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60 * 1000, domain: '.moonholdings.xyz' })
-  ctx.res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60 * 1000, domain: 'app-dev.moonholdings.xyz' })
+  ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60 * 1000, domain: COOKIE_DOMAIN })
+  ctx.res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60 * 1000, domain: COOKIE_DOMAIN })
   return user
 }
 

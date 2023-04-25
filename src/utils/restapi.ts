@@ -8,7 +8,7 @@ import { User } from '../entities'
 import * as utils from '../utils'
 import oauth from './discord'
 import { memoryCache } from './cache';
-import { REFRESH_TOKEN_SECRET, WEBAPP_URL } from '../constants'
+import { COOKIE_DOMAIN, REFRESH_TOKEN_SECRET, WEBAPP_URL } from '../constants'
 import { EmailTokenType } from '../enums'
 
 
@@ -38,7 +38,7 @@ router.post('/api/refresh_token', async (req, res) => {
     return res.send({ ok: false, accessToken: '' })
   }
 
-  res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60, domain: '.moonholdings.xyz' })
+  res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60, domain: COOKIE_DOMAIN })
   return res.send({ ok: true, })
 })
 
@@ -59,7 +59,7 @@ router.get('/api/reset_password_callback/:token', async (req, res) => {
     const user = await emailTokenService.validateUserToken(req.params.token, EmailTokenType.RESET_PASSWORD)
 
     if (user) {
-      res.cookie('jid', utils.createAccessToken(user, '5m'), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60, domain: '.moonholdings.xyz' })
+      res.cookie('jid', utils.createAccessToken(user, '5m'), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60, domain: COOKIE_DOMAIN })
       return res.status(200).redirect(`${WEBAPP_URL}/reset-password`)
     } else {
       return res.status(200).redirect(`${WEBAPP_URL}/login`)
@@ -95,7 +95,7 @@ router.get('/auth/discord', async (req, res) => {
         if (!user.isVerified) {
           return res.status(200).json({ message: 'Please verify your profile sent via email to login.' })
         }
-        res.cookie('jid', createRefreshToken(user), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60, domain: '.moonholdings.xyz' })
+        res.cookie('jid', createRefreshToken(user), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60, domain: COOKIE_DOMAIN })
         return res.status(200).redirect(`${WEBAPP_URL}/redirect`);
       } else {
         return res.status(200).redirect(`/login`)
