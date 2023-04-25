@@ -175,21 +175,30 @@ export class SharkifyCommandsService {
       for (const nftList of nftLists) {
         const mints = nftList.mints.map((mint) => mint.toBase58())
         const savedNftList: NftList = savedNftListsByPubKey[nftList.pubKey.toBase58()]
-        const existingMints = new Set((await this.nftMintRepository.find({ where: { nftList: { id: savedNftList.id }, mint: In(mints) } })).map((mint) => mint.mint))
-        const notExistingMints = mints.filter((mint) => !existingMints.has(mint))
 
         if (savedNftList) {
-          const mintEntities = notExistingMints.map((mint) =>
-            this.nftMintRepository.create({
-              mint,
-              nftList: savedNftList,
-              nftListIndex: mints.indexOf(mint),
-            })
-          )
+          const { lastIndex } = await this.nftMintRepository
+            .createQueryBuilder('nft_mint')
+            .select('COALESCE(MAX(nft_mint.nftListIndex), 0)', 'lastIndex')
+            .where('nft_mint.nftListId = :nftListId', { nftListId: savedNftList.id })
+            .getRawOne()
 
-          this.logger.debug(`Saving mints of nftList: ${nftList.pubKey.toBase58()} (${format(new Date(), 'MMMM d, yyyy h:mma')})`)
-          console.log(`Saving mints of nftList: ${nftList.pubKey.toBase58()} (${format(new Date(), 'MMMM d, yyyy h:mma')})`)
-          await this.nftMintRepository.save(mintEntities, { chunk: 500 })
+          if (mints.length > lastIndex + 1) {
+            const notExistingMints = lastIndex === 0 ? mints : mints.slice(lastIndex + 1)
+            const mintEntities = notExistingMints.map((mint, index) =>
+              this.nftMintRepository.create({
+                mint,
+                nftList: savedNftList,
+                nftListIndex: lastIndex === 0 ? lastIndex + index : lastIndex + index + 1,
+              })
+            )
+
+            this.logger.debug(`Saving mints of nftList: ${nftList.pubKey.toBase58()} (${format(new Date(), 'MMMM d, yyyy h:mma')})`)
+            console.log(`Saving mints of nftList: ${nftList.pubKey.toBase58()} (${format(new Date(), 'MMMM d, yyyy h:mma')})`)
+            await this.nftMintRepository.save(mintEntities, { chunk: 500 })
+            this.logger.debug(`Saved ${notExistingMints.length} new mints for ${nftList.pubKey.toBase58()}`)
+            console.log(`Saved ${notExistingMints.length} new mints for ${nftList.pubKey.toBase58()}`)
+          }
         }
       }
     } catch (e) {
