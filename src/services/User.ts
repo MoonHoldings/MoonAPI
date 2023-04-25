@@ -81,8 +81,8 @@ export const login = async (email: string, password: string, ctx: ExpressContext
   user.lastLoginTimestamp = new Date()
   await User.save(user)
 
-  ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60, domain: '.moonholdings.xyz' })
-  ctx.res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60, domain: '.moonholdings.xyz' })
+  ctx.res.cookie('jid', utils.createRefreshToken(user), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60 * 1000, domain: '.moonholdings.xyz' })
+  ctx.res.cookie('aid', utils.createAccessToken(user, '1d'), { httpOnly: true, secure: true, sameSite: 'none', maxAge: 24 * 60 * 60 * 1000, domain: 'app-dev.moonholdings.xyz' })
   return user
 }
 
