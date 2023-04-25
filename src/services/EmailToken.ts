@@ -75,20 +75,20 @@ export const validateUserToken = async (hashedToked: string, type: string) => {
   const emailToken = await EmailToken.findOne({ where: { token, emailTokenType: type } })
 
   if (!emailToken) {
-    return null
+    throw new UserInputError('Invalid Token.')
   }
   if (emailToken.isExpired()) {
-    return null
+    throw new UserInputError('Expired Token.')
   }
 
   const user = await User.findOne({ where: { email: emailToken.email } })
   if (!user) {
-    return null
+    throw new UserInputError('User not found.')
   }
 
   if (emailToken.emailTokenType == EmailTokenType.CONFIRMATION_EMAIL) {
     if (user.isVerified) {
-      return null
+      throw new UserInputError('User is already verified.')
     } else {
       return await User.save(
         Object.assign(user, {
@@ -100,7 +100,7 @@ export const validateUserToken = async (hashedToked: string, type: string) => {
   }
   else {
     if (!user.isVerified) {
-      return null
+      throw new UserInputError('Please be verified to reset password')
     }
     return user;
   }
