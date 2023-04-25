@@ -19,9 +19,11 @@ export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanRespons
     where = [
       {
         lenderWallet,
+        state: args?.filter?.type,
       },
       {
         lenderNoteMint: lenderWallet,
+        state: args?.filter?.type,
       },
     ]
   }
@@ -29,6 +31,7 @@ export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanRespons
   if (borrowerWallet) {
     where = {
       borrowerNoteMint: borrowerWallet,
+      state: args?.filter?.type,
     }
   }
 

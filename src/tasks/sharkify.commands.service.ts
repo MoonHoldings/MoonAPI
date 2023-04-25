@@ -38,7 +38,7 @@ export class SharkifyCommandsService {
     await this.loanRepository.delete({ pubKey: Not(In(newLoansPubKeys)) })
 
     // Create new loans that are not yet created, and update existing ones
-    const existingLoans = await this.loanRepository.find({ where: { pubKey: In(newLoansPubKeys) } })
+    const existingLoans = await this.loanRepository.find({ where: { pubKey: In(newLoansPubKeys) }, relations: { orderBook: true } })
     const existingLoansByPubKey = existingLoans.reduce((accumulator: any, loan) => {
       accumulator[loan.pubKey] = loan
       return accumulator
@@ -58,6 +58,15 @@ export class SharkifyCommandsService {
         const savedLoan: Loan = existingLoansByPubKey[newLoanPubKey]
 
         if (savedLoan) {
+          if (!savedLoan.orderBook) {
+            const orderBook = await OrderBook.findOne({ where: { pubKey: newLoan.data.orderBook.toBase58() } })
+
+            if (orderBook) {
+              savedLoan.orderBook = orderBook
+              updatedLoanEntities.push(savedLoan)
+            }
+          }
+
           if (savedLoan.state !== newLoan.state) {
             savedLoan.lenderWallet = newLoan.data.loanState.offer?.offer.lenderWallet.toBase58()
             savedLoan.offerTime = newLoan.data.loanState.offer?.offer.offerTime?.toNumber()
