@@ -13,7 +13,6 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-
   async login(@Arg('email') email: string, @Arg('password') password: string, @Ctx() ctx: Context<any>): Promise<User> {
     return await userService.login(email, password, ctx)
   }

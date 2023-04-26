@@ -71,6 +71,9 @@ export const generateUserConfirmationToken = async (email: string, type: string)
 }
 
 export const validateUserToken = async (hashedToked: string, type: string) => {
+  if (!hashedToked) {
+    throw new UserInputError('Invalid Token.')
+  }
   const token = utils.decryptToken(utils.removedKey(hashedToked))
   const emailToken = await EmailToken.findOne({ where: { token, emailTokenType: type } })
 

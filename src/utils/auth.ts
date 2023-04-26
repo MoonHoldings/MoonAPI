@@ -1,14 +1,15 @@
+import { Response } from 'express'
 import { User } from '../entities'
 import { sign } from 'jsonwebtoken'
 import { MiddlewareFn } from 'type-graphql'
 import { verify } from 'jsonwebtoken'
 import { Session } from './session'
-import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../constants'
-
+import { ACCESS_TOKEN_SECRET, COOKIE_DOMAIN, REFRESH_TOKEN_SECRET, __prod__ } from '../constants'
 import oauth from './discord'
 const crypto = require('crypto')
 
 import { memoryCache } from './cache';
+
 
 export const createAccessToken = (user: User, expiry: string) => {
   return sign({ userId: user.id, email: user.email }, `${ACCESS_TOKEN_SECRET}`, { expiresIn: expiry })
@@ -16,6 +17,41 @@ export const createAccessToken = (user: User, expiry: string) => {
 
 export const createRefreshToken = (user: User) => {
   return sign({ userId: user.id, email: user.email, tokenVersion: user.tokenVersion }, `${REFRESH_TOKEN_SECRET}`, { expiresIn: '7d' })
+}
+
+export const setAccessCookie = (res: Response, user: User, cookieType: string) => {
+  const cookieOptions = {
+    httpOnly: true,
+
+  }
+
+  if (!__prod__) {
+    Object.assign(cookieOptions, {
+      secure: true,
+      sameSite: 'none',
+      maxAge: 24 * 60 * 60 * 1000,
+      domain: COOKIE_DOMAIN
+    });
+  }
+
+  res.cookie(cookieType, cookieType == 'aid' ? createAccessToken(user, '1d') : createRefreshToken(user), cookieOptions)
+}
+
+export const setMessageCookies = (res: Response, message: String, cookieType: string) => {
+  const cookieOptions = {
+    httpOnly: true,
+    maxAge: 3000,
+  }
+
+  if (!__prod__) {
+    Object.assign(cookieOptions, {
+      secure: true,
+      sameSite: 'none',
+      domain: COOKIE_DOMAIN
+    });
+  }
+
+  res.cookie(cookieType, message, cookieOptions)
 }
 
 //Middleware for Authenticated routes
