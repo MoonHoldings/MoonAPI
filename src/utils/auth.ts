@@ -19,17 +19,16 @@ export const createRefreshToken = (user: User) => {
   return sign({ userId: user.id, email: user.email, tokenVersion: user.tokenVersion }, `${REFRESH_TOKEN_SECRET}`, { expiresIn: '7d' })
 }
 
-export const setAccessCookie = (res: Response, user: User, cookieType: string) => {
+export const setAccessCookie = (res: Response, user: User, cookieType: string, maxAge?: number) => {
   const cookieOptions = {
     httpOnly: true,
-
+    maxAge: maxAge ?? 24 * 60 * 60 * 1000,
   }
 
   if (!__prod__) {
     Object.assign(cookieOptions, {
       secure: true,
       sameSite: 'none',
-      maxAge: 24 * 60 * 60 * 1000,
       domain: COOKIE_DOMAIN
     });
   }
@@ -78,7 +77,7 @@ export const generateDiscordUrl = async () => {
 
   const cache = await memoryCache;
 
-  await cache.set(state, 60000);
+  await cache.set(state, 300000);
   const url = oauth.generateAuthUrl({
     scope: ['identify', 'email'],
     state: state,

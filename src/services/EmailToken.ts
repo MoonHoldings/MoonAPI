@@ -105,6 +105,11 @@ export const validateUserToken = async (hashedToked: string, type: string) => {
     if (!user.isVerified) {
       throw new UserInputError('Please be verified to reset password')
     }
+    await EmailToken.save(
+      Object.assign(emailToken, {
+        expireAt: new Date(),
+      })
+    )
     return user;
   }
 }

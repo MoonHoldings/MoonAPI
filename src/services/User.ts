@@ -2,7 +2,7 @@ import { ExpressContext, UserInputError } from 'apollo-server-express'
 import { User } from '../entities'
 import { passwordStrength } from 'check-password-strength'
 import { EmailTokenType, SignInType } from '../enums'
-import { ACCESS_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
+import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
 
 import sgMail from '@sendgrid/mail'
 import * as utils from '../utils'
@@ -77,7 +77,7 @@ export const login = async (email: string, password: string, ctx: ExpressContext
   }
 
   if (!user.isVerified) {
-    throw new UserInputError('Please verify your email to continue.')
+    throw new UserInputError('Please verify your profile sent via email to login.')
   }
 
   user.lastLoginTimestamp = new Date()
@@ -125,17 +125,21 @@ export const sendConfirmationEmail = async (email: string, username: string) => 
 
 export const getPasswordResetEmail = async (email: string) => {
   if (!utils.isValidEmail(email)) {
-    throw new UserInputError('Please enter a valid email')
+    throw new UserInputError('Please enter a valid email.')
   }
 
   let user = await getUserByEmail(email)
 
   if (!user) {
-    throw new UserInputError('User does not exist')
+    throw new UserInputError('User does not exist.')
   } else {
 
     if (!user.isVerified) {
       throw new UserInputError('Please verify your email to reset your password.')
+    }
+
+    if (!user.password) {
+      throw new UserInputError('Please signup using this email first to register a password.')
     }
 
     const randomToken = await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.RESET_PASSWORD)
@@ -167,7 +171,7 @@ export const updatePassword = async (password: string, token: string) => {
   let payload: any = null
 
   try {
-    payload = verify(token, ACCESS_TOKEN_SECRET!)
+    payload = verify(token, REFRESH_TOKEN_SECRET!)
   } catch (err) {
     throw new UserInputError('Invalid token')
   }
@@ -227,7 +231,7 @@ export const discordAuth = async (email: string) => {
 
 export const createUser = async (email: string, signInType: string, username: string, password?: string | null) => {
   const newUser = new User()
-  const generatedUsername = utils.removeEmailAddressesFromString(email)
+
 
   newUser.email = email
   newUser.username = username

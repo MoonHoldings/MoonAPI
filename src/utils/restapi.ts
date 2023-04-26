@@ -58,12 +58,13 @@ router.get('/api/reset_password_callback/:token', async (req, res) => {
     const user = await emailTokenService.validateUserToken(req.params.token, EmailTokenType.RESET_PASSWORD)
 
     if (user) {
-      utils.setAccessCookie(res, user, 'jid');
+      utils.setAccessCookie(res, user, 'jid', 60000);
       return res.status(200).redirect(`${WEBAPP_URL}/reset-password`)
     } else {
       return res.status(200).redirect(`${WEBAPP_URL}/login`)
     }
   } catch (error) {
+    res.clearCookie('jid');
     utils.setMessageCookies(res, error.message, 'error');
     return res.status(200).redirect(`${WEBAPP_URL}/login`)
   }
@@ -77,12 +78,14 @@ router.get('/auth/discord', async (req, res) => {
   const value = await memoryCache
 
   if (error === 'access_denied') {
-    return res.status(401).json({ message: 'You have cancelled the login' })
+    utils.setMessageCookies(res, 'You have cancelled the login', 'message');
+    return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
   }
 
   const isValidState = await value.get(state);
   if (!isValidState) {
-    return res.status(200).json({ message: 'Authorization link has expired' })
+    utils.setMessageCookies(res, 'Authorization link has expired', 'message');
+    return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
   }
 
   try {
@@ -96,25 +99,25 @@ router.get('/auth/discord', async (req, res) => {
 
     if (userInfo.email) {
       const user = await userService.discordAuth(userInfo.email)
-
       if (user) {
         if (!user.isVerified) {
-          return res.status(200).json({ message: 'Please verify your profile sent via email to login.' })
+          utils.setMessageCookies(res, 'Please verify your profile sent via email to login.', 'message');
+          return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
         }
         utils.setAccessCookie(res, user, 'jid');
         return res.status(200).redirect(`${WEBAPP_URL}/redirect`);
       } else {
-        return res.status(200).redirect(`/login`)
+        utils.setMessageCookies(res, 'User is not found', 'message');
+        return res.status(400).redirect(`${WEBAPP_URL}/redirect`)
       }
     } else {
-      return res.status(200).json({ message: 'Please verify if discord email is confirmed' })
+      utils.setMessageCookies(res, 'Please verify if discord account is valid.', 'message');
+      return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
     }
   } catch (error) {
-    console.log(error.message)
-    return res.status(400).json({ message: 'Discord might have maintenance' })
+    utils.setMessageCookies(res, error.message, 'message');
+    return res.status(400).redirect(`${WEBAPP_URL}/redirect`)
   }
 })
-
-
 
 export default router

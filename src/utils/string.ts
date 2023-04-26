@@ -64,12 +64,13 @@ export function generatePasswordReset(username: string, randomToken: string): st
     <div style="font-size: 17px; font-weight: semi-bold; color: #494949;">
     You are receiving this email because you have requested to reset your password. 
     To complete the password reset process, please click on the link below:
+    Note that upon clicking the button, the link will automatically expire.
     </div>
 
     <br/><br/>
 
     <a href="${SERVER_URL}/api/reset_password_callback/token=${randomToken}"">
-     <button style="background-color: #00FFFF; color: #000000; font-size: 16px; font-weight: bold; padding: 12px 24px; border: 2px solid #FFFFFF; border-radius: 5px;">Confirm Email</button>
+     <button style="background-color: #00FFFF; color: #000000; font-size: 16px; font-weight: bold; padding: 12px 24px; border: 2px solid #FFFFFF; border-radius: 5px;">Reset Password</button>
    </a>
 
     <br/><br/>
