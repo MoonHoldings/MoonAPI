@@ -39,7 +39,9 @@ export class UserResolver {
   async updatePassword(@Arg('password') email: string, @Ctx() ctx: Context<any>): Promise<boolean> {
     const token = ctx.req.cookies.jid
     const isUpdated = await userService.updatePassword(email, token)
-    ctx.res.clearCookie('jid');
+    if (isUpdated) {
+      ctx.res.clearCookie('jid');
+    }
     return isUpdated;
   }
 
