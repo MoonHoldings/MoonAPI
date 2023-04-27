@@ -21,7 +21,7 @@ export class Loan extends BaseEntity {
   @Column('bigint')
   principalLamports!: number
 
-  @Field(() => OrderBook)
+  @Field(() => OrderBook, { nullable: true })
   @ManyToOne(() => OrderBook, (orderBook) => orderBook.loans)
   orderBook!: Relation<OrderBook>
 
