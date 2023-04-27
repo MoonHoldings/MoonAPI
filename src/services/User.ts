@@ -2,7 +2,7 @@ import { ExpressContext, UserInputError } from 'apollo-server-express'
 import { User } from '../entities'
 import { passwordStrength } from 'check-password-strength'
 import { EmailTokenType, SignInType } from '../enums'
-import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
+import { REFRESH_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
 
 import sgMail from '@sendgrid/mail'
 import * as utils from '../utils'
@@ -18,7 +18,6 @@ export const register = async (email: string, password: string) => {
   let isRegUser = null
 
   let hashedPassword: string | null = null
-
 
   if (!utils.isValidEmail(email)) {
     throw new UserInputError('Please enter a valid email')
@@ -60,14 +59,13 @@ export const login = async (email: string, password: string, ctx: ExpressContext
 
   if (user.isLocked) {
     const isUnlocked = await user.checkToUnlock()
-    if (!isUnlocked)
-      throw new UserInputError('You are locked out please try again after 5 minutes.')
+    if (!isUnlocked) throw new UserInputError('You are locked out please try again after 5 minutes.')
   }
 
   let passwordMatched: boolean
   passwordMatched = await utils.comparePassword(password, user.password)
   if (!passwordMatched) {
-    await user.incrementFailedAttempts();
+    await user.incrementFailedAttempts()
     throw new UserInputError('Incorrect credentials.')
   }
 
@@ -83,8 +81,8 @@ export const login = async (email: string, password: string, ctx: ExpressContext
   user.lastLoginTimestamp = new Date()
   await User.save(user)
 
-  utils.setAccessCookie(ctx.res, user, 'jid');
-  utils.setAccessCookie(ctx.res, user, 'aid');
+  utils.setAccessCookie(ctx.res, user, 'jid')
+  utils.setAccessCookie(ctx.res, user, 'aid')
   return user
 }
 
@@ -103,7 +101,6 @@ export const incrementRefreshVersion = async (id: number) => {
 
 //NOTE: if resend feature, must check if user is already verified before calling this fn
 export const sendConfirmationEmail = async (email: string, username: string) => {
-
   const randomToken = await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.CONFIRMATION_EMAIL)
   const message = utils.generateEmailHTML(username, utils.encryptToken(randomToken))
   const msg: sgMail.MailDataRequired = {
@@ -133,7 +130,6 @@ export const getPasswordResetEmail = async (email: string) => {
   if (!user) {
     throw new UserInputError('User does not exist.')
   } else {
-
     if (!user.isVerified) {
       throw new UserInputError('Please verify your email to reset your password.')
     }
@@ -231,7 +227,6 @@ export const discordAuth = async (email: string) => {
 
 export const createUser = async (email: string, signInType: string, username: string, password?: string | null) => {
   const newUser = new User()
-
 
   newUser.email = email
   newUser.username = username
