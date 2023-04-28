@@ -21,3 +21,9 @@ export enum SortOrder {
   Asc = 'ASC',
   Desc = 'DESC',
 }
+
+export enum HistoricalLoanStatus {
+  Repaid = 'Repaid',
+  Active = 'Active',
+  Foreclosed = 'Foreclosed',
+}

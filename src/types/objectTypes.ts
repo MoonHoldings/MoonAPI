@@ -18,6 +18,68 @@ export class PaginatedLoanResponse {
 }
 
 @ObjectType()
+export class HistoricalLoanResponse {
+  @Field({ nullable: true })
+  offerBlocktime: number
+  @Field({ nullable: true })
+  cancelBlocktime: number
+  @Field({ nullable: true })
+  takenBlocktime: number
+  @Field({ nullable: true })
+  repayBlocktime: number
+  @Field({ nullable: true })
+  repayElapsedTime: string
+  @Field({ nullable: true })
+  foreclosedElapsedTime: string
+  @Field({ nullable: true })
+  defaultBlocktime: number
+  @Field({ nullable: true })
+  extendBlocktime: number
+  @Field({ nullable: true })
+  remainingDays: number
+  @Field({ nullable: true })
+  orderBook: string
+  @Field({ nullable: true })
+  loan: string
+  @Field({ nullable: true })
+  newLoan: string
+  @Field({ nullable: true })
+  amountOffered: number
+  @Field({ nullable: true })
+  lender: string
+  @Field({ nullable: true })
+  status: string
+  @Field({ nullable: true })
+  borrower: string
+  @Field({ nullable: true })
+  collateralMint: string
+  @Field({ nullable: true })
+  collectionName: string
+  @Field({ nullable: true })
+  collectionImage: string
+  @Field({ nullable: true })
+  helloMoonCollectionId: string
+  @Field({ nullable: true })
+  tokenMint: string
+  @Field({ nullable: true })
+  amountTaken: number
+  @Field({ nullable: true })
+  offerInterest: number
+  @Field({ nullable: true })
+  borrowInterest: number
+  @Field({ nullable: true })
+  apy?: number
+  @Field({ nullable: true })
+  loanDurationSeconds: number
+  @Field({ nullable: true })
+  amountRepayed: number
+  @Field({ nullable: true })
+  isRepayEscrow: boolean
+  @Field({ nullable: true })
+  isDefaultEscrow: boolean
+}
+
+@ObjectType()
 export class OwnedNft {
   @Field(() => String)
   name: string
