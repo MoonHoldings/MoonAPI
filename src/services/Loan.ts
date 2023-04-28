@@ -1,7 +1,13 @@
-import { GetLoansArgs, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
+import { GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
 import { Loan, OrderBook } from '../entities'
+import axios from 'axios'
+import { In } from 'typeorm'
+import { addSeconds, differenceInSeconds } from 'date-fns'
 
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
+import calculateOfferInterest from '../utils/calculateOfferInterest'
+import calculateBorrowInterest from '../utils/calculateBorrowInterest'
 
 export const getLoanById = async (id: number): Promise<Loan> => {
   return await Loan.findOneOrFail({ where: { id } })
@@ -119,4 +125,117 @@ export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanRespons
     offerCount,
     activeCount,
   }
+}
+
+export const getHistoricalLoansByUser = async (borrower?: string, lender?: string, offerBlocktime?: number): Promise<HistoricalLoanResponse[] | null> => {
+  const getRemainingDays = (start: number, duration: number) => {
+    const startTime = new Date(start * 1000)
+    const endTime = addSeconds(startTime, duration)
+
+    const remainingSeconds = differenceInSeconds(endTime, new Date())
+    const remainingDays = remainingSeconds / 86400
+
+    return Math.floor(remainingDays)
+  }
+
+  const formatElapsedTime = (unixTime: number) => {
+    const currentUnixTime = Math.floor(Date.now() / 1000)
+    let timePassed
+    let unit
+
+    const secondsPassed = currentUnixTime - unixTime
+
+    if (secondsPassed < 60) {
+      timePassed = secondsPassed
+      unit = 'second'
+    } else if (secondsPassed < 3600) {
+      timePassed = Math.floor(secondsPassed / 60)
+      unit = 'minute'
+    } else if (secondsPassed < 86400) {
+      timePassed = Math.floor(secondsPassed / 3600)
+      unit = 'hour'
+    } else if (secondsPassed < 2592000) {
+      timePassed = Math.floor(secondsPassed / 86400)
+      unit = 'day'
+    } else {
+      timePassed = Math.floor(secondsPassed / 2592000)
+      unit = 'month'
+    }
+
+    if (timePassed !== 1) {
+      unit += 's'
+    }
+
+    return `${timePassed} ${unit} ago`
+  }
+
+  const { data: loans } = await axios.post(
+    `${HELLO_MOON_URL}/sharky/loan-summary`,
+    {
+      offerBlocktime: offerBlocktime && {
+        operator: '<',
+        value: offerBlocktime,
+      },
+      borrower,
+      lender,
+      limit: 100,
+    },
+    AXIOS_CONFIG_HELLO_MOON_KEY
+  )
+
+  let historicalLoans = loans.data
+
+  if (lender) {
+    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
+  } else if (borrower) {
+    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
+  }
+
+  const orderBooks = await OrderBook.find({ where: { pubKey: In(historicalLoans.map((loan: HistoricalLoanResponse) => loan.orderBook)) }, relations: { nftList: true } })
+  const orderBooksByPubKey = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  historicalLoans = historicalLoans.map((loan: HistoricalLoanResponse) => {
+    const orderBook: OrderBook = orderBooksByPubKey[loan.orderBook]
+    let offerInterest = null
+    let borrowInterest = null
+
+    if (orderBook) {
+      offerInterest = calculateOfferInterest(loan.amountOffered, orderBook.duration, orderBook.apy, orderBook.feePermillicentage)
+      borrowInterest = calculateBorrowInterest(loan.amountOffered, orderBook.duration, orderBook.apy)
+    }
+
+    let status = HistoricalLoanStatus.Repaid
+
+    if ((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) {
+      status = HistoricalLoanStatus.Active
+    }
+
+    const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
+
+    if (remainingDays < 1 && !loan.repayBlocktime) {
+      status = HistoricalLoanStatus.Foreclosed
+    }
+
+    return {
+      ...loan,
+      offerInterest,
+      borrowInterest,
+      apy: orderBook.apyAfterFee(),
+      collectionName: orderBook.nftList?.collectionName,
+      collectionImage: orderBook.nftList?.collectionImage,
+      status,
+      remainingDays: remainingDays,
+      repayElapsedTime: status === HistoricalLoanStatus.Repaid ? formatElapsedTime(loan.repayBlocktime) : null,
+      foreclosedElapsedTime: status === HistoricalLoanStatus.Foreclosed ? formatElapsedTime(loan.takenBlocktime + loan.loanDurationSeconds) : null,
+    }
+  })
+
+  const active = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Active).sort((a: any, b: any) => a.remainingDays - b.remainingDays)
+  const repaid = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Repaid).sort((a: any, b: any) => b.repayBlocktime - a.repayBlocktime)
+  const foreclosed = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Foreclosed).sort((a: any, b: any) => b.takenBlocktime - a.takenBlocktime)
+
+  return [...active, ...repaid, ...foreclosed]
 }
