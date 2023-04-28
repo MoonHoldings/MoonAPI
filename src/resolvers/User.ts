@@ -36,6 +36,16 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
+  async logout(@Ctx() ctx: Context<any>): Promise<boolean> {
+    if (ctx.res) {
+      ctx.res.clearCookie('jid');
+      ctx.res.clearCookie('aid');
+      return true;
+    }
+    return false;
+  }
+
+  @Mutation(() => Boolean)
   async updatePassword(@Arg('password') email: string, @Ctx() ctx: Context<any>): Promise<boolean> {
     const token = ctx.req.cookies.jid
     const isUpdated = await userService.updatePassword(email, token)

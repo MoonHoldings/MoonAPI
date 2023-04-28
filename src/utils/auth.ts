@@ -16,13 +16,13 @@ export const createAccessToken = (user: User, expiry: string) => {
 }
 
 export const createRefreshToken = (user: User) => {
-  return sign({ userId: user.id, email: user.email, tokenVersion: user.tokenVersion }, `${REFRESH_TOKEN_SECRET}`, { expiresIn: '7d' })
+  return sign({ userId: user.id, email: user.email, tokenVersion: user.tokenVersion }, `${REFRESH_TOKEN_SECRET}`, { expiresIn: '30d' })
 }
 
 export const setAccessCookie = (res: Response, user: User, cookieType: string, maxAge?: number) => {
   const cookieOptions = {
     httpOnly: true,
-    maxAge: maxAge ?? 24 * 60 * 60 * 1000,
+    maxAge: maxAge ?? 30 * 24 * 60 * 60 * 1000,
   }
 
   if (!__prod__) {
@@ -33,7 +33,7 @@ export const setAccessCookie = (res: Response, user: User, cookieType: string, m
     });
   }
 
-  res.cookie(cookieType, cookieType == 'aid' ? createAccessToken(user, '1d') : createRefreshToken(user), cookieOptions)
+  res.cookie(cookieType, cookieType == 'aid' ? createAccessToken(user, '30d') : createRefreshToken(user), cookieOptions)
 }
 
 export const setMessageCookies = (res: Response, message: String, cookieType: string) => {

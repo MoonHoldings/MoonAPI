@@ -58,7 +58,7 @@ router.get('/api/reset_password_callback/:token', async (req, res) => {
     const user = await emailTokenService.validateUserToken(req.params.token, EmailTokenType.RESET_PASSWORD)
 
     if (user) {
-      utils.setAccessCookie(res, user, 'jid', 60000);
+      utils.setAccessCookie(res, user, 'jid', 300000);
       return res.status(200).redirect(`${WEBAPP_URL}/reset-password`)
     } else {
       return res.status(200).redirect(`${WEBAPP_URL}/login`)
