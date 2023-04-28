@@ -161,7 +161,7 @@ export const getPasswordResetEmail = async (email: string) => {
 
 export const updatePassword = async (password: string, token: string) => {
   if (!token) {
-    throw new UserInputError('Not Authenticated')
+    throw new UserInputError('Too too long to reset password - please reset again')
   }
 
   let payload: any = null
