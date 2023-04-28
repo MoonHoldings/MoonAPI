@@ -128,8 +128,6 @@ export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanRespons
 }
 
 export const getHistoricalLoansByUser = async (borrower?: string, lender?: string, offerBlocktime?: number): Promise<HistoricalLoanResponse[] | null> => {
-  const statusOrder = [HistoricalLoanStatus.Active, HistoricalLoanStatus.Repaid, HistoricalLoanStatus.Foreclosed]
-
   const getRemainingDays = (start: number, duration: number) => {
     const startTime = new Date(start * 1000)
     const endTime = addSeconds(startTime, duration)
