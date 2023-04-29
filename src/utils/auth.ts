@@ -75,9 +75,6 @@ export const isAuth: MiddlewareFn<Session> = ({ context }, next) => {
 export const generateDiscordUrl = async () => {
   const state = crypto.randomBytes(16).toString('hex');
 
-  const cache = await memoryCache;
-
-  await cache.set(state, 300000);
   const url = oauth.generateAuthUrl({
     scope: ['identify', 'email'],
     state: state,
