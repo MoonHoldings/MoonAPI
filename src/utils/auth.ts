@@ -8,8 +8,6 @@ import { ACCESS_TOKEN_SECRET, COOKIE_DOMAIN, REFRESH_TOKEN_SECRET, __prod__ } fr
 import oauth from './discord'
 const crypto = require('crypto')
 
-import { memoryCache } from './cache';
-
 
 export const createAccessToken = (user: User, expiry: string) => {
   return sign({ userId: user.id, email: user.email }, `${ACCESS_TOKEN_SECRET}`, { expiresIn: expiry })
