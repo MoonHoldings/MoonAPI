@@ -4,6 +4,7 @@ import * as userService from '../services/User'
 import { Arg, Ctx, Int, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql'
 import { isAuth } from '../utils'
 import * as utils from '../utils'
+import { COOKIE_DOMAIN } from '../constants'
 
 @Resolver()
 export class UserResolver {
@@ -38,8 +39,14 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async logout(@Ctx() ctx: Context<any>): Promise<boolean> {
     if (ctx.res) {
-      ctx.res.clearCookie('jid');
-      ctx.res.clearCookie('aid');
+      ctx.res.clearCookie('jid', {
+        domain: COOKIE_DOMAIN, sameSite: "none",
+        secure: true,
+      });
+      ctx.res.clearCookie('aid', {
+        domain: COOKIE_DOMAIN, sameSite: "none",
+        secure: true,
+      });
       return true;
     }
     return false;
