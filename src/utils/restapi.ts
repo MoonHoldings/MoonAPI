@@ -37,7 +37,7 @@ router.post('/api/refresh_token', async (req, res) => {
   }
 
   utils.setAccessCookie(res, user, 'aid')
-  return res.send({ ok: true, })
+  return res.send({ ok: true, username: user.username })
 })
 
 router.get('/api/verify_email/:token', async (req, res) => {
