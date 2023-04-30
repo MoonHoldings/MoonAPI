@@ -12,6 +12,7 @@ import dotenv from 'dotenv'
 import { ContextType } from '@nestjs/common'
 import { UserRole } from './types'
 import { AuthToken } from './entities'
+import decrypt from './utils/decrypt'
 
 dotenv.config()
 
@@ -73,7 +74,7 @@ const main = async () => {
       const token = context?.req?.headers?.authorization?.substring('Bearer '.length)
 
       if (token && roles.includes(UserRole.Superuser)) {
-        const authToken = await AuthToken.findOne({ select: ['id'], where: { token: token } })
+        const authToken = await AuthToken.findOne({ select: ['id'], where: { token: decrypt(token) } })
 
         if (authToken) {
           return true
