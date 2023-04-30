@@ -1,9 +1,7 @@
 import { ApolloServer } from 'apollo-server-express'
 import express, { Request, Response } from 'express'
 import session from 'express-session'
-import { buildSchema } from 'type-graphql'
-// import { NestFactory } from "@nestjs/core"
-// import { AppModule } from "./app.module"
+import { AuthChecker, buildSchema } from 'type-graphql'
 import cors from 'cors'
 import { __prod__ } from './constants'
 import { AppDataSource } from './utils/db'
@@ -11,6 +9,9 @@ import { LoanResolver, OrderBookResolver, UserResolver } from './resolvers'
 import cookieParser from 'cookie-parser'
 import restRouter from './utils/restapi'
 import dotenv from 'dotenv'
+import { ContextType } from '@nestjs/common'
+import { UserRole } from './types'
+import { AuthToken } from './entities'
 
 dotenv.config()
 
@@ -65,17 +66,37 @@ const main = async () => {
 
   try {
     await AppDataSource.initialize()
-  } catch (_) {
+  } catch (_) {}
+
+  const authChecker: AuthChecker<ContextType> = async ({ context }: { context: any }, roles) => {
+    try {
+      const token = context?.req?.headers?.authorization?.substring('Bearer '.length)
+
+      if (token && roles.includes(UserRole.Superuser)) {
+        const authToken = await AuthToken.findOne({ select: ['id'], where: { token: token } })
+
+        if (authToken) {
+          return true
+        }
+      }
+
+      return false
+    } catch (error) {
+      console.log(error)
+    }
+
+    return false
   }
+
   // APOLLO
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
       resolvers: [LoanResolver, OrderBookResolver, UserResolver],
       validate: false,
+      authChecker,
     }),
     csrfPrevention: false,
     context: async ({ req, res }: IContext) => {
-
       return {
         req,
         res,
@@ -89,12 +110,6 @@ const main = async () => {
   app.listen(process.env.PORT || 80, () => {
     console.log(`server started at http://localhost:${process.env.PORT ?? ''}/graphql`)
   })
-
-  // const nest = await NestFactory.create(AppModule)
-
-  // nest.listen(8001, () => {
-  //   console.log("nest started at localhost:8001")
-  // })
 }
 
 main().catch((err) => {

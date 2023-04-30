@@ -27,3 +27,7 @@ export enum HistoricalLoanStatus {
   Active = 'Active',
   Foreclosed = 'Foreclosed',
 }
+
+export enum UserRole {
+  Superuser = 'superuser',
+}
