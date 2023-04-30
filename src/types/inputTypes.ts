@@ -68,3 +68,45 @@ export class GetOrderBooksArgs {
   @Field({ nullable: true })
   isBorrowPage?: boolean
 }
+
+@InputType()
+export class CreateLoan {
+  @Field()
+  pubKey: string
+  @Field()
+  version: number
+  @Field()
+  principalLamports: number
+  @Field()
+  valueTokenMint: string
+  @Field()
+  supportsFreezingCollateral: boolean
+  @Field()
+  isCollateralFrozen: boolean
+  @Field()
+  isHistorical: boolean
+  @Field()
+  isForeclosable: boolean
+  @Field()
+  state: string
+  @Field()
+  orderBook: string
+  @Field({ nullable: true })
+  duration?: number
+  @Field({ nullable: true })
+  lenderWallet?: string
+  @Field({ nullable: true })
+  offerTime?: number
+  @Field({ nullable: true })
+  nftCollateralMint?: string
+  @Field({ nullable: true })
+  lenderNoteMint?: string
+  @Field({ nullable: true })
+  borrowerNoteMint?: string
+  @Field({ nullable: true })
+  apy?: number
+  @Field({ nullable: true })
+  start?: number
+  @Field({ nullable: true })
+  totalOwedLamports?: number
+}

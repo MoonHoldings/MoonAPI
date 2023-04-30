@@ -1,4 +1,4 @@
-import { GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
+import { CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
 import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
 import { In } from 'typeorm'
@@ -246,4 +246,25 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
   const foreclosed = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Foreclosed).sort((a: any, b: any) => b.takenBlocktime - a.takenBlocktime)
 
   return [...active, ...repaid, ...foreclosed]
+}
+
+export const createLoans = async (loans: CreateLoan[]): Promise<Loan[]> => {
+  const orderBooks = await OrderBook.find({ select: ['id', 'pubKey'], where: { pubKey: In(loans.map((loan) => loan.orderBook)) } })
+  const orderBooksByPubKey: Record<string, OrderBook> = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  const newLoans = loans.map((loan) => {
+    const orderBook = orderBooksByPubKey[loan.orderBook]
+
+    return Loan.create({
+      ...loan,
+      orderBook: { id: orderBook.id },
+    })
+  })
+
+  await Loan.save(newLoans)
+
+  return newLoans
 }

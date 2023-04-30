@@ -34,9 +34,6 @@ export class SharkifyCommandsService {
     let newLoans = await sharkyClient.fetchAllLoans({ program })
     let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
 
-    // Delete loans that are not in the new loans
-    await this.loanRepository.delete({ pubKey: Not(In(newLoansPubKeys)) })
-
     // Create new loans that are not yet created, and update existing ones
     const existingLoans = await this.loanRepository.find({ where: { pubKey: In(newLoansPubKeys) }, relations: { orderBook: true } })
     const existingLoansByPubKey = existingLoans.reduce((accumulator: any, loan) => {
@@ -120,6 +117,9 @@ export class SharkifyCommandsService {
 
       await this.loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) })
     }
+
+    // Delete loans that are not in the new loans
+    await this.loanRepository.delete({ pubKey: Not(In(newLoansPubKeys)) })
 
     this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
     console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
