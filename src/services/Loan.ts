@@ -1,4 +1,4 @@
-import { CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
+import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
 import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
 import { In } from 'typeorm'
@@ -267,4 +267,34 @@ export const createLoans = async (loans: CreateLoan[]): Promise<Loan[]> => {
   await Loan.save(newLoans)
 
   return newLoans
+}
+
+export const borrowLoan = async (borrowedLoan: BorrowLoan): Promise<Loan | null> => {
+  const loan = await Loan.findOne({ where: { pubKey: borrowedLoan.pubKey } })
+
+  if (loan) {
+    loan.lenderWallet = null
+    loan.offerTime = null
+    loan.nftCollateralMint = borrowedLoan.nftCollateralMint
+    loan.lenderNoteMint = borrowedLoan.lenderNoteMint
+    loan.borrowerNoteMint = borrowedLoan.borrowerNoteMint
+    loan.apy = borrowedLoan.apy
+    loan.start = borrowedLoan.start
+    loan.totalOwedLamports = borrowedLoan.totalOwedLamports
+    loan.state = LoanType.Taken
+
+    await Loan.save(loan)
+  }
+
+  return loan
+}
+
+export const deleteLoanByPubKey = async (pubKey: string): Promise<string | null> => {
+  try {
+    await Loan.delete({ pubKey: pubKey })
+    return pubKey
+  } catch (error) {
+    console.log(error)
+    return null
+  }
 }

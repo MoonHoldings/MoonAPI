@@ -6,6 +6,7 @@ import sharkyClient from '../utils/sharkyClient'
 import { In, IsNull, Not, Repository } from 'typeorm'
 import axios from 'axios'
 import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL, AXIOS_CONFIG_SHYFT_KEY, SHYFT_URL } from '../constants'
+import { LoanType } from '../types'
 
 @Injectable()
 export class SharkifyCommandsService {
@@ -64,7 +65,7 @@ export class SharkifyCommandsService {
             }
           }
 
-          if (savedLoan.state !== newLoan.state) {
+          if (savedLoan.state === LoanType.Offer && newLoan.state === LoanType.Taken) {
             savedLoan.lenderWallet = newLoan.data.loanState.offer?.offer.lenderWallet.toBase58()
             savedLoan.offerTime = newLoan.data.loanState.offer?.offer.offerTime?.toNumber()
             savedLoan.nftCollateralMint = newLoan.data.loanState.taken?.taken.nftCollateralMint.toBase58()

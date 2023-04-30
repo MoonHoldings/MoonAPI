@@ -110,3 +110,21 @@ export class CreateLoan {
   @Field({ nullable: true })
   totalOwedLamports?: number
 }
+
+@InputType()
+export class BorrowLoan {
+  @Field()
+  pubKey: string
+  @Field()
+  nftCollateralMint: string
+  @Field()
+  lenderNoteMint: string
+  @Field()
+  borrowerNoteMint: string
+  @Field()
+  apy: number
+  @Field()
+  start: number
+  @Field()
+  totalOwedLamports: number
+}

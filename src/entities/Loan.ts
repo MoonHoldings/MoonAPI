@@ -56,7 +56,7 @@ export class Loan extends BaseEntity {
   // Offered loan attributes
   @Field(() => String, { nullable: true })
   @Column({ type: 'text', nullable: true })
-  lenderWallet?: string
+  lenderWallet?: string | null
 
   @Field(() => Number, { nullable: true })
   @Column('bigint', { nullable: true })
