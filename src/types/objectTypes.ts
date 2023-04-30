@@ -38,6 +38,8 @@ export class HistoricalLoanResponse {
   @Field({ nullable: true })
   remainingDays: number
   @Field({ nullable: true })
+  daysPercentProgress: number
+  @Field({ nullable: true })
   orderBook: string
   @Field({ nullable: true })
   loan: string

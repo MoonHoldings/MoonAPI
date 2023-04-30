@@ -138,6 +138,12 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
     return Math.floor(remainingDays)
   }
 
+  const getPercentDaysProgress = (start: number, duration: number) => {
+    const currentUnixTime = Math.floor(Date.now() / 1000)
+
+    return ((currentUnixTime - start) / duration) * 100
+  }
+
   const formatElapsedTime = (unixTime: number) => {
     const currentUnixTime = Math.floor(Date.now() / 1000)
     let timePassed
@@ -214,6 +220,7 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
     }
 
     const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
+    const daysPercentProgress = status === HistoricalLoanStatus.Active ? getPercentDaysProgress(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds) : null
 
     if (remainingDays < 1 && !loan.repayBlocktime) {
       status = HistoricalLoanStatus.Foreclosed
@@ -228,6 +235,7 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
       collectionImage: orderBook.nftList?.collectionImage,
       status,
       remainingDays: remainingDays,
+      daysPercentProgress,
       repayElapsedTime: status === HistoricalLoanStatus.Repaid ? formatElapsedTime(loan.repayBlocktime) : null,
       foreclosedElapsedTime: status === HistoricalLoanStatus.Foreclosed ? formatElapsedTime(loan.takenBlocktime + loan.loanDurationSeconds) : null,
     }
