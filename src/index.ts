@@ -85,7 +85,7 @@ const main = async () => {
       console.log(error)
     }
 
-    return true
+    return false
   }
 
   // APOLLO
