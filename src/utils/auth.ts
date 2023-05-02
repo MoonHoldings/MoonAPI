@@ -51,6 +51,20 @@ export const setMessageCookies = (res: Response, message: String, cookieType: st
   res.cookie(cookieType, message, cookieOptions)
 }
 
+export const setWebflowCookie = (res: Response) => {
+  const cookieOptions = {
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  }
+
+  if (!__prod__) {
+    Object.assign(cookieOptions, {
+      domain: COOKIE_DOMAIN
+    });
+  }
+
+  res.cookie('wf', 'wf', cookieOptions)
+}
+
 //Middleware for Authenticated routes
 export const isAuth: MiddlewareFn<Session> = ({ context }, next) => {
   const authorization = context.req.cookies.aid
