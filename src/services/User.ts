@@ -83,6 +83,7 @@ export const login = async (email: string, password: string, ctx: ExpressContext
 
   utils.setAccessCookie(ctx.res, user, 'jid')
   utils.setAccessCookie(ctx.res, user, 'aid')
+  utils.setWebflowCookie(ctx.res)
   return user
 }
 
