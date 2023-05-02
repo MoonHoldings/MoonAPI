@@ -124,7 +124,7 @@ export class SharkifyCommandsService {
     const loansForDelete = await sharkyClient.fetchAllLoans({ program })
     // We only delete loans that are created before we fetch the new loans so that it doesn't delete loans created while old data is fetching
     const loansForDeletePubKeys = loansForDelete.map((loan) => loan.pubKey.toBase58())
-    await this.loanRepository.softDelete({ pubKey: Not(In(loansForDeletePubKeys)), createdAt: LessThan(timeBeforeFetch) })
+    await this.loanRepository.softDelete({ pubKey: Not(In(loansForDeletePubKeys)), updatedAt: LessThan(timeBeforeFetch) })
 
     this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
     console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
