@@ -1,7 +1,7 @@
-import { GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
+import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
 import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
-import { In } from 'typeorm'
+import { In, IsNull } from 'typeorm'
 import { addSeconds, differenceInSeconds } from 'date-fns'
 
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
@@ -105,6 +105,8 @@ export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanRespons
       break
   }
 
+  where['deletedAt'] = IsNull()
+
   const loans = await Loan.find({
     take: args?.pagination?.limit,
     skip: args?.pagination?.offset,
@@ -192,7 +194,7 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
   let historicalLoans = loans.data
 
   if (lender) {
-    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
+    // historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
   } else if (borrower) {
     historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
   }
@@ -226,6 +228,10 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
       status = HistoricalLoanStatus.Foreclosed
     }
 
+    if (loan.cancelBlocktime) {
+      status = HistoricalLoanStatus.Canceled
+    }
+
     return {
       ...loan,
       offerInterest,
@@ -234,16 +240,76 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
       collectionName: orderBook.nftList?.collectionName,
       collectionImage: orderBook.nftList?.collectionImage,
       status,
-      remainingDays: remainingDays,
+      remainingDays: remainingDays ? remainingDays : null,
       daysPercentProgress,
       repayElapsedTime: status === HistoricalLoanStatus.Repaid ? formatElapsedTime(loan.repayBlocktime) : null,
       foreclosedElapsedTime: status === HistoricalLoanStatus.Foreclosed ? formatElapsedTime(loan.takenBlocktime + loan.loanDurationSeconds) : null,
+      canceledElapsedTime: status === HistoricalLoanStatus.Canceled ? formatElapsedTime(loan.cancelBlocktime) : null,
     }
   })
 
   const active = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Active).sort((a: any, b: any) => a.remainingDays - b.remainingDays)
   const repaid = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Repaid).sort((a: any, b: any) => b.repayBlocktime - a.repayBlocktime)
   const foreclosed = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Foreclosed).sort((a: any, b: any) => b.takenBlocktime - a.takenBlocktime)
+  // const canceled = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Canceled).sort((a: any, b: any) => b.offerBlocktime - a.offerBlocktime)
 
   return [...active, ...repaid, ...foreclosed]
+}
+
+export const createLoans = async (loans: CreateLoan[]): Promise<Loan[]> => {
+  const orderBooks = await OrderBook.find({ select: ['id', 'pubKey'], where: { pubKey: In(loans.map((loan) => loan.orderBook)) } })
+  const orderBooksByPubKey: Record<string, OrderBook> = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  const newLoans = loans.map((loan) => {
+    const orderBook = orderBooksByPubKey[loan.orderBook]
+
+    return Loan.create({
+      ...loan,
+      orderBook: { id: orderBook.id },
+    })
+  })
+
+  await Loan.save(newLoans)
+
+  return newLoans
+}
+
+export const borrowLoan = async (borrowedLoan: BorrowLoan): Promise<Loan | null> => {
+  const loan = await Loan.findOne({ where: { pubKey: borrowedLoan.pubKey } })
+
+  if (loan) {
+    loan.lenderWallet = null
+    loan.offerTime = null
+    loan.nftCollateralMint = borrowedLoan.nftCollateralMint
+    loan.lenderNoteMint = borrowedLoan.lenderNoteMint
+    loan.borrowerNoteMint = borrowedLoan.borrowerNoteMint
+    loan.apy = borrowedLoan.apy
+    loan.start = borrowedLoan.start
+    loan.totalOwedLamports = borrowedLoan.totalOwedLamports
+    loan.state = LoanType.Taken
+
+    await Loan.save(loan)
+  }
+
+  return loan
+}
+
+export const deleteLoanByPubKey = async (pubKey: string): Promise<string | null> => {
+  try {
+    const loan = await Loan.findOne({ where: { pubKey } })
+
+    if (loan) {
+      await loan.softRemove()
+
+      return pubKey
+    }
+
+    return null
+  } catch (error) {
+    console.log(error)
+    return null
+  }
 }

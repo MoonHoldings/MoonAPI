@@ -26,6 +26,7 @@ export enum HistoricalLoanStatus {
   Repaid = 'Repaid',
   Active = 'Active',
   Foreclosed = 'Foreclosed',
+  Canceled = 'Canceled',
 }
 
 export enum UserRole {

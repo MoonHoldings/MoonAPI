@@ -1,5 +1,5 @@
 import { Field, ID, Int, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { OrderBook } from '.'
 
 @ObjectType()
@@ -56,7 +56,7 @@ export class Loan extends BaseEntity {
   // Offered loan attributes
   @Field(() => String, { nullable: true })
   @Column({ type: 'text', nullable: true })
-  lenderWallet?: string
+  lenderWallet?: string | null
 
   @Field(() => Number, { nullable: true })
   @Column('bigint', { nullable: true })
@@ -87,9 +87,13 @@ export class Loan extends BaseEntity {
   @Column('bigint', { nullable: true })
   totalOwedLamports?: number | null
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date
+
+  @Field(() => Date, { nullable: true })
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date
 }
