@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { format } from 'date-fns'
 import { NftList, Loan, OrderBook, NftMint } from '../entities'
 import sharkyClient from '../utils/sharkyClient'
-import { In, IsNull, Not, Repository } from 'typeorm'
+import { In, IsNull, LessThan, Not, Repository } from 'typeorm'
 import axios from 'axios'
 import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL, AXIOS_CONFIG_SHYFT_KEY, SHYFT_URL } from '../constants'
 import { LoanType } from '../types'
@@ -119,10 +119,12 @@ export class SharkifyCommandsService {
       await this.loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) })
     }
 
+    const timeBeforeFetch = new Date()
     // Delete loans that are not in the new loans
-    newLoans = await sharkyClient.fetchAllLoans({ program })
-    newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
-    await this.loanRepository.delete({ pubKey: Not(In(newLoansPubKeys)) })
+    const loansForDelete = await sharkyClient.fetchAllLoans({ program })
+    // We only delete loans that are created before we fetch the new loans so that it doesn't delete loans created while old data is fetching
+    const loansForDeletePubKeys = loansForDelete.map((loan) => loan.pubKey.toBase58())
+    await this.loanRepository.softDelete({ pubKey: Not(In(loansForDeletePubKeys)), createdAt: LessThan(timeBeforeFetch) })
 
     this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
     console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))

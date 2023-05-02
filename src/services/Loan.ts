@@ -1,7 +1,7 @@
 import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
 import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
-import { In } from 'typeorm'
+import { In, IsNull } from 'typeorm'
 import { addSeconds, differenceInSeconds } from 'date-fns'
 
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
@@ -104,6 +104,8 @@ export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanRespons
       order = { principalLamports: args?.sort?.order ?? SortOrder.Desc }
       break
   }
+
+  where['deletedAt'] = IsNull()
 
   const loans = await Loan.find({
     take: args?.pagination?.limit,
@@ -297,8 +299,15 @@ export const borrowLoan = async (borrowedLoan: BorrowLoan): Promise<Loan | null>
 
 export const deleteLoanByPubKey = async (pubKey: string): Promise<string | null> => {
   try {
-    await Loan.delete({ pubKey: pubKey })
-    return pubKey
+    const loan = await Loan.findOne({ where: { pubKey } })
+
+    if (loan) {
+      await loan.softRemove()
+
+      return pubKey
+    }
+
+    return null
   } catch (error) {
     console.log(error)
     return null
