@@ -32,6 +32,8 @@ export class HistoricalLoanResponse {
   @Field({ nullable: true })
   foreclosedElapsedTime: string
   @Field({ nullable: true })
+  canceledElapsedTime: string
+  @Field({ nullable: true })
   defaultBlocktime: number
   @Field({ nullable: true })
   extendBlocktime: number

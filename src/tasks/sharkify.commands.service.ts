@@ -120,6 +120,8 @@ export class SharkifyCommandsService {
     }
 
     // Delete loans that are not in the new loans
+    newLoans = await sharkyClient.fetchAllLoans({ program })
+    newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
     await this.loanRepository.delete({ pubKey: Not(In(newLoansPubKeys)) })
 
     this.logger.debug(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))

@@ -192,7 +192,7 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
   let historicalLoans = loans.data
 
   if (lender) {
-    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
+    // historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
   } else if (borrower) {
     historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
   }
@@ -226,6 +226,10 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
       status = HistoricalLoanStatus.Foreclosed
     }
 
+    if (loan.cancelBlocktime) {
+      status = HistoricalLoanStatus.Canceled
+    }
+
     return {
       ...loan,
       offerInterest,
@@ -234,16 +238,18 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
       collectionName: orderBook.nftList?.collectionName,
       collectionImage: orderBook.nftList?.collectionImage,
       status,
-      remainingDays: remainingDays,
+      remainingDays: remainingDays ? remainingDays : null,
       daysPercentProgress,
       repayElapsedTime: status === HistoricalLoanStatus.Repaid ? formatElapsedTime(loan.repayBlocktime) : null,
       foreclosedElapsedTime: status === HistoricalLoanStatus.Foreclosed ? formatElapsedTime(loan.takenBlocktime + loan.loanDurationSeconds) : null,
+      canceledElapsedTime: status === HistoricalLoanStatus.Canceled ? formatElapsedTime(loan.cancelBlocktime) : null,
     }
   })
 
   const active = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Active).sort((a: any, b: any) => a.remainingDays - b.remainingDays)
   const repaid = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Repaid).sort((a: any, b: any) => b.repayBlocktime - a.repayBlocktime)
   const foreclosed = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Foreclosed).sort((a: any, b: any) => b.takenBlocktime - a.takenBlocktime)
+  // const canceled = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Canceled).sort((a: any, b: any) => b.offerBlocktime - a.offerBlocktime)
 
   return [...active, ...repaid, ...foreclosed]
 }
