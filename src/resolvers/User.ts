@@ -48,6 +48,10 @@ export class UserResolver {
         domain: COOKIE_DOMAIN, sameSite: "none",
         secure: true,
       } : {});
+      ctx.res.clearCookie('wf', !__prod__ ? {
+        domain: COOKIE_DOMAIN, sameSite: "none",
+        secure: true,
+      } : {});
       return true;
     }
     return false;
