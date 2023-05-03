@@ -1,7 +1,7 @@
 import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
 import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
-import { In, IsNull } from 'typeorm'
+import { In } from 'typeorm'
 import { addSeconds, differenceInSeconds } from 'date-fns'
 
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
@@ -105,8 +105,6 @@ export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanRespons
       break
   }
 
-  where['deletedAt'] = IsNull()
-
   const loans = await Loan.find({
     take: args?.pagination?.limit,
     skip: args?.pagination?.offset,
@@ -194,7 +192,7 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
   let historicalLoans = loans.data
 
   if (lender) {
-    // historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
+    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
   } else if (borrower) {
     historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
   }

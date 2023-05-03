@@ -36,7 +36,7 @@ export class SharkifyCommandsService {
     let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
 
     // Create new loans that are not yet created, and update existing ones
-    const existingLoans = await this.loanRepository.find({ where: { pubKey: In(newLoansPubKeys) }, relations: { orderBook: true } })
+    const existingLoans = await this.loanRepository.find({ where: { pubKey: In(newLoansPubKeys) }, relations: { orderBook: true }, withDeleted: true })
     const existingLoansByPubKey = existingLoans.reduce((accumulator: any, loan) => {
       accumulator[loan.pubKey] = loan
       return accumulator
