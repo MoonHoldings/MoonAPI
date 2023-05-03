@@ -116,6 +116,7 @@ const main = async () => {
         </head>
         <body>
           <h1>404 Not Found</h1>
+          <p>The requested URL ${req.url} was not found on this server.</p>
         </body>
       </html>
     `);
