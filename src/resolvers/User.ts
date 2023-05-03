@@ -40,18 +40,14 @@ export class UserResolver {
   @UseMiddleware(isAuth)
   async logout(@Ctx() ctx: Context<any>): Promise<boolean> {
     if (ctx.res) {
-      ctx.res.clearCookie('jid', !__prod__ ? {
+      const cookieOptions = !__prod__ ? {
         domain: COOKIE_DOMAIN, sameSite: "none",
         secure: true,
-      } : {});
-      ctx.res.clearCookie('aid', !__prod__ ? {
-        domain: COOKIE_DOMAIN, sameSite: "none",
-        secure: true,
-      } : {});
-      ctx.res.clearCookie('wf', !__prod__ ? {
-        domain: COOKIE_DOMAIN, sameSite: "none",
-        secure: true,
-      } : {});
+      } : {}
+
+      ctx.res.clearCookie('jid', cookieOptions);
+      ctx.res.clearCookie('aid', cookieOptions);
+      ctx.res.clearCookie('wf', cookieOptions);
       return true;
     }
     return false;
