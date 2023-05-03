@@ -37,6 +37,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
   async logout(@Ctx() ctx: Context<any>): Promise<boolean> {
     if (ctx.res) {
       ctx.res.clearCookie('jid', !__prod__ ? {

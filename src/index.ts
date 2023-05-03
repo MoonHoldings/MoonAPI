@@ -5,7 +5,7 @@ import { AuthChecker, buildSchema } from 'type-graphql'
 import cors from 'cors'
 import { __prod__ } from './constants'
 import { AppDataSource } from './utils/db'
-import { LoanResolver, OrderBookResolver, UserResolver } from './resolvers'
+import { LoanResolver, OrderBookResolver, PortfolioResolver, UserResolver } from './resolvers'
 import cookieParser from 'cookie-parser'
 import restRouter from './utils/restapi'
 import dotenv from 'dotenv'
@@ -67,7 +67,7 @@ const main = async () => {
 
   try {
     await AppDataSource.initialize()
-  } catch (_) {}
+  } catch (_) { }
 
   const authChecker: AuthChecker<ContextType> = async ({ context }: { context: any }, roles) => {
     try {
@@ -92,7 +92,7 @@ const main = async () => {
   // APOLLO
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [LoanResolver, OrderBookResolver, UserResolver],
+      resolvers: [LoanResolver, OrderBookResolver, UserResolver, PortfolioResolver],
       validate: false,
       authChecker,
     }),

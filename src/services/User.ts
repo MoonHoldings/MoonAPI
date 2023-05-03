@@ -87,8 +87,12 @@ export const login = async (email: string, password: string, ctx: ExpressContext
   return user
 }
 
-export const getUserByEmail = async (email: string) => {
+export const getUserByEmail = async (email: string): Promise<User | null> => {
   return await User.findOne({ where: { email } })
+}
+
+export const getUserById = async (id: number): Promise<User | null> => {
+  return await User.findOne({ where: { id } })
 }
 
 //to invalidate refresh token

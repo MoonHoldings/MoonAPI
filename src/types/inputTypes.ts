@@ -128,3 +128,19 @@ export class BorrowLoan {
   @Field()
   totalOwedLamports: number
 }
+
+@InputType()
+export class CoinData {
+  @Field()
+  id: number
+  @Field()
+  symbol: string
+  @Field()
+  name: string
+  @Field()
+  portfolioId: string
+  @Field()
+  walletAddress: string
+  @Field()
+  email: string
+}
