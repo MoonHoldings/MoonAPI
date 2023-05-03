@@ -23,11 +23,11 @@ export const register = async (email: string, password: string) => {
     throw new UserInputError('Please enter a valid email')
   }
 
-  if (passwordStrength(password).id != 0 && passwordStrength(password).id != 1) {
-    hashedPassword = await utils.generatePassword(password)
-  } else {
-    throw new UserInputError('Password is too weak')
+  if (!password) {
+    throw new UserInputError('Please enter a valid password')
   }
+
+  hashedPassword = await utils.generatePassword(password)
 
   if (user) {
     isRegUser = await isRegisteredUser(user, SignInType.EMAIL)
@@ -87,8 +87,12 @@ export const login = async (email: string, password: string, ctx: ExpressContext
   return user
 }
 
-export const getUserByEmail = async (email: string) => {
+export const getUserByEmail = async (email: string): Promise<User | null> => {
   return await User.findOne({ where: { email } })
+}
+
+export const getUserById = async (id: number): Promise<User | null> => {
+  return await User.findOne({ where: { id } })
 }
 
 //to invalidate refresh token
@@ -179,12 +183,11 @@ export const updatePassword = async (password: string, token: string) => {
     throw new UserInputError('User Not found')
   }
 
-  let hashedPassword: string
-  if (passwordStrength(password).id != 0 && passwordStrength(password).id != 1) {
-    hashedPassword = await utils.generatePassword(password)
-  } else {
-    throw new UserInputError('Password is too weak')
+  if (!password) {
+    throw new UserInputError('Please provide a valid password')
   }
+
+  const hashedPassword = await utils.generatePassword(password)
 
   if (user.password) {
     let passwordMatched: boolean
