@@ -108,6 +108,19 @@ const main = async () => {
 
   apolloServer.applyMiddleware({ app, cors: false })
 
+  app.get('*', (req, res) => {
+    res.status(404).send(`
+      <html>
+        <head>
+          <title>404 Not Found</title>
+        </head>
+        <body>
+          <h1>404 Not Found</h1>
+        </body>
+      </html>
+    `);
+  });
+
   app.listen(process.env.PORT || 80, () => {
     console.log(`server started at http://localhost:${process.env.PORT ?? ''}/graphql`)
   })
