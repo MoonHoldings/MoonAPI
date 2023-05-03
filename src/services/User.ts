@@ -1,6 +1,6 @@
 import { ExpressContext, UserInputError } from 'apollo-server-express'
 import { User } from '../entities'
-import { passwordStrength } from 'check-password-strength'
+
 import { EmailTokenType, SignInType } from '../enums'
 import { REFRESH_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
 
