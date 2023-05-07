@@ -66,6 +66,8 @@ export class HistoricalLoanResponse {
   @Field({ nullable: true })
   collateralMint: string
   @Field({ nullable: true })
+  collateralName: string
+  @Field({ nullable: true })
   collectionName: string
   @Field({ nullable: true })
   collectionImage: string

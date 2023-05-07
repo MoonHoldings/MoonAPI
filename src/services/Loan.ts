@@ -194,6 +194,27 @@ export const getLoanSummary = async (borrower?: string, lender?: string, paginat
     return accumulator
   }, {})
 
+  const loanCollateralMints: string[] = historicalLoans.map((loan: any) => loan.collateralMint).filter((mint: string) => mint !== null)
+  let collateralMetadataByMint: Record<string, any> = []
+
+  if (loanCollateralMints.length) {
+    // Fetch collection image via nftMint
+    const { data } = await axios.post(
+      `${HELLO_MOON_URL}/nft/mint_information`,
+      {
+        nftMint: loanCollateralMints,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    if (data?.data?.length) {
+      collateralMetadataByMint = data.data.reduce((accumulator: any, metadata: any) => {
+        accumulator[metadata.nftMint] = metadata
+        return accumulator
+      }, {})
+    }
+  }
+
   historicalLoans = historicalLoans.map((loan: HistoricalLoanResponse) => {
     const orderBook: OrderBook = orderBooksByPubKey[loan.orderBook]
     let offerInterest = null
@@ -208,6 +229,14 @@ export const getLoanSummary = async (borrower?: string, lender?: string, paginat
 
     if ((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) {
       status = HistoricalLoanStatus.Active
+    }
+
+    if (loan.offerBlocktime && !loan.repayBlocktime) {
+      status = HistoricalLoanStatus.Offered
+    }
+
+    if (loan.takenBlocktime && !loan.repayBlocktime) {
+      status = HistoricalLoanStatus.Taken
     }
 
     const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
@@ -228,6 +257,7 @@ export const getLoanSummary = async (borrower?: string, lender?: string, paginat
       apy: orderBook.apyAfterFee(),
       collectionName: orderBook.nftList?.collectionName,
       collectionImage: orderBook.nftList?.collectionImage,
+      collateralName: collateralMetadataByMint[loan.collateralMint]?.nftMetadataJson?.name,
       status,
       remainingDays: remainingDays ? remainingDays : null,
       daysPercentProgress,
@@ -259,11 +289,39 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
   )
 
   let historicalLoans = loans.data
+  let paginationToken = loans.paginationToken
 
   if (lender) {
     historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
   } else if (borrower) {
     historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
+  }
+
+  // Check if filtered historical loans is less than 100, fetch more if it is
+  while (historicalLoans.length < 100 && paginationToken) {
+    const { data } = await axios.post(
+      `${HELLO_MOON_URL}/sharky/loan-summary`,
+      {
+        borrower,
+        lender,
+        paginationToken: paginationToken,
+        limit: 100,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    paginationToken = data.paginationToken
+    let filteredHistoricalLoans = []
+
+    if (lender) {
+      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
+    } else if (borrower) {
+      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
+    }
+
+    if (filteredHistoricalLoans) {
+      historicalLoans = [...historicalLoans, ...filteredHistoricalLoans]
+    }
   }
 
   const orderBooks = await OrderBook.find({ where: { pubKey: In(historicalLoans.map((loan: HistoricalLoanResponse) => loan.orderBook)) }, relations: { nftList: true } })
@@ -284,7 +342,7 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
 
     let status = HistoricalLoanStatus.Repaid
 
-    if ((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) {
+    if (((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) || (loan.offerBlocktime && !loan.repayBlocktime)) {
       status = HistoricalLoanStatus.Active
     }
 
