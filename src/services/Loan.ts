@@ -1,4 +1,4 @@
-import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedLoanResponse, SortOrder } from '../types'
+import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedHistoricalLoanResponse, PaginatedLoanResponse, SortOrder } from '../types'
 import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
 import { In } from 'typeorm'
@@ -8,6 +8,53 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
 import calculateOfferInterest from '../utils/calculateOfferInterest'
 import calculateBorrowInterest from '../utils/calculateBorrowInterest'
+
+const getRemainingDays = (start: number, duration: number) => {
+  const startTime = new Date(start * 1000)
+  const endTime = addSeconds(startTime, duration)
+
+  const remainingSeconds = differenceInSeconds(endTime, new Date())
+  const remainingDays = remainingSeconds / 86400
+
+  return Math.floor(remainingDays)
+}
+
+const getPercentDaysProgress = (start: number, duration: number) => {
+  const currentUnixTime = Math.floor(Date.now() / 1000)
+
+  return ((currentUnixTime - start) / duration) * 100
+}
+
+const formatElapsedTime = (unixTime: number) => {
+  const currentUnixTime = Math.floor(Date.now() / 1000)
+  let timePassed
+  let unit
+
+  const secondsPassed = currentUnixTime - unixTime
+
+  if (secondsPassed < 60) {
+    timePassed = secondsPassed
+    unit = 'second'
+  } else if (secondsPassed < 3600) {
+    timePassed = Math.floor(secondsPassed / 60)
+    unit = 'minute'
+  } else if (secondsPassed < 86400) {
+    timePassed = Math.floor(secondsPassed / 3600)
+    unit = 'hour'
+  } else if (secondsPassed < 2592000) {
+    timePassed = Math.floor(secondsPassed / 86400)
+    unit = 'day'
+  } else {
+    timePassed = Math.floor(secondsPassed / 2592000)
+    unit = 'month'
+  }
+
+  if (timePassed !== 1) {
+    unit += 's'
+  }
+
+  return `${timePassed} ${unit} ago`
+}
 
 export const getLoanById = async (id: number): Promise<Loan> => {
   return await Loan.findOneOrFail({ where: { id } })
@@ -127,54 +174,76 @@ export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanRespons
   }
 }
 
+export const getLoanSummary = async (borrower?: string, lender?: string, paginationToken?: string): Promise<PaginatedHistoricalLoanResponse> => {
+  const { data: loans } = await axios.post(
+    `${HELLO_MOON_URL}/sharky/loan-summary`,
+    {
+      borrower,
+      lender,
+      limit: 100,
+      paginationToken,
+    },
+    AXIOS_CONFIG_HELLO_MOON_KEY
+  )
+
+  let historicalLoans = loans.data
+
+  const orderBooks = await OrderBook.find({ where: { pubKey: In(historicalLoans.map((loan: HistoricalLoanResponse) => loan.orderBook)) }, relations: { nftList: true } })
+  const orderBooksByPubKey = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  historicalLoans = historicalLoans.map((loan: HistoricalLoanResponse) => {
+    const orderBook: OrderBook = orderBooksByPubKey[loan.orderBook]
+    let offerInterest = null
+    let borrowInterest = null
+
+    if (orderBook) {
+      offerInterest = calculateOfferInterest(loan.amountOffered, orderBook.duration, orderBook.apy, orderBook.feePermillicentage)
+      borrowInterest = calculateBorrowInterest(loan.amountOffered, orderBook.duration, orderBook.apy)
+    }
+
+    let status = HistoricalLoanStatus.Repaid
+
+    if ((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) {
+      status = HistoricalLoanStatus.Active
+    }
+
+    const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
+    const daysPercentProgress = status === HistoricalLoanStatus.Active ? getPercentDaysProgress(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds) : null
+
+    if (remainingDays < 1 && !loan.repayBlocktime) {
+      status = HistoricalLoanStatus.Foreclosed
+    }
+
+    if (loan.cancelBlocktime) {
+      status = HistoricalLoanStatus.Canceled
+    }
+
+    return {
+      ...loan,
+      offerInterest,
+      borrowInterest,
+      apy: orderBook.apyAfterFee(),
+      collectionName: orderBook.nftList?.collectionName,
+      collectionImage: orderBook.nftList?.collectionImage,
+      status,
+      remainingDays: remainingDays ? remainingDays : null,
+      daysPercentProgress,
+      repayElapsedTime: status === HistoricalLoanStatus.Repaid ? formatElapsedTime(loan.repayBlocktime) : null,
+      foreclosedElapsedTime: status === HistoricalLoanStatus.Foreclosed ? formatElapsedTime(loan.takenBlocktime + loan.loanDurationSeconds) : null,
+      canceledElapsedTime: status === HistoricalLoanStatus.Canceled ? formatElapsedTime(loan.cancelBlocktime) : null,
+    }
+  })
+
+  return {
+    data: historicalLoans,
+    paginationToken: loans.paginationToken,
+  }
+}
+
 export const getHistoricalLoansByUser = async (borrower?: string, lender?: string, offerBlocktime?: number): Promise<HistoricalLoanResponse[] | null> => {
-  const getRemainingDays = (start: number, duration: number) => {
-    const startTime = new Date(start * 1000)
-    const endTime = addSeconds(startTime, duration)
-
-    const remainingSeconds = differenceInSeconds(endTime, new Date())
-    const remainingDays = remainingSeconds / 86400
-
-    return Math.floor(remainingDays)
-  }
-
-  const getPercentDaysProgress = (start: number, duration: number) => {
-    const currentUnixTime = Math.floor(Date.now() / 1000)
-
-    return ((currentUnixTime - start) / duration) * 100
-  }
-
-  const formatElapsedTime = (unixTime: number) => {
-    const currentUnixTime = Math.floor(Date.now() / 1000)
-    let timePassed
-    let unit
-
-    const secondsPassed = currentUnixTime - unixTime
-
-    if (secondsPassed < 60) {
-      timePassed = secondsPassed
-      unit = 'second'
-    } else if (secondsPassed < 3600) {
-      timePassed = Math.floor(secondsPassed / 60)
-      unit = 'minute'
-    } else if (secondsPassed < 86400) {
-      timePassed = Math.floor(secondsPassed / 3600)
-      unit = 'hour'
-    } else if (secondsPassed < 2592000) {
-      timePassed = Math.floor(secondsPassed / 86400)
-      unit = 'day'
-    } else {
-      timePassed = Math.floor(secondsPassed / 2592000)
-      unit = 'month'
-    }
-
-    if (timePassed !== 1) {
-      unit += 's'
-    }
-
-    return `${timePassed} ${unit} ago`
-  }
-
   const { data: loans } = await axios.post(
     `${HELLO_MOON_URL}/sharky/loan-summary`,
     {

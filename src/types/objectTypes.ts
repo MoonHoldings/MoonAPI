@@ -18,6 +18,14 @@ export class PaginatedLoanResponse {
 }
 
 @ObjectType()
+export class PaginatedHistoricalLoanResponse {
+  @Field(() => [HistoricalLoanResponse])
+  data: HistoricalLoanResponse[]
+  @Field({ nullable: true })
+  paginationToken?: string
+}
+
+@ObjectType()
 export class HistoricalLoanResponse {
   @Field({ nullable: true })
   offerBlocktime: number

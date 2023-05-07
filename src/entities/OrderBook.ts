@@ -13,7 +13,7 @@ export class OrderBook extends BaseEntity {
   id!: number
 
   @Field(() => String)
-  @Column('text', { unique: true })
+  @Column('varchar', { unique: true })
   pubKey!: string
 
   @Field(() => Int)
@@ -30,7 +30,7 @@ export class OrderBook extends BaseEntity {
   }
 
   @Field(() => String)
-  @Column('text')
+  @Column('varchar')
   listAccount!: string
 
   @Field(() => Int, { nullable: true })
@@ -42,7 +42,7 @@ export class OrderBook extends BaseEntity {
   feePermillicentage!: number
 
   @Field(() => String)
-  @Column('text')
+  @Column('varchar')
   feeAuthority!: string
 
   @Field(() => [Loan], { nullable: true })
