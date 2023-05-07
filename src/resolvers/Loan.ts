@@ -1,7 +1,7 @@
 import { Resolver, Query, Arg, Authorized, Mutation } from 'type-graphql'
 import * as loanService from '../services/Loan'
 import { Loan } from '../entities'
-import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, PaginatedLoanResponse, UserRole } from '../types'
+import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, PaginatedHistoricalLoanResponse, PaginatedLoanResponse, UserRole } from '../types'
 
 @Resolver()
 export class LoanResolver {
@@ -25,6 +25,16 @@ export class LoanResolver {
     @Arg('offerBlocktime', { nullable: true }) offerBlocktime: number
   ): Promise<HistoricalLoanResponse[] | null> {
     return await loanService.getHistoricalLoansByUser(borrower, lender, offerBlocktime)
+  }
+
+  @Authorized(UserRole.Superuser)
+  @Query(() => PaginatedHistoricalLoanResponse, { nullable: true })
+  async getLoanSummary(
+    @Arg('borrower', { nullable: true }) borrower: string,
+    @Arg('lender', { nullable: true }) lender: string,
+    @Arg('paginationToken', { nullable: true }) paginationToken: string
+  ): Promise<PaginatedHistoricalLoanResponse> {
+    return await loanService.getLoanSummary(borrower, lender, paginationToken)
   }
 
   @Authorized(UserRole.Superuser)

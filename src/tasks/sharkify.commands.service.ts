@@ -101,7 +101,7 @@ export class SharkifyCommandsService {
           supportsFreezingCollateral: loan.supportsFreezingCollateral,
           isCollateralFrozen: loan.isCollateralFrozen,
           isHistorical: loan.isHistorical,
-          isForeclosable: loan.isForeclosable('mainnet'),
+          isForeclosable: loan.isForeclosable(),
           state: loan.state,
           duration: loan.data.loanState?.offer?.offer.termsSpec.time?.duration?.toNumber() || loan.data.loanState.taken?.taken.terms.time?.duration?.toNumber(),
           lenderWallet: loan.data.loanState.offer?.offer.lenderWallet.toBase58(),
