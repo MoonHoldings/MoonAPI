@@ -10,7 +10,7 @@ export class Loan extends BaseEntity {
   id!: number
 
   @Field(() => String)
-  @Column('text')
+  @Column('varchar')
   pubKey!: string
 
   @Field(() => Int)
@@ -26,7 +26,7 @@ export class Loan extends BaseEntity {
   orderBook!: Relation<OrderBook>
 
   @Field(() => String)
-  @Column('text')
+  @Column('varchar')
   valueTokenMint!: string
 
   @Field(() => Boolean, { defaultValue: true })
@@ -46,7 +46,7 @@ export class Loan extends BaseEntity {
   isForeclosable: boolean = false
 
   @Field(() => String)
-  @Column('text')
+  @Column('varchar')
   state!: string
 
   @Field(() => Number, { nullable: true })
@@ -55,7 +55,7 @@ export class Loan extends BaseEntity {
 
   // Offered loan attributes
   @Field(() => String, { nullable: true })
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   lenderWallet?: string | null
 
   @Field(() => Number, { nullable: true })
@@ -64,15 +64,15 @@ export class Loan extends BaseEntity {
 
   // Taken loan attributes
   @Field(() => String, { nullable: true })
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   nftCollateralMint?: string
 
   @Field(() => String, { nullable: true })
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   lenderNoteMint?: string
 
   @Field(() => String, { nullable: true })
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   borrowerNoteMint?: string
 
   @Field(() => Int, { nullable: true })

@@ -11,7 +11,7 @@ export class NftList extends BaseEntity {
   id!: number
 
   @Field(() => String)
-  @Column('text', { unique: true })
+  @Column('varchar', { unique: true })
   pubKey!: string
 
   @Field(() => Int)
@@ -19,15 +19,15 @@ export class NftList extends BaseEntity {
   version!: number
 
   @Field(() => String)
-  @Column('text')
+  @Column('varchar')
   nftMint!: string
 
   @Field(() => String)
-  @Column('text')
+  @Column('varchar')
   collectionName!: string
 
   @Field(() => String, { nullable: true })
-  @Column('text', { nullable: true })
+  @Column('varchar', { nullable: true })
   collectionImage?: string
 
   @Field(() => Number, { nullable: true })
