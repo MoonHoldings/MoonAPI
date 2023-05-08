@@ -15,11 +15,26 @@ export class PortfolioResolver {
         return portfolioService.getUserPortfolioCoins(payload.userId)
     }
 
+    @Query(() => [Coin])
+    @UseMiddleware(isAuth)
+    getUserPortfolioCoinsBySymbol(@Ctx() context: Context<any>, @Arg('symbol', () => String) symbol: string): Promise<Coin[]> {
+        const { payload } = context;
+        return portfolioService.getUserPortfolioCoinsBySymbol(payload.userId, symbol)
+    }
+
     @Mutation(() => Coin)
     @UseMiddleware(isAuth)
     async addUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Ctx() context: Context<any>): Promise<Coin> {
         const { payload } = context;
         return await portfolioService.addUserCoin(coinData, payload.userId)
+    }
+
+    @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
+    async deleteUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Ctx() context: Context<any>): Promise<boolean> {
+        const { payload } = context;
+
+        return await portfolioService.deleteUserCoin(coinData, payload.userId)
     }
 
     @Mutation(() => Coin)
