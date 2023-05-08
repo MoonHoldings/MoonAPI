@@ -15,16 +15,24 @@ export class Coin extends BaseEntity {
     portfolio!: Relation<Portfolio>
 
     @Field(() => String)
-    @Column('text')
+    @Column('text', { nullable: true })
     walletAddress: String
 
     @Field(() => String)
+    @Column('text', { nullable: true })
+    walletName: String
+
+    @Field(() => String)
     @Column('text')
-    symbol: String
+    symbol: string
 
     @Field(() => String)
     @Column('text')
     name: String
+
+    @Field(() => Number, { nullable: true })
+    @Column('bigint', { nullable: true })
+    holdings: number
 
     @Field()
     price: String
