@@ -103,7 +103,7 @@ router.get('/auth/discord', async (req, res) => {
         return res.status(400).redirect(`${WEBAPP_URL}/redirect`)
       }
     } else {
-      utils.setMessageCookies(res, 'Please check to see if your discord account is valid.', 'message')
+      utils.setMessageCookies(res, 'Please check to see if your discord account has an email.', 'message')
       return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
     }
   } catch (error) {
