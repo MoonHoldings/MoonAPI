@@ -1,4 +1,16 @@
-import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedHistoricalLoanResponse, PaginatedLoanResponse, SortOrder } from '../types'
+import {
+  BorrowLoan,
+  CreateLoan,
+  GetLoansArgs,
+  HistoricalLoanResponse,
+  HistoricalLoanStatus,
+  LoanSortType,
+  LoanType,
+  PaginatedHistoricalLoanResponse,
+  PaginatedLoanResponse,
+  SortOrder,
+  TotalLoanResponse,
+} from '../types'
 import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
 import { In } from 'typeorm'
@@ -58,6 +70,108 @@ const formatElapsedTime = (unixTime: number) => {
 
 export const getLoanById = async (id: number): Promise<Loan> => {
   return await Loan.findOneOrFail({ where: { id } })
+}
+
+export const getTotalLendsByAddress = async (address: string): Promise<TotalLoanResponse> => {
+  let paginationToken = true
+  let total = 0
+  let loans: any[] = []
+  const currentUnixTime = Math.floor(Date.now() / 1000)
+
+  while (paginationToken) {
+    const { data }: { data: any } = await axios.post(
+      `${HELLO_MOON_URL}/sharky/loan-summary`,
+      {
+        takenBlocktime: {
+          operator: '<',
+          value: currentUnixTime,
+        },
+        lender: address,
+        paginationToken: paginationToken !== true ? paginationToken : null,
+        limit: 100,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    paginationToken = data.paginationToken
+    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+
+    total += data?.data
+      ?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)
+      ?.reduce((accumulator: number, loan: any) => {
+        return accumulator + loan.amountOffered
+      }, 0)
+  }
+
+  const orderBookPubKeys = loans.map((loan) => loan.orderBook)
+  const orderBooks = await OrderBook.find({ select: ['pubKey', 'apy', 'feePermillicentage'], where: { pubKey: In(orderBookPubKeys) } })
+  const orderBooksByPubKey: Record<string, OrderBook> = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  let totalInterest = 0
+
+  for (const loan of loans) {
+    const orderBook = orderBooksByPubKey[loan.orderBook]
+    totalInterest += calculateOfferInterest(loan.amountOffered, loan.loanDurationSeconds, orderBook.apy, orderBook.feePermillicentage)
+  }
+
+  return {
+    total,
+    interest: totalInterest,
+  }
+}
+
+export const getTotalBorrowsByAddress = async (address: string): Promise<TotalLoanResponse> => {
+  let paginationToken = true
+  let total = 0
+  let loans: any[] = []
+  const currentUnixTime = Math.floor(Date.now() / 1000)
+
+  while (paginationToken) {
+    const { data }: { data: any } = await axios.post(
+      `${HELLO_MOON_URL}/sharky/loan-summary`,
+      {
+        takenBlocktime: {
+          operator: '<',
+          value: currentUnixTime,
+        },
+        borrower: address,
+        paginationToken: paginationToken !== true ? paginationToken : null,
+        limit: 100,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    paginationToken = data.paginationToken
+    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+
+    total += data?.data
+      ?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)
+      ?.reduce((accumulator: number, loan: any) => {
+        return accumulator + loan.amountOffered
+      }, 0)
+  }
+
+  const orderBookPubKeys = loans.map((loan) => loan.orderBook)
+  const orderBooks = await OrderBook.find({ select: ['pubKey', 'apy', 'feePermillicentage'], where: { pubKey: In(orderBookPubKeys) } })
+  const orderBooksByPubKey: Record<string, OrderBook> = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  let totalInterest = 0
+
+  for (const loan of loans) {
+    const orderBook = orderBooksByPubKey[loan.orderBook]
+    totalInterest += calculateBorrowInterest(loan.amountOffered, loan.loanDurationSeconds, orderBook.apy)
+  }
+
+  return {
+    total,
+    interest: totalInterest,
+  }
 }
 
 export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanResponse> => {

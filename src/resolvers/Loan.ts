@@ -1,7 +1,7 @@
 import { Resolver, Query, Arg, Authorized, Mutation } from 'type-graphql'
 import * as loanService from '../services/Loan'
 import { Loan } from '../entities'
-import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, PaginatedHistoricalLoanResponse, PaginatedLoanResponse, UserRole } from '../types'
+import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, PaginatedHistoricalLoanResponse, PaginatedLoanResponse, TotalLoanResponse, UserRole } from '../types'
 
 @Resolver()
 export class LoanResolver {
@@ -9,6 +9,18 @@ export class LoanResolver {
   @Query(() => Loan)
   async getLoan(@Arg('id', () => Number) id: number): Promise<Loan> {
     return await loanService.getLoanById(id)
+  }
+
+  @Authorized(UserRole.Superuser)
+  @Query(() => TotalLoanResponse)
+  async getTotalLendsByAddress(@Arg('address', () => String) address: string): Promise<TotalLoanResponse> {
+    return await loanService.getTotalLendsByAddress(address)
+  }
+
+  @Authorized(UserRole.Superuser)
+  @Query(() => TotalLoanResponse)
+  async getTotalBorrowsByAddress(@Arg('address', () => String) address: string): Promise<TotalLoanResponse> {
+    return await loanService.getTotalBorrowsByAddress(address)
   }
 
   @Authorized(UserRole.Superuser)

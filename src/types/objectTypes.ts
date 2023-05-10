@@ -146,3 +146,11 @@ export class PaginatedOrderBookResponse {
   @Field(() => [OrderBookList])
   data: OrderBookList[]
 }
+
+@ObjectType()
+export class TotalLoanResponse {
+  @Field(() => Number)
+  total: number
+  @Field(() => Number)
+  interest: number
+}
