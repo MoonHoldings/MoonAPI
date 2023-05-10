@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { SignInType } from './SignInType'
 import { addMinutes, isAfter } from 'date-fns'
 import { Portfolio } from './Portfolio'
@@ -57,6 +57,12 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true })
   failedLoginAt: Date
+
+  @CreateDateColumn()
+  createdAt: Date
+
+  @UpdateDateColumn()
+  updatedAt: Date
 
   static async incrementTokenVersion(id: number) {
     await this.createQueryBuilder()
