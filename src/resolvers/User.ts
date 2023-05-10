@@ -36,6 +36,11 @@ export class UserResolver {
     return await userService.getPasswordResetEmail(email)
   }
 
+  @Query(() => Boolean)
+  async resendEmailConfirmation(@Arg('email') email: string): Promise<boolean> {
+    return await userService.resendEmailConfrmation(email)
+  }
+
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
   async logout(@Ctx() ctx: Context<any>): Promise<boolean> {

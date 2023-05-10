@@ -72,21 +72,12 @@ router.get('/api/reset_password_callback/:token', async (req, res) => {
 
 router.get('/auth/discord', async (req, res) => {
   const code = req.query.code as string
-  // const state = req.query.state as string
   const error = req.query.error as string
-
-  // const value = await memoryCache
 
   if (error === 'access_denied') {
     utils.setMessageCookies(res, 'You have cancelled the login', 'message')
     return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
   }
-
-  // const isValidState = await value.get(state);
-  // if (!isValidState) {
-  //   utils.setMessageCookies(res, 'Authorization link has expired', 'message');
-  //   return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
-  // }
 
   try {
     const accessToken = await oauth.tokenRequest({
@@ -101,7 +92,8 @@ router.get('/auth/discord', async (req, res) => {
       const user = await userService.discordAuth(userInfo.email)
       if (user) {
         if (!user.isVerified) {
-          utils.setMessageCookies(res, 'Please verify your profile sent via email to login.', 'message')
+          utils.setMessageCookies(res, `Please verify your profile sent to your email to login.`, 'message')
+          utils.setMessageCookies(res, userInfo.email, 'email')
           return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
         }
         utils.setAccessCookie(res, user, 'jid')
@@ -111,7 +103,7 @@ router.get('/auth/discord', async (req, res) => {
         return res.status(400).redirect(`${WEBAPP_URL}/redirect`)
       }
     } else {
-      utils.setMessageCookies(res, 'Please verify if discord account is valid.', 'message')
+      utils.setMessageCookies(res, 'Please check to see if your discord account has an email.', 'message')
       return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
     }
   } catch (error) {

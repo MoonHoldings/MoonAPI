@@ -10,14 +10,11 @@ import { UserInputError } from 'apollo-server-express'
 const MAX_EMAIL_TOKEN_ATTEMPTS = 3
 const EMAIL_TOKEN_LOCKOUT_SECONDS = 10
 
-export const generateUserConfirmationToken = async (email: string, type: string) => {
-  const token = generateRandomString(32)
-
+export const generateUserConfirmationToken = async (email: string, type: string, token: string) => {
   const emailToken = await EmailToken.findOne({ where: { email, emailTokenType: type } })
   const now = new Date()
 
   if (emailToken) {
-
     if (emailToken.isExpired()) {
       await EmailToken.save(
         Object.assign(emailToken, {
@@ -111,5 +108,34 @@ export const validateUserToken = async (hashedToked: string, type: string) => {
       })
     )
     return user;
+  }
+}
+
+
+export const isLocked = async (email: string, type: string) => {
+  const emailToken = await EmailToken.findOne({ where: { email, emailTokenType: type } })
+
+  if (emailToken) {
+    if (emailToken.isExpired()) {
+      return false
+    }
+    else {
+      const originalDate = new Date()
+      const lockoutThresholdTime = addMinutes(emailToken.generatedAt, EMAIL_TOKEN_LOCKOUT_SECONDS)
+      const attempts = emailToken.attempts;
+
+      if (isAfter(lockoutThresholdTime, originalDate)) {
+        if (attempts <= MAX_EMAIL_TOKEN_ATTEMPTS) {
+          return false
+        } else {
+          throw new UserInputError('You have requested to many times. Please try again later.')
+        }
+
+      } else {
+        return false
+      }
+    }
+  } else {
+    return false
   }
 }
