@@ -1,27 +1,35 @@
 import { CoinData } from "../types";
-import { Coin, Portfolio, User } from "../entities";
+import { Coin } from "../entities";
 import * as coinService from './Coin'
+import * as userService from './User'
 import { UserInputError } from "apollo-server-express";
 
 
 export const getUserPortfolioCoins = async (userId: number): Promise<Coin[]> => {
-    const user = await checkUserPort(userId);
-
-    return await coinService.getCoinsByPortfolio(user.portfolio);
+    const user = await userService.getUserById(userId);
+    if (!user) {
+        throw new UserInputError("User not found")
+    }
+    return await coinService.getCoinsByUserId(user);
 }
 
 export const getUserPortfolioCoinsBySymbol = async (userId: number, symbol: string): Promise<Coin[]> => {
-    const user = await checkUserPort(userId);
-
-    return await coinService.getCoinsBySymbol(user.portfolio, symbol);
+    const user = await userService.getUserById(userId);
+    if (!user) {
+        throw new UserInputError("User not found")
+    }
+    return await coinService.getCoinsBySymbol(user, symbol);
 }
 
 
 export const addUserCoin = async (coinData: CoinData, userId: number) => {
-    const user = await checkUserPort(userId);
+    const user = await userService.getUserById(userId);
+    if (!user) {
+        throw new UserInputError("User not found")
+    }
 
     try {
-        return await coinService.saveCoinData(coinData, user.portfolio)
+        return await coinService.saveCoinData(coinData, user)
     }
     catch (error) {
         throw new UserInputError(error)
@@ -30,10 +38,13 @@ export const addUserCoin = async (coinData: CoinData, userId: number) => {
 
 
 export const deleteUserCoin = async (coinData: CoinData, userId: number) => {
-    const user = await checkUserPort(userId);
+    const user = await userService.getUserById(userId);
+    if (!user) {
+        throw new UserInputError("User not found")
+    }
 
     try {
-        return coinService.deleteCoinData(coinData, user.portfolio);
+        return coinService.deleteCoinData(coinData, user);
     }
     catch (error) {
         console.log("3333")
@@ -42,11 +53,27 @@ export const deleteUserCoin = async (coinData: CoinData, userId: number) => {
 }
 
 export const editUserCoin = async (coinData: CoinData, userId: number) => {
-
-    const user = await checkUserPort(userId, true);
+    const user = await userService.getUserById(userId);
+    if (!user) {
+        throw new UserInputError("User not found")
+    }
 
     try {
-        return coinService.updateCoinData(coinData, user.portfolio)
+        return coinService.updateCoinData(coinData, user)
+    }
+    catch (error) {
+        throw new UserInputError(error)
+    }
+}
+
+export const connectWalletCoins = async (walletAddress: string, userId: number) => {
+    const user = await userService.getUserById(userId);
+    if (!user) {
+        throw new UserInputError("User not found")
+    }
+
+    try {
+        return coinService.connectCoins(walletAddress, user)
     }
     catch (error) {
         throw new UserInputError(error)
@@ -54,29 +81,3 @@ export const editUserCoin = async (coinData: CoinData, userId: number) => {
 }
 
 
-const checkUserPort = async (userId: number, isEdit?: boolean) => {
-    const user = await User.findOne({
-        where: { id: userId },
-        relations: {
-            portfolio:
-                true,
-        },
-    })
-
-    if (!user) {
-        throw new UserInputError('User is not found.')
-    }
-
-    if (!user.portfolio && isEdit) {
-        throw new UserInputError("Portfolio not found.")
-    }
-    else if (!user.portfolio && !isEdit) {
-        const portfolio = new Portfolio();
-        portfolio.user = user;
-        await portfolio.save();
-        user.portfolio = portfolio;
-        await user.save();
-    }
-
-    return user
-}

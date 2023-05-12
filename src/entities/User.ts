@@ -1,8 +1,8 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { SignInType } from './SignInType'
 import { addMinutes, isAfter } from 'date-fns'
-import { Portfolio } from './Portfolio'
+import { Coin } from './Coin'
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
@@ -50,11 +50,6 @@ export class User extends BaseEntity {
   @Field(() => [SignInType], { nullable: true })
   signInTypes: Relation<SignInType>[]
 
-  @OneToOne(() => Portfolio, (portfolio) => portfolio.user)
-  @JoinColumn()
-  @Field(() => Portfolio)
-  portfolio: Relation<Portfolio>
-
   @Column({ nullable: true })
   failedLoginAt: Date
 
@@ -63,6 +58,13 @@ export class User extends BaseEntity {
 
   @UpdateDateColumn()
   updatedAt: Date
+
+  @OneToMany(() => Coin, (coin) => coin.user, {
+    cascade: true,
+  })
+  @Field(() => [Coin], { nullable: true })
+  coins: Relation<Coin>[]
+
 
   static async incrementTokenVersion(id: number) {
     await this.createQueryBuilder()
