@@ -1,4 +1,4 @@
-import { generateRandomString } from '../utils/string'
+
 import { EmailToken, User } from '../entities'
 import { EMAIL_EXPIRY_IN_DAYS } from '../constants'
 import * as utils from '../utils'

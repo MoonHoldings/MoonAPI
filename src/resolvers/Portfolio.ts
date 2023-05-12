@@ -43,4 +43,14 @@ export class PortfolioResolver {
         const { payload } = context;
         return await portfolioService.editUserCoin(coinData, payload.userId)
     }
+
+    @Mutation(() => Boolean)
+    // @UseMiddleware(isAuth)
+    async connectWalletCoins(
+        @Arg('walletAddress', () => String) walletAddress: string, // Update parameter type to string[]
+        // @Ctx() context: Context<any>
+    ): Promise<Boolean> {
+        // const { payload } = context;
+        return await portfolioService.connectWalletCoins(walletAddress, 1);
+    }
 }

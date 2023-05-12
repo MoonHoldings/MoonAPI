@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType } from "type-graphql";
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
-import { Portfolio } from "./Portfolio";
+import { User } from "./User";
 
 @ObjectType()
 @Entity()
@@ -10,15 +10,15 @@ export class Coin extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number
 
-    @Field(() => Portfolio)
-    @ManyToOne(() => Portfolio, (portfolio) => portfolio.coins)
-    portfolio!: Relation<Portfolio>
+    @Field(() => User)
+    @ManyToOne(() => User, (user) => user.coins)
+    user!: Relation<User>
 
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     @Column('text', { nullable: true })
-    walletAddress: String
+    walletAddress: string
 
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     @Column('text', { nullable: true })
     walletName: String
 
@@ -31,8 +31,13 @@ export class Coin extends BaseEntity {
     name: String
 
     @Field(() => Number, { nullable: true })
-    @Column('bigint', { nullable: true })
-    holdings: number
+    @Column({ nullable: true, type: 'numeric', precision: 30, scale: 10 })
+    holdings: number;
+
+
+    @Field(() => Boolean, { defaultValue: false })
+    @Column({ type: 'boolean', default: false })
+    verified: boolean = false
 
     @Field()
     price: String
