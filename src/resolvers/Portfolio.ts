@@ -4,7 +4,7 @@ import * as portfolioService from '../services/Porfolio'
 
 import { Context } from 'apollo-server-core'
 import { isAuth } from "../utils";
-import { CoinData, WalletPortfolio } from "../types";
+import { CoinData } from "../types";
 
 @Resolver()
 export class PortfolioResolver {
@@ -44,14 +44,13 @@ export class PortfolioResolver {
         return await portfolioService.editUserCoin(coinData, payload.userId)
     }
 
-    @Mutation(() => Coin)
+    @Mutation(() => Boolean)
     // @UseMiddleware(isAuth)
     async connectWalletCoins(
         @Arg('walletAddress', () => String) walletAddress: string, // Update parameter type to string[]
-        @Ctx() context: Context<any>
-    ): Promise<WalletPortfolio> { // Update return type to string[]
+        // @Ctx() context: Context<any>
+    ): Promise<Boolean> {
         // const { payload } = context;
-        await portfolioService.connectWalletCoins(walletAddress, 1);
-        return new WalletPortfolio()
+        return await portfolioService.connectWalletCoins(walletAddress, 1);
     }
 }
