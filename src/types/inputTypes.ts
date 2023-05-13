@@ -137,8 +137,10 @@ export class CoinData {
   symbol: string
   @Field()
   name: string
-  @Field()
+  @Field({ nullable: true })
   walletName: string
+  @Field({ nullable: true })
+  walletAddress: string
   @Field()
   holdings: number
 }
