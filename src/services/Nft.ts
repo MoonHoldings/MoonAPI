@@ -4,6 +4,7 @@ import { shyft } from '../utils/shyft'
 
 export const addUserWallet = async (wallet: string, verified: boolean, userId?: number): Promise<boolean> => {
   const nfts = await shyft.nft.getNftByOwner({ owner: wallet })
+  const nftMints = nfts.map((nft) => nft.mint)
 
   // Get unique collection names
   const collectionNameHash: Record<string, string> = {}
@@ -63,6 +64,8 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
   // TODO: Call worker to save floor prices
 
   // TODO: Save non-existing nfts, update nft ownership
+  // Fetch existing nfts
+  const existingNfts = await Nft.find({ where: { mint: In(nftMints) } })
 
   return true
 }
