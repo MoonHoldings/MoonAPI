@@ -6,7 +6,7 @@ import { SharkifyCommandsService } from './sharkify.commands.service'
 export class SharkifyService {
   constructor(private readonly sharkifyCommandsService: SharkifyCommandsService) {}
 
-  @Interval(60000) // Every 1 minute
+  @Interval(120000) // Every 2 minutes
   async saveLoans() {
     await this.sharkifyCommandsService.saveLoans()
   }
