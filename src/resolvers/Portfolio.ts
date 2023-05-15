@@ -44,6 +44,13 @@ export class PortfolioResolver {
 
     return await portfolioService.deleteUserCoin(coinData, payload.userId)
   }
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async deleteUserCoinBySymbol(@Arg('symbol', () => String) symbol: string, @Ctx() context: Context<any>): Promise<boolean> {
+    const { payload } = context
+
+    return await portfolioService.deleteUserCoinBySymbol(symbol, payload.userId)
+  }
 
   @Mutation(() => Coin)
   @UseMiddleware(isAuth)
@@ -75,4 +82,3 @@ export class PortfolioResolver {
     // const { payload } = context;
     return await portfolioService.connectWalletCoins(walletAddress, 1)
   }
-}
