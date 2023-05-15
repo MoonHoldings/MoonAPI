@@ -1,10 +1,63 @@
-import { In } from 'typeorm'
-import { Nft, NftCollection } from '../entities'
+import { In, Not } from 'typeorm'
+import { Nft, NftCollection, UserWallet, User } from '../entities'
 import { shyft } from '../utils/shyft'
+import { CollectionInfo } from '@shyft-to/js'
+
+export const getUserNfts = async (userId: number): Promise<Nft[]> => {
+  const userWallets = await UserWallet.find({ where: { user: { id: userId }, hidden: false } })
+  const nfts = await Nft.find({ where: { owner: In(userWallets.map((wallet) => wallet.address)) }, relations: { collection: true } })
+
+  return nfts
+}
+
+export const removeUserWallet = async (wallet: string, userId?: number): Promise<boolean> => {
+  const userWallet = await UserWallet.findOne({ where: { address: wallet, user: { id: userId } } })
+
+  if (userWallet) {
+    if (userWallet.verified) {
+      userWallet.hidden = true
+      await userWallet.save()
+    } else {
+      await userWallet.remove()
+    }
+
+    return true
+  }
+
+  return false
+}
 
 export const addUserWallet = async (wallet: string, verified: boolean, userId?: number): Promise<boolean> => {
+  // Check if user exists
+  const user = await User.findOne({ where: { id: userId } })
+  if (!user) return false
+
+  // Create user wallet
+  const userWallet = await UserWallet.findOne({ where: { user: { id: userId }, address: wallet } })
+
+  if (!userWallet) {
+    if (verified) {
+      // If attempting to add a verified wallet (connected a wallet), and it already exists, dont create
+      const walletEntity = await UserWallet.findOne({ where: { address: wallet, verified } })
+
+      if (walletEntity) return false
+    }
+
+    await UserWallet.create({
+      address: wallet,
+      verified,
+      user: { id: userId },
+    }).save()
+  } else {
+    if (userWallet.verified && userWallet.hidden) {
+      userWallet.hidden = false
+      await userWallet.save()
+    } else {
+      return false
+    }
+  }
+
   const nfts = await shyft.nft.getNftByOwner({ owner: wallet })
-  const nftMints = nfts.map((nft) => nft.mint)
 
   // Get unique collection names
   const collectionNameHash: Record<string, string> = {}
@@ -16,10 +69,10 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
   const collectionNames = Object.keys(collectionNameHash)
 
   // Get unique collection addresses
-  const collectionAddressHash: Record<string, string> = {}
+  const collectionAddressHash: Record<string, CollectionInfo> = {}
   nfts.forEach((nft) => {
     if (nft.collection.address) {
-      collectionAddressHash[nft.collection.address] = nft.collection.address
+      collectionAddressHash[nft.collection.address] = nft.collection
     }
   })
   const collectionAddresses = Object.keys(collectionAddressHash)
@@ -63,9 +116,34 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
 
   // TODO: Call worker to save floor prices
 
-  // TODO: Save non-existing nfts, update nft ownership
-  // Fetch existing nfts
-  const existingNfts = await Nft.find({ where: { mint: In(nftMints) } })
+  const nftCollectionEntities = await NftCollection.find({ where: [{ mint: In(collectionAddresses) }, { name: In(collectionNames) }] })
+  const nftEntities = nfts.map((nft) => {
+    const collection = nftCollectionEntities.find((collection) => collection?.mint === nft?.collection?.address || collection.name === nft?.collection?.name) ?? null
+
+    return Nft.create({
+      mint: nft.mint,
+      attributes: JSON.stringify(nft.attributes),
+      attributesArray: JSON.stringify(nft.attributes_array),
+      owner: nft.owner,
+      name: nft.name,
+      symbol: nft.symbol,
+      image: nft.cached_animation_url ?? nft.image_uri,
+      description: nft.description,
+      verified,
+      collection: collection,
+    })
+  })
+
+  // Remove owner attribute to nfts that are not owned by the wallet anymore
+  const nftsNotOwned = await Nft.find({ where: { owner: wallet, mint: Not(In(nftEntities.map((nft) => nft.mint))) } })
+  const nftsNotOwnedUpdated = nftsNotOwned.map((nft) => ({
+    ...nft,
+    owner: null,
+  }))
+
+  if (nftsNotOwnedUpdated.length) await Nft.save(nftsNotOwnedUpdated)
+
+  await Nft.upsert(nftEntities, { skipUpdateIfNoValuesChanged: true, conflictPaths: ['mint'] })
 
   return true
 }

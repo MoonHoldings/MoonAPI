@@ -1,4 +1,4 @@
-import { Coin } from '../entities'
+import { Coin, Nft } from '../entities'
 import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql'
 import * as portfolioService from '../services/Porfolio'
 import * as nftService from '../services/Nft'
@@ -21,6 +21,13 @@ export class PortfolioResolver {
   getUserPortfolioCoinsBySymbol(@Ctx() context: Context<any>, @Arg('symbol', () => String) symbol: string): Promise<Coin[]> {
     const { payload } = context
     return portfolioService.getUserPortfolioCoinsBySymbol(payload.userId, symbol)
+  }
+
+  @Query(() => [Nft])
+  // @UseMiddleware(isAuth)
+  getUserNfts(@Ctx() context: Context<any>): Promise<Nft[]> {
+    const { payload } = context
+    return nftService.getUserNfts(payload?.userId || 1)
   }
 
   @Mutation(() => Coin)
@@ -46,11 +53,17 @@ export class PortfolioResolver {
   }
 
   @Mutation(() => Boolean)
-  //   @UseMiddleware(isAuth)
+  // @UseMiddleware(isAuth)
   async addUserWallet(@Arg('wallet') wallet: string, @Arg('verified') verified: boolean, @Ctx() context: Context<any>): Promise<Boolean> {
     const { payload } = context
+    return await nftService.addUserWallet(wallet, verified, payload?.userId || 1)
+  }
 
-    return await nftService.addUserWallet(wallet, verified, payload?.userId)
+  @Mutation(() => Boolean)
+  // @UseMiddleware(isAuth)
+  async removeUserWallet(@Arg('wallet') wallet: string, @Ctx() context: Context<any>): Promise<Boolean> {
+    const { payload } = context
+    return await nftService.removeUserWallet(wallet, payload?.userId || 1)
   }
 
   @Mutation(() => Boolean)
