@@ -82,3 +82,4 @@ export class PortfolioResolver {
     // const { payload } = context;
     return await portfolioService.connectWalletCoins(walletAddress, 1)
   }
+}
