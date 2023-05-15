@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn, Relation } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { Nft } from '.'
 
 @ObjectType()
@@ -10,7 +10,7 @@ export class NftCollection extends BaseEntity {
   id!: number
 
   @Field(() => String, { nullable: true })
-  @Column('varchar', { nullable: true })
+  @Column('varchar', { nullable: true, unique: true })
   mint: string
 
   @Field(() => String, { nullable: true })
@@ -30,4 +30,10 @@ export class NftCollection extends BaseEntity {
   })
   @Field(() => [Nft], { nullable: true })
   nfts: Relation<Nft>[]
+
+  @CreateDateColumn()
+  createdAt: Date
+
+  @UpdateDateColumn()
+  updatedAt: Date
 }

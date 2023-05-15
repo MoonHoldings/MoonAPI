@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Relation } from 'typeorm'
-import { User, NftCollection } from '.'
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import { NftCollection } from '.'
 
 @ObjectType()
 @Entity()
@@ -10,20 +10,20 @@ export class Nft extends BaseEntity {
   id!: number
 
   @Field(() => String, { nullable: true })
-  @Column('varchar', { nullable: true })
+  @Column('varchar', { nullable: true, unique: true })
   mint: string
 
   @Field(() => String)
-  @Column('json')
+  @Column('text')
   attributes: string
 
   @Field(() => String)
-  @Column('json')
+  @Column('text')
   attributesArray: string
 
   @Field(() => String, { nullable: true })
   @Column('varchar', { nullable: true })
-  owner: string
+  owner: string | null
 
   @Field(() => String, { nullable: true })
   @Column('varchar', { nullable: true })
@@ -45,11 +45,13 @@ export class Nft extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   verified: boolean = false
 
-  @Field(() => User)
-  @ManyToOne(() => User, (user) => user.nfts)
-  user!: Relation<User>
-
   @Field(() => NftCollection, { nullable: true })
   @ManyToOne(() => NftCollection, (collection) => collection.nfts, { nullable: true })
-  collection?: Relation<NftCollection>
+  collection?: Relation<NftCollection> | null
+
+  @CreateDateColumn()
+  createdAt: Date
+
+  @UpdateDateColumn()
+  updatedAt: Date
 }

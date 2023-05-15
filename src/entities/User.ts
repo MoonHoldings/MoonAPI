@@ -2,7 +2,7 @@ import { Field, ID, ObjectType } from 'type-graphql'
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { SignInType } from './SignInType'
 import { addMinutes, isAfter } from 'date-fns'
-import { Coin, Nft } from '.'
+import { Coin, UserWallet } from '.'
 
 @ObjectType()
 @Entity()
@@ -66,11 +66,11 @@ export class User extends BaseEntity {
   @Field(() => [Coin], { nullable: true })
   coins: Relation<Coin>[]
 
-  @OneToMany(() => Nft, (nft) => nft.user, {
+  @OneToMany(() => UserWallet, (wallet) => wallet.user, {
     cascade: true,
   })
-  @Field(() => [Nft], { nullable: true })
-  nfts: Relation<Nft>[]
+  @Field(() => [UserWallet], { nullable: true })
+  wallets: Relation<UserWallet>[]
 
   static async incrementTokenVersion(id: number) {
     await this.createQueryBuilder()
