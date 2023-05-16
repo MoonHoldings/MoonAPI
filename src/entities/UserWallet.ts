@@ -13,6 +13,14 @@ export class UserWallet extends BaseEntity {
   @Column({ nullable: true })
   address: string
 
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  walletName: string
+
+  @Field(() => String, { nullable: false })
+  @Column({ nullable: true })
+  walletType: string
+
   @Field(() => Boolean, { defaultValue: false })
   @Column({ type: 'boolean', default: false })
   verified: boolean = false

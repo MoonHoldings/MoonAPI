@@ -1,7 +1,8 @@
-import { CoinData } from '../types'
+import { CoinData, UserWalletType } from '../types'
 import { Coin } from '../entities'
 import * as coinService from './Coin'
 import * as userService from './User'
+import * as userWalletService from './Wallet'
 import { UserInputError } from 'apollo-server-express'
 
 export const getUserPortfolioCoins = async (userId: number): Promise<Coin[]> => {
@@ -9,7 +10,7 @@ export const getUserPortfolioCoins = async (userId: number): Promise<Coin[]> => 
   if (!user) {
     throw new UserInputError('User not found')
   }
-  return await coinService.getCoinsByUserId(user)
+  return await coinService.getCoinsByUser(user)
 }
 
 export const getUserPortfolioCoinsBySymbol = async (userId: number, symbol: string): Promise<Coin[]> => {
@@ -17,6 +18,7 @@ export const getUserPortfolioCoinsBySymbol = async (userId: number, symbol: stri
   if (!user) {
     throw new UserInputError('User not found')
   }
+
   return await coinService.getCoinsBySymbol(user, symbol)
 }
 
@@ -26,8 +28,10 @@ export const addUserCoin = async (coinData: CoinData, userId: number) => {
     throw new UserInputError('User not found')
   }
 
+  const userWallet = await userWalletService.checkExistingWallet(user.id, UserWalletType.Manual, coinData.walletName)
+
   try {
-    return await coinService.saveCoinData(coinData, user)
+    return await coinService.saveCoinData(coinData, userWallet)
   } catch (error) {
     throw new UserInputError(error)
   }
@@ -42,7 +46,6 @@ export const deleteUserCoin = async (coinData: CoinData, userId: number) => {
   try {
     return coinService.deleteCoinData(coinData, user)
   } catch (error) {
-    console.log('3333')
     throw new UserInputError(error)
   }
 }
@@ -56,7 +59,6 @@ export const deleteUserCoinBySymbol = async (symbol: string, userId: number) => 
   try {
     return coinService.deleteCoinDataBySymbol(symbol, user)
   } catch (error) {
-    console.log('3333')
     throw new UserInputError(error)
   }
 }
@@ -66,6 +68,12 @@ export const editUserCoin = async (coinData: CoinData, userId: number) => {
   if (!user) {
     throw new UserInputError('User not found')
   }
+
+  if (!coinData.walletName) {
+    throw new UserInputError('Connected coins cannot be deleted')
+  }
+
+  await userWalletService.updateWallet(coinData.walletId, coinData.walletName, user.id)
 
   try {
     return coinService.updateCoinData(coinData, user)
@@ -81,7 +89,7 @@ export const connectWalletCoins = async (walletAddress: string, userId: number) 
   }
 
   try {
-    return coinService.connectCoins(walletAddress, user)
+    // return coinService.connectCoins(walletAddress)
   } catch (error) {
     throw new UserInputError(error)
   }

@@ -1,3 +1,4 @@
+import { UserInputError } from 'apollo-server-express'
 import { User, UserWallet } from '../entities'
 import { saveNfts } from './Nft'
 
@@ -39,6 +40,44 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
   // TODO: Call save coins
 
   return true
+}
+
+export const checkExistingWallet = async (userId: number, walletType: string, walletName?: string, walletAddress?: string): Promise<UserWallet> => {
+  const whereCondition = {
+    user: { id: userId },
+    ...(walletName ? { walletName: walletName } : {}),
+    ...(walletAddress ? { walletAddress: walletAddress } : {}),
+  }
+
+  const userWallet = await UserWallet.findOne({ where: whereCondition })
+
+  if (!userWallet) {
+    return await UserWallet.create({
+      ...(walletName ? { walletName: walletName } : {}),
+      ...(walletAddress ? { walletAddress: walletAddress } : {}),
+      verified: true,
+      user: { id: userId },
+      walletType: walletType,
+    }).save()
+  } else {
+    return userWallet
+  }
+}
+
+export const updateWallet = async (walletId: number, walletName: string, userId: number): Promise<UserWallet> => {
+  const userWallet = await UserWallet.findOne({ where: { id: walletId, user: { id: userId } } })
+
+  if (!userWallet) {
+    throw new UserInputError('User wallet not found')
+  }
+
+  const existingWallet = await UserWallet.findOne({ where: { walletName: walletName, user: { id: userId } } })
+
+  if (existingWallet) {
+    return existingWallet
+  }
+  userWallet.walletName = walletName
+  return await userWallet.save()
 }
 
 export const removeUserWallet = async (wallet: string, userId?: number): Promise<boolean> => {
