@@ -1,6 +1,11 @@
 import { UserInputError } from 'apollo-server-express'
 import { User, UserWallet } from '../entities'
 import { saveNfts } from './Nft'
+import { UserWalletType } from '../types'
+
+export const getUserWallets = async (type: UserWalletType, userId?: number): Promise<UserWallet[]> => {
+  return await UserWallet.find({ where: { user: { id: userId }, hidden: false, type } })
+}
 
 export const addUserWallet = async (wallet: string, verified: boolean, userId?: number): Promise<boolean> => {
   // Check if user exists
@@ -24,15 +29,14 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
       address: wallet,
       verified,
       user: { id: userId },
+      type: UserWalletType.Auto,
     }).save()
-  } else {
-    if (userWallet.verified && userWallet.hidden) {
-      userWallet.hidden = false
+  } else if (userWallet.verified && userWallet.hidden) {
+    userWallet.hidden = false
 
-      await userWallet.save()
-    } else {
-      return false
-    }
+    await userWallet.save()
+  } else {
+    return false
   }
 
   // Call save nfts, put inside background job
@@ -96,4 +100,22 @@ export const removeUserWallet = async (wallet: string, userId?: number): Promise
   }
 
   return false
+}
+
+export const removeAllUserWallets = async (userId?: number): Promise<boolean> => {
+  const userWallets = await UserWallet.find({ where: { user: { id: userId } } })
+  const verifiedWallets: UserWallet[] = []
+
+  userWallets.forEach(async (wallet) => {
+    if (wallet.verified) {
+      wallet.hidden = true
+      verifiedWallets.push(wallet)
+    } else {
+      await wallet.remove()
+    }
+  })
+
+  if (verifiedWallets.length) await UserWallet.save(verifiedWallets)
+
+  return true
 }

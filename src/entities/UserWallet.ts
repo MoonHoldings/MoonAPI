@@ -1,9 +1,10 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { User } from '.'
 
 @ObjectType()
 @Entity()
+@Index(['user', 'hidden'])
 export class UserWallet extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
