@@ -10,53 +10,7 @@ export const getUserNfts = async (userId: number): Promise<Nft[]> => {
   return nfts
 }
 
-export const removeUserWallet = async (wallet: string, userId?: number): Promise<boolean> => {
-  const userWallet = await UserWallet.findOne({ where: { address: wallet, user: { id: userId } } })
-
-  if (userWallet) {
-    if (userWallet.verified) {
-      userWallet.hidden = true
-      await userWallet.save()
-    } else {
-      await userWallet.remove()
-    }
-
-    return true
-  }
-
-  return false
-}
-
-export const addUserWallet = async (wallet: string, verified: boolean, userId?: number): Promise<boolean> => {
-  // Check if user exists
-  const user = await User.findOne({ where: { id: userId } })
-  if (!user) return false
-
-  // Create user wallet
-  const userWallet = await UserWallet.findOne({ where: { user: { id: userId }, address: wallet } })
-
-  if (!userWallet) {
-    if (verified) {
-      // If attempting to add a verified wallet (connected a wallet), and it already exists, dont create
-      const walletEntity = await UserWallet.findOne({ where: { address: wallet, verified } })
-
-      if (walletEntity) return false
-    }
-
-    await UserWallet.create({
-      address: wallet,
-      verified,
-      user: { id: userId },
-    }).save()
-  } else {
-    if (userWallet.verified && userWallet.hidden) {
-      userWallet.hidden = false
-      await userWallet.save()
-    } else {
-      return false
-    }
-  }
-
+export const saveNfts = async (wallet: string): Promise<boolean> => {
   const nfts = await shyft.nft.getNftByOwner({ owner: wallet })
 
   // Get unique collection names
@@ -129,7 +83,6 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
       symbol: nft.symbol,
       image: nft.cached_animation_url ?? nft.image_uri,
       description: nft.description,
-      verified,
       collection: collection,
     })
   })

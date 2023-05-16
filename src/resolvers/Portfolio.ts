@@ -1,6 +1,7 @@
 import { Coin, Nft } from '../entities'
 import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql'
 import * as portfolioService from '../services/Porfolio'
+import * as walletService from '../services/Wallet'
 import * as nftService from '../services/Nft'
 
 import { Context } from 'apollo-server-core'
@@ -56,14 +57,14 @@ export class PortfolioResolver {
   // @UseMiddleware(isAuth)
   async addUserWallet(@Arg('wallet') wallet: string, @Arg('verified') verified: boolean, @Ctx() context: Context<any>): Promise<Boolean> {
     const { payload } = context
-    return await nftService.addUserWallet(wallet, verified, payload?.userId || 1)
+    return await walletService.addUserWallet(wallet, verified, payload?.userId || 1)
   }
 
   @Mutation(() => Boolean)
   // @UseMiddleware(isAuth)
   async removeUserWallet(@Arg('wallet') wallet: string, @Ctx() context: Context<any>): Promise<Boolean> {
     const { payload } = context
-    return await nftService.removeUserWallet(wallet, payload?.userId || 1)
+    return await walletService.removeUserWallet(wallet, payload?.userId || 1)
   }
 
   @Mutation(() => Boolean)
