@@ -2,7 +2,7 @@ import { Field, ID, ObjectType } from 'type-graphql'
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { SignInType } from './SignInType'
 import { addMinutes, isAfter } from 'date-fns'
-import { Coin, UserWallet } from '.'
+import { UserWallet } from '.'
 
 @ObjectType()
 @Entity()
@@ -59,12 +59,6 @@ export class User extends BaseEntity {
 
   @UpdateDateColumn()
   updatedAt: Date
-
-  @OneToMany(() => Coin, (coin) => coin.user, {
-    cascade: true,
-  })
-  @Field(() => [Coin], { nullable: true })
-  coins: Relation<Coin>[]
 
   @OneToMany(() => UserWallet, (wallet) => wallet.user, {
     cascade: true,

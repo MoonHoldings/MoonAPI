@@ -61,7 +61,7 @@ export class PortfolioResolver {
   }
 
   @Mutation(() => Boolean)
-  // @UseMiddleware(isAuth)
+  @UseMiddleware(isAuth)
   async addUserWallet(@Arg('wallet') wallet: string, @Arg('verified') verified: boolean, @Ctx() context: Context<any>): Promise<Boolean> {
     const { payload } = context
     return await walletService.addUserWallet(wallet, verified, payload?.userId || 1)
@@ -74,13 +74,14 @@ export class PortfolioResolver {
     return await walletService.removeUserWallet(wallet, payload?.userId || 1)
   }
 
-  @Mutation(() => Boolean)
+  // @Mutation(() => Boolean)
   // @UseMiddleware(isAuth)
-  async connectWalletCoins(
-    @Arg('walletAddress', () => String) walletAddress: string // Update parameter type to string[]
-    // @Ctx() context: Context<any>
-  ): Promise<Boolean> {
-    // const { payload } = context;
-    return await portfolioService.connectWalletCoins(walletAddress, 1)
-  }
+  // async connectWalletCoins(
+  // @Arg('walletAddress', () => String) walletAddress: string // Update parameter type to string[]
+  // @Ctx() context: Context<any>
+  // ): Promise<Boolean> {
+  // const { payload } = context;
+  // return await portfolioService.connectWalletCoins(walletAddress, 1)
+  //   return true
+  // }
 }

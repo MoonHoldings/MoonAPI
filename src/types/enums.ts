@@ -34,3 +34,8 @@ export enum HistoricalLoanStatus {
 export enum UserRole {
   Superuser = 'superuser',
 }
+
+export enum UserWalletType {
+  Manual = 'Manual',
+  Auto = 'Auto',
+}
