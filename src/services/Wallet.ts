@@ -45,19 +45,19 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
 export const checkExistingWallet = async (userId: number, walletType: string, walletName?: string, walletAddress?: string): Promise<UserWallet> => {
   const whereCondition = {
     user: { id: userId },
-    ...(walletName ? { walletName: walletName } : {}),
-    ...(walletAddress ? { walletAddress: walletAddress } : {}),
+    ...(walletName ? { name: walletName } : {}),
+    ...(walletAddress ? { address: walletAddress } : {}),
   }
 
   const userWallet = await UserWallet.findOne({ where: whereCondition })
 
   if (!userWallet) {
     return await UserWallet.create({
-      ...(walletName ? { walletName: walletName } : {}),
-      ...(walletAddress ? { walletAddress: walletAddress } : {}),
+      ...(walletName ? { name: walletName } : {}),
+      ...(walletAddress ? { address: walletAddress } : {}),
       verified: true,
       user: { id: userId },
-      walletType: walletType,
+      type: walletType,
     }).save()
   } else {
     return userWallet
@@ -71,12 +71,12 @@ export const updateWallet = async (walletId: number, walletName: string, userId:
     throw new UserInputError('User wallet not found')
   }
 
-  const existingWallet = await UserWallet.findOne({ where: { walletName: walletName, user: { id: userId } } })
+  const existingWallet = await UserWallet.findOne({ where: { name: walletName, user: { id: userId } } })
 
   if (existingWallet) {
     return existingWallet
   }
-  userWallet.walletName = walletName
+  userWallet.name = walletName
   return await userWallet.save()
 }
 

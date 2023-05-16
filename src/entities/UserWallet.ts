@@ -15,11 +15,11 @@ export class UserWallet extends BaseEntity {
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
-  walletName: string
+  name: string
 
   @Field(() => String, { nullable: false })
   @Column({ nullable: true })
-  walletType: string
+  type: string
 
   @Field(() => Boolean, { defaultValue: false })
   @Column({ type: 'boolean', default: false })
