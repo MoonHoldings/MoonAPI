@@ -41,10 +41,6 @@ export class Nft extends BaseEntity {
   @Column('text', { nullable: true })
   description?: String
 
-  @Field(() => Boolean, { defaultValue: false })
-  @Column({ type: 'boolean', default: false })
-  verified: boolean = false
-
   @Field(() => NftCollection, { nullable: true })
   @ManyToOne(() => NftCollection, (collection) => collection.nfts, { nullable: true })
   collection?: Relation<NftCollection> | null
