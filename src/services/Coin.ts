@@ -6,8 +6,8 @@ import { pythCoins } from '../utils/pythCoins'
 import { In } from 'typeorm'
 
 export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
-  const manualUserWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false, walletType: UserWalletType.Manual } })
-  const autoUserWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false, walletType: UserWalletType.Auto } })
+  const manualUserWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false, type: UserWalletType.Manual } })
+  const autoUserWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false, type: UserWalletType.Auto } })
   const manualCoins = await Coin.find({
     where: [{ walletId: In(manualUserWallets.map((wallet) => wallet.id)) }],
   })
@@ -48,7 +48,7 @@ export const updateCoinData = async (editCoin: CoinData, user: User): Promise<Co
     throw new UserInputError('Coin not found')
   }
 
-  const userWallet = await UserWallet.find({ where: { user: { id: user.id }, walletName: coin.walletName, walletType: UserWalletType.Manual } })
+  const userWallet = await UserWallet.find({ where: { user: { id: user.id }, name: coin.walletName, type: UserWalletType.Manual } })
   if (!userWallet) {
     throw new UserInputError('Wallet Not owned by user.')
   }
@@ -64,7 +64,7 @@ export const saveCoinData = async (coinData: CoinData, userWallet: UserWallet): 
   newCoin.name = coinData.name
   newCoin.holdings = coinData.holdings
   newCoin.walletId = userWallet.id
-  newCoin.walletName = userWallet.walletName ?? null
+  newCoin.walletName = userWallet.name ?? null
   newCoin.walletAddress = userWallet.address ?? null
   newCoin.verified = userWallet.verified
   return await newCoin.save()
@@ -78,7 +78,7 @@ export const deleteCoinData = async (coinData: CoinData, user: User): Promise<bo
   if (!coin) {
     throw new UserInputError('Coin not found')
   }
-  const userWallet = await UserWallet.find({ where: { user: { id: user.id }, id: coin.walletId, walletType: UserWalletType.Manual } })
+  const userWallet = await UserWallet.find({ where: { user: { id: user.id }, id: coin.walletId, type: UserWalletType.Manual } })
 
   if (!userWallet) {
     throw new UserInputError('User wallet not owned')
@@ -92,7 +92,7 @@ export const deleteCoinData = async (coinData: CoinData, user: User): Promise<bo
 }
 
 export const deleteCoinDataBySymbol = async (symbol: string, user: User): Promise<boolean> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false, walletType: UserWalletType.Manual } })
+  const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false, type: UserWalletType.Manual } })
   const coins = await Coin.find({
     where: [{ walletId: In(userWallets.map((wallet) => wallet.id)), symbol: symbol }],
   })
