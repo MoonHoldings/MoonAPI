@@ -1,4 +1,4 @@
-import { Coin, Nft } from '../entities'
+import { Coin, Nft, UserWallet } from '../entities'
 import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql'
 import * as portfolioService from '../services/Porfolio'
 import * as walletService from '../services/Wallet'
@@ -6,7 +6,7 @@ import * as nftService from '../services/Nft'
 
 import { Context } from 'apollo-server-core'
 import { isAuth } from '../utils'
-import { CoinData } from '../types'
+import { CoinData, UserWalletType } from '../types'
 
 @Resolver()
 export class PortfolioResolver {
@@ -22,6 +22,13 @@ export class PortfolioResolver {
   getUserPortfolioCoinsBySymbol(@Ctx() context: Context<any>, @Arg('symbol', () => String) symbol: string): Promise<Coin[]> {
     const { payload } = context
     return portfolioService.getUserPortfolioCoinsBySymbol(payload.userId, symbol)
+  }
+
+  @Query(() => [UserWallet])
+  @UseMiddleware(isAuth)
+  getUserWallets(@Arg('type') type: UserWalletType, @Ctx() context: Context<any>): Promise<UserWallet[]> {
+    const { payload } = context
+    return walletService.getUserWallets(type, payload?.userId)
   }
 
   @Query(() => [Nft])
@@ -64,14 +71,21 @@ export class PortfolioResolver {
   @UseMiddleware(isAuth)
   async addUserWallet(@Arg('wallet') wallet: string, @Arg('verified') verified: boolean, @Ctx() context: Context<any>): Promise<Boolean> {
     const { payload } = context
-    return await walletService.addUserWallet(wallet, verified, payload?.userId || 1)
+    return await walletService.addUserWallet(wallet, verified, payload?.userId)
   }
 
   @Mutation(() => Boolean)
-  // @UseMiddleware(isAuth)
+  @UseMiddleware(isAuth)
   async removeUserWallet(@Arg('wallet') wallet: string, @Ctx() context: Context<any>): Promise<Boolean> {
     const { payload } = context
-    return await walletService.removeUserWallet(wallet, payload?.userId || 1)
+    return await walletService.removeUserWallet(wallet, payload?.userId)
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async removeAllUserWallets(@Ctx() context: Context<any>): Promise<Boolean> {
+    const { payload } = context
+    return await walletService.removeAllUserWallets(payload?.userId)
   }
 
   // @Mutation(() => Boolean)

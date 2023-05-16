@@ -1,5 +1,5 @@
 import { In, Not } from 'typeorm'
-import { Nft, NftCollection, UserWallet, User } from '../entities'
+import { Nft, NftCollection, UserWallet } from '../entities'
 import { shyft } from '../utils/shyft'
 import { CollectionInfo } from '@shyft-to/js'
 
