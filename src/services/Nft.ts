@@ -2,9 +2,10 @@ import { In, Not } from 'typeorm'
 import { Nft, NftCollection, UserWallet } from '../entities'
 import { shyft } from '../utils/shyft'
 import { CollectionInfo } from '@shyft-to/js'
+import { UserWalletType } from '../types'
 
 export const getUserNfts = async (userId: number): Promise<Nft[]> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: userId }, hidden: false } })
+  const userWallets = await UserWallet.find({ where: { user: { id: userId }, hidden: false, type: UserWalletType.Auto } })
   const nfts = await Nft.find({ where: { owner: In(userWallets.map((wallet) => wallet.address)) }, relations: { collection: true } })
 
   return nfts
@@ -81,7 +82,7 @@ export const saveNfts = async (wallet: string): Promise<boolean> => {
       owner: nft.owner,
       name: nft.name,
       symbol: nft.symbol,
-      image: nft.cached_animation_url ?? nft.image_uri,
+      image: nft.cached_image_uri ?? nft.image_uri,
       description: nft.description,
       collection: collection,
     })
