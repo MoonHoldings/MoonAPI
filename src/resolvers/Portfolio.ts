@@ -32,10 +32,10 @@ export class PortfolioResolver {
   }
 
   @Query(() => [Nft])
-  // @UseMiddleware(isAuth)
+  @UseMiddleware(isAuth)
   getUserNfts(@Ctx() context: Context<any>): Promise<Nft[]> {
     const { payload } = context
-    return nftService.getUserNfts(payload?.userId || 1)
+    return nftService.getUserNfts(payload?.userId)
   }
 
   @Mutation(() => Coin)
@@ -86,6 +86,13 @@ export class PortfolioResolver {
   async removeAllUserWallets(@Ctx() context: Context<any>): Promise<Boolean> {
     const { payload } = context
     return await walletService.removeAllUserWallets(payload?.userId)
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async refreshUserWallets(@Ctx() context: Context<any>): Promise<Boolean> {
+    const { payload } = context
+    return await walletService.refreshUserWallets(payload?.userId)
   }
 
   // @Mutation(() => Boolean)

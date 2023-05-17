@@ -4,7 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { CommandModule } from 'nestjs-command'
 import { SharkifyService } from './sharkify.service'
 import { SharkifyCommands } from '../commands/sharkify.commands'
-import { SharkifyCommandsService } from './sharkify.commands.service'
 import { Loan, OrderBook, NftList, NftMint } from '../entities'
 
 import dotenv from 'dotenv'
@@ -27,6 +26,6 @@ dotenv.config()
     }),
     TypeOrmModule.forFeature([Loan, OrderBook, NftList, NftMint]),
   ],
-  providers: [SharkifyService, SharkifyCommandsService, SharkifyCommands],
+  providers: [SharkifyService, SharkifyCommands],
 })
 export class TasksModule {}
