@@ -4,10 +4,13 @@ import { CoinData, UserWalletType } from '../types'
 // import { shyft } from '../utils/shyft'
 // import { pythCoins } from '../utils/pythCoins'
 import { In } from 'typeorm'
+import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
+import axios from 'axios'
 
 export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
-  const manualUserWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false, type: UserWalletType.Manual } })
+  const manualUserWallets = await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Manual } })
   const autoUserWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false, type: UserWalletType.Auto } })
+
   const manualCoins = await Coin.find({
     where: [{ walletId: In(manualUserWallets.map((wallet) => wallet.id)) }],
   })
@@ -34,7 +37,10 @@ export const getCoinsBySymbol = async (user: User, symbol: string): Promise<Coin
   const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false } })
 
   const coins = await Coin.find({
-    where: [{ walletId: In(userWallets.map((wallet) => wallet.id)), symbol }],
+    where: [
+      { walletId: In(userWallets.map((wallet) => wallet.id)), symbol },
+      { walletAddress: In(userWallets.map((wallet) => wallet.address)), symbol },
+    ],
   })
   return coins
 }
@@ -110,39 +116,69 @@ export const deleteCoinDataBySymbol = async (symbol: string, user: User): Promis
   }
 }
 
-// export const connectCoins = async (walletAddress: string): Promise<boolean> => {
-//   try {
-//     const balances = await shyft.wallet.getAllTokenBalance({ wallet: walletAddress })
-//     for (const balance of balances) {
-//       const matchingCoin = pythCoins.find((coin) => coin.name.toLowerCase() === balance.info.name.toLowerCase())
-//       if (matchingCoin && balance.balance > 0) {
-//         const newCoin = new CoinData()
-//         newCoin.symbol = balance.info.symbol
-//         newCoin.name = balance.info.name
-//         newCoin.holdings = balance.balance
-//         const isExisting = await checkExistingCoin(newCoin, user, walletAddress)
-//         if (!isExisting) saveCoinData(newCoin, user, walletAddress)
-//       }
-//     }
-//     return true
-//   } catch (error) {
-//     throw new UserInputError(error)
-//   }
-// }
+export const connectCoins = async (walletAddress: string): Promise<boolean> => {
+  try {
+    const shyftBalances = await shyft.wallet.getAllTokenBalance({ wallet: walletAddress })
+    const moonBalances = await getMoonTokens(walletAddress)
+    const balances = shyftBalances.concat(moonBalances)
+    for (const balance of balances) {
+      const matchingCoin = pythCoins.find((coin) => coin.name.toLowerCase() === balance.info.name.toLowerCase())
 
-// export const checkExistingCoin = async (coinData: CoinData, user: User, walletAddress: string) => {
-//   const coin = await Coin.findOne({ where: { walletAddress: walletAddress, user: { id: user.id } } })
-//   if (!coin) {
-//     return false
-//   } else {
-//     coin.walletName = coinData.walletName
-//     coin.symbol = coinData.symbol
-//     coin.name = coinData.name
-//     coin.holdings = coinData.holdings
-//     coin.user = user
-//     coin.walletAddress = walletAddress
-//     coin.verified = true
-//     await coin.save()
-//     return true
-//   }
-// }
+      if (matchingCoin && balance.balance > 0) {
+        const existingCoin = await Coin.findOne({ where: { walletAddress: walletAddress, symbol: matchingCoin.symbol } })
+        if (existingCoin) {
+          existingCoin.symbol = matchingCoin.symbol
+          existingCoin.name = balance.info.name
+          existingCoin.holdings = balance.balance
+          existingCoin.save()
+        } else {
+          const newCoin = new Coin()
+          newCoin.symbol = matchingCoin.symbol
+          newCoin.name = balance.info.name
+          newCoin.holdings = balance.balance
+          newCoin.walletAddress = walletAddress
+          await newCoin.save()
+        }
+      }
+    }
+    return true
+  } catch (error) {
+    throw new UserInputError(error)
+  }
+}
+
+export const getMoonTokens = async (walletAddress: string) => {
+  const { data: tokenList }: { data: any } = await axios.post(
+    `${HELLO_MOON_URL}/token/list`,
+    {
+      symbol: 'DUST',
+    },
+    AXIOS_CONFIG_HELLO_MOON_KEY
+  )
+  const dustItem = tokenList.data.find((item: any) => item.slug === 'dust-protocol')
+  const dustMint = dustItem ? dustItem.mint : ''
+
+  const { data: tokenBalances }: { data: any } = await axios.post(
+    `${HELLO_MOON_URL}/token/balances-by-owner`,
+    {
+      ownerAccount: walletAddress,
+    },
+    AXIOS_CONFIG_HELLO_MOON_KEY
+  )
+
+  //wallet dustBalance
+  const dustBalance = tokenBalances.find((item: any) => item.mint === dustMint)
+
+  const { data: tokenPrice }: { data: any } = await axios.post(
+    `${HELLO_MOON_URL}/token/price`,
+    {
+      mint: dustMint,
+    },
+    AXIOS_CONFIG_HELLO_MOON_KEY
+  )
+
+  //print token price
+  console.log(tokenPrice.data[0].price / 1000000)
+
+  return []
+}

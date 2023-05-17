@@ -45,17 +45,20 @@ export class UserResolver {
   @UseMiddleware(isAuth)
   async logout(@Ctx() ctx: Context<any>): Promise<boolean> {
     if (ctx.res) {
-      const cookieOptions = !__prod__ ? {
-        domain: COOKIE_DOMAIN, sameSite: "none",
-        secure: true,
-      } : {}
+      const cookieOptions = !__prod__
+        ? {
+            domain: COOKIE_DOMAIN,
+            sameSite: 'none',
+            secure: true,
+          }
+        : {}
 
-      ctx.res.clearCookie('jid', cookieOptions);
-      ctx.res.clearCookie('aid', cookieOptions);
-      ctx.res.clearCookie('wf', cookieOptions);
-      return true;
+      ctx.res.clearCookie('jid', cookieOptions)
+      ctx.res.clearCookie('aid', cookieOptions)
+      ctx.res.clearCookie('wf', cookieOptions)
+      return true
     }
-    return false;
+    return false
   }
 
   @Mutation(() => Boolean)
@@ -63,9 +66,9 @@ export class UserResolver {
     const token = ctx.req.cookies.jid
     const isUpdated = await userService.updatePassword(email, token)
     if (isUpdated) {
-      ctx.res.clearCookie('jid');
+      ctx.res.clearCookie('jid')
     }
-    return isUpdated;
+    return isUpdated
   }
 
   //     const url = oauth.generateAuthUrl({
