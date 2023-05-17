@@ -7,6 +7,22 @@ export const getUserWallets = async (type: UserWalletType, userId?: number): Pro
   return await UserWallet.find({ where: { user: { id: userId }, hidden: false, type } })
 }
 
+export const refreshUserWallets = async (userId: number): Promise<boolean> => {
+  const userWallets = await UserWallet.find({ where: { user: { id: userId }, hidden: false, type: UserWalletType.Auto } })
+
+  if (userWallets.length) {
+    const saveNftsPromises = userWallets.map(async (wallet) => {
+      return await saveNfts(wallet.address)
+    })
+
+    await Promise.allSettled(saveNftsPromises)
+  } else {
+    return false
+  }
+
+  return true
+}
+
 export const addUserWallet = async (wallet: string, verified: boolean, userId?: number): Promise<boolean> => {
   // Check if user exists
   const user = await User.findOne({ where: { id: userId } })

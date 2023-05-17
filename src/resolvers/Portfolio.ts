@@ -88,6 +88,13 @@ export class PortfolioResolver {
     return await walletService.removeAllUserWallets(payload?.userId)
   }
 
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async refreshUserWallets(@Ctx() context: Context<any>): Promise<Boolean> {
+    const { payload } = context
+    return await walletService.refreshUserWallets(payload?.userId)
+  }
+
   // @Mutation(() => Boolean)
   // @UseMiddleware(isAuth)
   // async connectWalletCoins(
