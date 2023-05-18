@@ -112,4 +112,8 @@ router.get('/auth/discord', async (req, res) => {
   }
 })
 
+router.get('/health_check', (_req, res) => {
+  res.status(200).send('OK')
+})
+
 export default router
