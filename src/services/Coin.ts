@@ -1,8 +1,8 @@
 import { UserInputError } from 'apollo-server-express'
 import { Coin, User, UserWallet } from '../entities'
 import { CoinData, UserWalletType } from '../types'
-import { shyft } from '../utils/shyft'
-import { pythCoins } from '../utils/pythCoins'
+// import { shyft } from '../utils/shyft'
+// import { pythCoins } from '../utils/pythCoins'
 import { In } from 'typeorm'
 
 export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
