@@ -2,7 +2,7 @@
   "name": "node-express-pg-graphql-template",
   "version": "1.0.0",
   "engines": {
-    "node": "16.14.0"
+    "node": ">=16.0.0"
   },
   "description": "",
   "main": "index.js",
