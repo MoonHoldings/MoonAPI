@@ -1,13 +1,26 @@
-import { BorrowLoan, CreateLoan, GetLoansArgs, HistoricalLoanResponse, HistoricalLoanStatus, LoanSortType, LoanType, PaginatedHistoricalLoanResponse, PaginatedLoanResponse, SortOrder } from '../types'
+import {
+  BorrowLoan,
+  CreateLoan,
+  GetLoansArgs,
+  HistoricalLoanResponse,
+  HistoricalLoanStatus,
+  LoanSortType,
+  LoanType,
+  PaginatedHistoricalLoanResponse,
+  PaginatedLoanResponse,
+  SortOrder,
+  TotalLoanResponse,
+} from '../types'
 import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
-import { In } from 'typeorm'
-import { addSeconds, differenceInSeconds } from 'date-fns'
+import { In, LessThan, Not } from 'typeorm'
+import { addSeconds, differenceInSeconds, format } from 'date-fns'
 
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
 import calculateOfferInterest from '../utils/calculateOfferInterest'
 import calculateBorrowInterest from '../utils/calculateBorrowInterest'
+import sharkyClient from '../utils/sharkyClient'
 
 const getRemainingDays = (start: number, duration: number) => {
   const startTime = new Date(start * 1000)
@@ -58,6 +71,108 @@ const formatElapsedTime = (unixTime: number) => {
 
 export const getLoanById = async (id: number): Promise<Loan> => {
   return await Loan.findOneOrFail({ where: { id } })
+}
+
+export const getTotalLendsByAddress = async (address: string): Promise<TotalLoanResponse> => {
+  let paginationToken = true
+  let total = 0
+  let loans: any[] = []
+  const currentUnixTime = Math.floor(Date.now() / 1000)
+
+  while (paginationToken) {
+    const { data }: { data: any } = await axios.post(
+      `${HELLO_MOON_URL}/sharky/loan-summary`,
+      {
+        takenBlocktime: {
+          operator: '<',
+          value: currentUnixTime,
+        },
+        lender: address,
+        paginationToken: paginationToken !== true ? paginationToken : null,
+        limit: 100,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    paginationToken = data.paginationToken
+    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+
+    total += data?.data
+      ?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)
+      ?.reduce((accumulator: number, loan: any) => {
+        return accumulator + loan.amountOffered
+      }, 0)
+  }
+
+  const orderBookPubKeys = loans.map((loan) => loan.orderBook)
+  const orderBooks = await OrderBook.find({ select: ['pubKey', 'apy', 'feePermillicentage'], where: { pubKey: In(orderBookPubKeys) } })
+  const orderBooksByPubKey: Record<string, OrderBook> = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  let totalInterest = 0
+
+  for (const loan of loans) {
+    const orderBook = orderBooksByPubKey[loan.orderBook]
+    totalInterest += calculateOfferInterest(loan.amountOffered, loan.loanDurationSeconds, orderBook.apy, orderBook.feePermillicentage)
+  }
+
+  return {
+    total,
+    interest: totalInterest,
+  }
+}
+
+export const getTotalBorrowsByAddress = async (address: string): Promise<TotalLoanResponse> => {
+  let paginationToken = true
+  let total = 0
+  let loans: any[] = []
+  const currentUnixTime = Math.floor(Date.now() / 1000)
+
+  while (paginationToken) {
+    const { data }: { data: any } = await axios.post(
+      `${HELLO_MOON_URL}/sharky/loan-summary`,
+      {
+        takenBlocktime: {
+          operator: '<',
+          value: currentUnixTime,
+        },
+        borrower: address,
+        paginationToken: paginationToken !== true ? paginationToken : null,
+        limit: 100,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    paginationToken = data.paginationToken
+    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+
+    total += data?.data
+      ?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)
+      ?.reduce((accumulator: number, loan: any) => {
+        return accumulator + loan.amountOffered
+      }, 0)
+  }
+
+  const orderBookPubKeys = loans.map((loan) => loan.orderBook)
+  const orderBooks = await OrderBook.find({ select: ['pubKey', 'apy', 'feePermillicentage'], where: { pubKey: In(orderBookPubKeys) } })
+  const orderBooksByPubKey: Record<string, OrderBook> = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  let totalInterest = 0
+
+  for (const loan of loans) {
+    const orderBook = orderBooksByPubKey[loan.orderBook]
+    totalInterest += calculateBorrowInterest(loan.amountOffered, loan.loanDurationSeconds, orderBook.apy)
+  }
+
+  return {
+    total,
+    interest: totalInterest,
+  }
 }
 
 export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanResponse> => {
@@ -194,6 +309,27 @@ export const getLoanSummary = async (borrower?: string, lender?: string, paginat
     return accumulator
   }, {})
 
+  const loanCollateralMints: string[] = historicalLoans.map((loan: any) => loan.collateralMint).filter((mint: string) => mint !== null)
+  let collateralMetadataByMint: Record<string, any> = []
+
+  if (loanCollateralMints.length) {
+    // Fetch collection image via nftMint
+    const { data } = await axios.post(
+      `${HELLO_MOON_URL}/nft/mint_information`,
+      {
+        nftMint: loanCollateralMints,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    if (data?.data?.length) {
+      collateralMetadataByMint = data.data.reduce((accumulator: any, metadata: any) => {
+        accumulator[metadata.nftMint] = metadata
+        return accumulator
+      }, {})
+    }
+  }
+
   historicalLoans = historicalLoans.map((loan: HistoricalLoanResponse) => {
     const orderBook: OrderBook = orderBooksByPubKey[loan.orderBook]
     let offerInterest = null
@@ -208,6 +344,14 @@ export const getLoanSummary = async (borrower?: string, lender?: string, paginat
 
     if ((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) {
       status = HistoricalLoanStatus.Active
+    }
+
+    if (loan.offerBlocktime && !loan.repayBlocktime) {
+      status = HistoricalLoanStatus.Offered
+    }
+
+    if (loan.takenBlocktime && !loan.repayBlocktime) {
+      status = HistoricalLoanStatus.Taken
     }
 
     const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
@@ -228,6 +372,7 @@ export const getLoanSummary = async (borrower?: string, lender?: string, paginat
       apy: orderBook.apyAfterFee(),
       collectionName: orderBook.nftList?.collectionName,
       collectionImage: orderBook.nftList?.collectionImage,
+      collateralName: collateralMetadataByMint[loan.collateralMint]?.nftMetadataJson?.name,
       status,
       remainingDays: remainingDays ? remainingDays : null,
       daysPercentProgress,
@@ -259,11 +404,39 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
   )
 
   let historicalLoans = loans.data
+  let paginationToken = loans.paginationToken
 
   if (lender) {
     historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
   } else if (borrower) {
     historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
+  }
+
+  // Check if filtered historical loans is less than 100, fetch more if it is
+  while (historicalLoans.length < 100 && paginationToken) {
+    const { data } = await axios.post(
+      `${HELLO_MOON_URL}/sharky/loan-summary`,
+      {
+        borrower,
+        lender,
+        paginationToken: paginationToken,
+        limit: 100,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    paginationToken = data.paginationToken
+    let filteredHistoricalLoans = []
+
+    if (lender) {
+      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
+    } else if (borrower) {
+      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
+    }
+
+    if (filteredHistoricalLoans) {
+      historicalLoans = [...historicalLoans, ...filteredHistoricalLoans]
+    }
   }
 
   const orderBooks = await OrderBook.find({ where: { pubKey: In(historicalLoans.map((loan: HistoricalLoanResponse) => loan.orderBook)) }, relations: { nftList: true } })
@@ -284,7 +457,7 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
 
     let status = HistoricalLoanStatus.Repaid
 
-    if ((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) {
+    if (((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) || (loan.offerBlocktime && !loan.repayBlocktime)) {
       status = HistoricalLoanStatus.Active
     }
 
@@ -379,4 +552,108 @@ export const deleteLoanByPubKey = async (pubKey: string): Promise<string | null>
     console.log(error)
     return null
   }
+}
+
+export const saveLoans = async () => {
+  console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy h:mma"))
+
+  const loanRepository = Loan.getRepository()
+  const orderBookRepository = OrderBook.getRepository()
+
+  const { program } = sharkyClient
+  let newLoans = await sharkyClient.fetchAllLoans({ program })
+  let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
+
+  // Create new loans that are not yet created, and update existing ones
+  const existingLoans = await loanRepository.find({ where: { pubKey: In(newLoansPubKeys) }, relations: { orderBook: true }, withDeleted: true })
+  const existingLoansByPubKey = existingLoans.reduce((accumulator: any, loan) => {
+    accumulator[loan.pubKey] = loan
+    return accumulator
+  }, {})
+
+  const existingLoansPubKeys = new Set(existingLoans.map((loan) => loan.pubKey))
+
+  const newlyAddedLoans = []
+  const updatedLoanEntities = []
+
+  for (const newLoan of newLoans) {
+    if (!existingLoansPubKeys.has(newLoan.pubKey.toBase58())) {
+      newlyAddedLoans.push(newLoan)
+    } else {
+      // If loan exists, check if state changed
+      const newLoanPubKey = newLoan.pubKey.toBase58()
+      const savedLoan: Loan = existingLoansByPubKey[newLoanPubKey]
+
+      if (savedLoan) {
+        if (!savedLoan.orderBook) {
+          const orderBook = await OrderBook.findOne({ where: { pubKey: newLoan.data.orderBook.toBase58() } })
+
+          if (orderBook) {
+            savedLoan.orderBook = orderBook
+            updatedLoanEntities.push(savedLoan)
+          }
+        }
+
+        if (savedLoan.state === LoanType.Offer && newLoan.state === LoanType.Taken) {
+          savedLoan.lenderWallet = newLoan.data.loanState.offer?.offer.lenderWallet.toBase58()
+          savedLoan.offerTime = newLoan.data.loanState.offer?.offer.offerTime?.toNumber()
+          savedLoan.nftCollateralMint = newLoan.data.loanState.taken?.taken.nftCollateralMint.toBase58()
+          savedLoan.lenderNoteMint = newLoan.data.loanState.taken?.taken.lenderNoteMint.toBase58()
+          savedLoan.borrowerNoteMint = newLoan.data.loanState.taken?.taken.borrowerNoteMint.toBase58()
+          savedLoan.apy = newLoan.data.loanState.taken?.taken.apy.fixed?.apy
+          savedLoan.start = newLoan.data.loanState.taken?.taken.terms.time?.start?.toNumber()
+          savedLoan.totalOwedLamports = newLoan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber()
+          savedLoan.state = newLoan.state
+
+          updatedLoanEntities.push(savedLoan)
+        }
+      }
+    }
+  }
+
+  const newlyAddedLoansOrderBookPubKeys = newlyAddedLoans.map((loan) => loan.data.orderBook.toBase58())
+  const uniqueOrderBookPubKeys = newlyAddedLoansOrderBookPubKeys.filter((value, index, self) => {
+    return self.indexOf(value) === index
+  })
+
+  if (newlyAddedLoans.length > 0) {
+    const orderBooks = await orderBookRepository.find({ where: { pubKey: In(uniqueOrderBookPubKeys) } })
+
+    const newLoanEntities = newlyAddedLoans.map((loan) => {
+      const orderBook = orderBooks.find((orderBook) => loan.data.orderBook.toBase58() === orderBook.pubKey)
+
+      return loanRepository.create({
+        pubKey: loan.pubKey.toBase58(),
+        version: loan.data.version,
+        principalLamports: loan.data.principalLamports.toNumber(),
+        valueTokenMint: loan.data.valueTokenMint.toBase58(),
+        supportsFreezingCollateral: loan.supportsFreezingCollateral,
+        isCollateralFrozen: loan.isCollateralFrozen,
+        isHistorical: loan.isHistorical,
+        isForeclosable: loan.isForeclosable(),
+        state: loan.state,
+        duration: loan.data.loanState?.offer?.offer.termsSpec.time?.duration?.toNumber() || loan.data.loanState.taken?.taken.terms.time?.duration?.toNumber(),
+        lenderWallet: loan.data.loanState.offer?.offer.lenderWallet.toBase58(),
+        offerTime: loan.data.loanState.offer?.offer.offerTime?.toNumber(),
+        nftCollateralMint: loan.data.loanState.taken?.taken.nftCollateralMint.toBase58(),
+        lenderNoteMint: loan.data.loanState.taken?.taken.lenderNoteMint.toBase58(),
+        borrowerNoteMint: loan.data.loanState.taken?.taken.borrowerNoteMint.toBase58(),
+        apy: loan.data.loanState.taken?.taken.apy.fixed?.apy,
+        start: loan.data.loanState.taken?.taken.terms.time?.start?.toNumber(),
+        totalOwedLamports: loan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber(),
+        orderBook: orderBook,
+      })
+    })
+
+    await loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) })
+  }
+
+  const timeBeforeFetch = new Date()
+  // Delete loans that are not in the new loans
+  const loansForDelete = await sharkyClient.fetchAllLoans({ program })
+  // We only delete loans that are created before we fetch the new loans so that it doesn't delete loans created while old data is fetching
+  const loansForDeletePubKeys = loansForDelete.map((loan) => loan.pubKey.toBase58())
+  await loanRepository.softDelete({ pubKey: Not(In(loansForDeletePubKeys)), updatedAt: LessThan(timeBeforeFetch) })
+
+  console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
 }

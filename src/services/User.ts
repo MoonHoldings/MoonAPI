@@ -35,7 +35,7 @@ export const register = async (email: string, password: string) => {
       await signInTypeService.createSignInType(email, SignInType.EMAIL)
       return await User.save(Object.assign(user, { password: hashedPassword }))
     } else {
-      throw new Error('Incorrect credentials')
+      throw new Error('Email already registered.')
     }
   }
   const username = await generateUsername()
@@ -106,8 +106,10 @@ export const incrementRefreshVersion = async (id: number) => {
 
 //NOTE: if resend feature, must check if user is already verified before calling this fn
 export const sendConfirmationEmail = async (email: string, username: string) => {
-  const randomToken = await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.CONFIRMATION_EMAIL)
-  const message = utils.generateEmailHTML(username, utils.encryptToken(randomToken))
+  await emailTokenService.isLocked(email, EmailTokenType.CONFIRMATION_EMAIL)
+
+  const token = utils.generateRandomString(32)
+  const message = utils.generateEmailHTML(username, utils.encryptToken(token))
   const msg: sgMail.MailDataRequired = {
     to: email,
     from: `${SG_SENDER}`,
@@ -116,13 +118,26 @@ export const sendConfirmationEmail = async (email: string, username: string) => 
   }
 
   try {
-    await sgMail.send(msg)
+    const res = await sgMail.send(msg)
+    if (res[0].statusCode == 202) {
+      await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.CONFIRMATION_EMAIL, token)
+    } else {
+      throw new UserInputError("Email was not sent please try again later.")
+    }
   } catch (error) {
-    console.error(error)
-    return false
+    throw new UserInputError(error.message)
   }
 
   return true
+}
+
+export const resendEmailConfrmation = async (email: string) => {
+  const user = await getUserByEmail(email);
+  if (!user) {
+    throw new UserInputError("User is not found.")
+  }
+  return await sendConfirmationEmail(user.email, user.username)
+
 }
 
 export const getPasswordResetEmail = async (email: string) => {
@@ -136,16 +151,17 @@ export const getPasswordResetEmail = async (email: string) => {
     throw new UserInputError('User does not exist.')
   } else {
     if (!user.isVerified) {
-      throw new UserInputError('Please verify your email to reset your password.')
+      throw new UserInputError('Please verify your email to reset your password')
     }
 
     if (!user.password) {
       throw new UserInputError('Please signup using this email first to register a password.')
     }
 
-    const randomToken = await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.RESET_PASSWORD)
+    await emailTokenService.isLocked(email, EmailTokenType.RESET_PASSWORD)
 
-    const message = utils.generatePasswordReset(user.username, utils.encryptToken(randomToken))
+    const token = utils.generateRandomString(32)
+    const message = utils.generatePasswordReset(user.username, utils.encryptToken(token))
     const msg: sgMail.MailDataRequired = {
       to: email,
       from: `${SG_SENDER}`,
@@ -154,10 +170,14 @@ export const getPasswordResetEmail = async (email: string) => {
     }
 
     try {
-      await sgMail.send(msg)
+      const res = await sgMail.send(msg)
+      if (res[0].statusCode == 202) {
+        await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.RESET_PASSWORD, token)
+      } else {
+        throw new UserInputError("Email was not sent please try again later.")
+      }
     } catch (error) {
-      console.error(error)
-      return false
+      throw new UserInputError(error.message)
     }
 
     return true
@@ -250,30 +270,3 @@ export const isRegisteredUser = async (user: User, signInType: string) => {
     return false
   }
 }
-
-//TODO: To hold in function
-// async refreshAccessToken({ req, res }: ExpressContext): Promise<string> {
-
-//    if (!req.cookies.token) {
-//       throw new Error("Token not valid")
-//    }
-//    let payload: any = null
-
-//    try {
-//       payload = verify(req.cookies.token, process.env.REFRESH_TOKEN_SECRET!);
-//    } catch (err) {
-//       throw new Error("Token not valid")
-//    }
-
-//    const user = await User.findOne({ where: { id: payload.userId } })
-
-//    if (!user) {
-//       throw new Error("Token not valid")
-//    }
-
-//    if (user.tokenVersion != payload.tokenVersion) {
-//       throw new Error("Token not valid")
-//    }
-
-//    return utils.createAccessToken(user);
-// }

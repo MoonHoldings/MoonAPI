@@ -1,8 +1,9 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { SignInType } from './SignInType'
 import { addMinutes, isAfter } from 'date-fns'
-import { Portfolio } from './Portfolio'
+import { UserWallet } from '.'
+
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
@@ -50,13 +51,20 @@ export class User extends BaseEntity {
   @Field(() => [SignInType], { nullable: true })
   signInTypes: Relation<SignInType>[]
 
-  @OneToOne(() => Portfolio, (portfolio) => portfolio.user)
-  @JoinColumn()
-  @Field(() => Portfolio)
-  portfolio: Relation<Portfolio>
-
   @Column({ nullable: true })
   failedLoginAt: Date
+
+  @CreateDateColumn()
+  createdAt: Date
+
+  @UpdateDateColumn()
+  updatedAt: Date
+
+  @OneToMany(() => UserWallet, (wallet) => wallet.user, {
+    cascade: true,
+  })
+  @Field(() => [UserWallet], { nullable: true })
+  wallets: Relation<UserWallet>[]
 
   static async incrementTokenVersion(id: number) {
     await this.createQueryBuilder()
@@ -81,11 +89,7 @@ export class User extends BaseEntity {
           .execute()
       } else {
         // Lock the user account
-        await User.createQueryBuilder('user')
-          .update()
-          .set({ isLocked: true, failedLoginAt: new Date() })
-          .where('id = :id', { id: this.id })
-          .execute()
+        await User.createQueryBuilder('user').update().set({ isLocked: true, failedLoginAt: new Date() }).where('id = :id', { id: this.id }).execute()
       }
     } else {
       // Reset the attempts and failed login time
@@ -102,7 +106,7 @@ export class User extends BaseEntity {
     const lockoutThresholdTime = addMinutes(this.failedLoginAt, 5)
 
     if (isAfter(lockoutThresholdTime, originalDate)) {
-      return false;
+      return false
     } else {
       // Reset the attempts and failed login time
       await User.createQueryBuilder('user')
@@ -111,7 +115,7 @@ export class User extends BaseEntity {
         .where('id = :id', { id: this.id })
         .execute()
 
-      return true;
+      return true
     }
   }
 }

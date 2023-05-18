@@ -66,6 +66,8 @@ export class HistoricalLoanResponse {
   @Field({ nullable: true })
   collateralMint: string
   @Field({ nullable: true })
+  collateralName: string
+  @Field({ nullable: true })
   collectionName: string
   @Field({ nullable: true })
   collectionImage: string
@@ -143,4 +145,12 @@ export class PaginatedOrderBookResponse {
   count: number
   @Field(() => [OrderBookList])
   data: OrderBookList[]
+}
+
+@ObjectType()
+export class TotalLoanResponse {
+  @Field(() => Number)
+  total: number
+  @Field(() => Number)
+  interest: number
 }

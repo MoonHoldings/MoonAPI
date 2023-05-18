@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: latest
+    commands:
+      - npm install -g yarn typescript
+      - yarn install
+  build:
+    commands:
+      - yarn build
+
+artifacts:
+  files:
+    - package.json
+    - tsconfig.json
+    - buildspec.yml
+    - 'dist/**/*'
+    - '.platform/**/*' # AWS Elastic Beanstalk configuration files
+    - '.ebextensions/**/*' # AWS Elastic Beanstalk configuration files
+  discard-paths: no

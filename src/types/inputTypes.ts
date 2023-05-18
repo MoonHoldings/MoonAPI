@@ -131,16 +131,18 @@ export class BorrowLoan {
 
 @InputType()
 export class CoinData {
-  @Field()
+  @Field({ nullable: true })
   id: number
   @Field()
   symbol: string
   @Field()
   name: string
-  @Field()
-  portfolioId: string
-  @Field()
+  @Field({ nullable: true })
+  walletName: string
+  @Field({ nullable: true })
   walletAddress: string
+  @Field({ nullable: true })
+  walletId: number
   @Field()
-  email: string
+  holdings: number
 }
