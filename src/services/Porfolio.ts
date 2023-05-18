@@ -82,17 +82,14 @@ export const editUserCoin = async (coinData: CoinData, userId: number) => {
   }
 }
 
-export const connectWalletCoins = async (
-  // walletAddress: string,
-  userId: number
-) => {
+export const connectWalletCoins = async (walletAddress: string, userId: number) => {
   const user = await userService.getUserById(userId)
   if (!user) {
     throw new UserInputError('User not found')
   }
 
   try {
-    // return coinService.connectCoins(walletAddress)
+    return coinService.connectCoins(walletAddress)
   } catch (error) {
     throw new UserInputError(error)
   }

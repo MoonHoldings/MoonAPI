@@ -58,7 +58,7 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
   }
 
   // Call save nfts, put inside background job
-  // await saveNfts(wallet)
+  await saveNfts(wallet)
   // TODO: Call save coins
   await connectCoins(wallet)
   return true
