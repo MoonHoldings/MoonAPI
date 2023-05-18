@@ -13,8 +13,9 @@ phases:
 
 artifacts:
   files:
-    - yarn.lock
     - package.json
+    - tsconfig.json
+    - buildspec.yml
     - 'dist/**/*'
     - '.platform/**/*' # AWS Elastic Beanstalk configuration files
     - '.ebextensions/**/*' # AWS Elastic Beanstalk configuration files
