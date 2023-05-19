@@ -44,12 +44,12 @@ export async function getCoinPrices(userCoins: Coin[]) {
       return { ...myCoin, price: data[index].price }
     })
 
-    const moonWithPrice = await Promise.all(
-      moonList.map(async (myCoin) => {
-        const price = await getMoonTokenPrice(myCoin.key)
-        return { ...myCoin, price: price }
-      })
-    )
+    const moonCoins = moonList.map((obj) => obj.key) as [string]
+    const moonData = await getMoonTokenPrice(moonCoins)
+
+    const moonWithPrice = moonList.map((myCoin, index) => {
+      return { ...myCoin, price: moonData[index].price }
+    })
 
     return pythWithPrice.concat(moonWithPrice)
   } catch (error) {

@@ -167,14 +167,14 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
   }
 }
 
-export const getMoonTokenPrice = async (mintAddress: string) => {
-  const { data: tokenPrice }: { data: any } = await axios.post(
-    `${HELLO_MOON_URL}/token/price`,
+export const getMoonTokenPrice = async (mintAddress: [string]) => {
+  const { data: tokenPrices }: { data: any } = await axios.post(
+    `${HELLO_MOON_URL}/token/price/batched`,
     {
-      mint: mintAddress,
+      mints: mintAddress,
     },
     AXIOS_CONFIG_HELLO_MOON_KEY
   )
 
-  return tokenPrice.data[0].price / 1000000
+  return tokenPrices.data.slice().reverse()
 }
