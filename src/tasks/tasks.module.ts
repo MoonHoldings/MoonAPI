@@ -3,8 +3,10 @@ import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { CommandModule } from 'nestjs-command'
 import { SharkifyService } from './sharkify.service'
+import { DashboardService } from './dashboard.service'
+import { NftService } from './nft.service'
 import { SharkifyCommands } from '../commands/sharkify.commands'
-import { Loan, OrderBook, NftList, NftMint } from '../entities'
+import { User, NftList, Loan, OrderBook, EmailToken, SignInType, NftMint, Username, AuthToken, Coin, Nft, NftCollection, UserWallet, UserDashboard } from '../entities'
 
 import dotenv from 'dotenv'
 dotenv.config()
@@ -20,12 +22,12 @@ dotenv.config()
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
-      entities: [Loan, OrderBook, NftList, NftMint],
+      entities: [User, NftList, Loan, OrderBook, EmailToken, SignInType, NftMint, Username, AuthToken, Coin, Nft, NftCollection, UserWallet, UserDashboard],
       synchronize: true,
       logging: ['log', 'info', 'error', 'warn'],
     }),
-    TypeOrmModule.forFeature([Loan, OrderBook, NftList, NftMint]),
+    TypeOrmModule.forFeature([User, NftList, Loan, OrderBook, EmailToken, SignInType, NftMint, Username, AuthToken, Coin, Nft, NftCollection, UserWallet, UserDashboard]),
   ],
-  providers: [SharkifyService, SharkifyCommands],
+  providers: [SharkifyService, DashboardService, NftService, SharkifyCommands],
 })
 export class TasksModule {}

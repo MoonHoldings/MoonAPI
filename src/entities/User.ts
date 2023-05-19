@@ -3,6 +3,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGenerat
 import { SignInType } from './SignInType'
 import { addMinutes, isAfter } from 'date-fns'
 import { UserWallet } from '.'
+import { UserDashboard } from './UserDashboard'
 
 @ObjectType()
 @Entity()
@@ -65,6 +66,12 @@ export class User extends BaseEntity {
   })
   @Field(() => [UserWallet], { nullable: true })
   wallets: Relation<UserWallet>[]
+
+  @OneToMany(() => UserDashboard, (dashboard) => dashboard.user, {
+    cascade: true,
+  })
+  @Field(() => [UserDashboard], { nullable: true })
+  dashboards: Relation<UserDashboard>[]
 
   static async incrementTokenVersion(id: number) {
     await this.createQueryBuilder()
