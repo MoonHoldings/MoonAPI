@@ -1,7 +1,6 @@
 import { In, Not } from 'typeorm'
 import { Nft, NftCollection, UserWallet } from '../entities'
 import { shyft } from '../utils/shyft'
-import { CollectionInfo } from '@shyft-to/js'
 import { UserWalletType } from '../types'
 
 export const getUserNfts = async (userId: number): Promise<Nft[]> => {
@@ -15,19 +14,25 @@ export const saveNfts = async (wallet: string): Promise<boolean> => {
   const nfts = await shyft.nft.getNftByOwner({ owner: wallet })
 
   // Get unique collection names
-  const collectionNameHash: Record<string, string> = {}
+  const collectionNameHash: Record<string, any> = {}
   nfts.forEach((nft) => {
     if (nft.collection.name) {
-      collectionNameHash[nft.collection.name] = nft.cached_image_uri ?? nft.image_uri
+      collectionNameHash[nft.collection.name] = {
+        image: nft.cached_image_uri ?? nft.image_uri,
+        nftMint: nft.mint,
+      }
     }
   })
   const collectionNames = Object.keys(collectionNameHash)
 
   // Get unique collection addresses
-  const collectionAddressHash: Record<string, CollectionInfo> = {}
+  const collectionAddressHash: Record<string, any> = {}
   nfts.forEach((nft) => {
     if (nft.collection.address) {
-      collectionAddressHash[nft.collection.address] = nft.collection
+      collectionAddressHash[nft.collection.address] = {
+        collection: nft.collection,
+        nftMint: nft.mint,
+      }
     }
   })
   const collectionAddresses = Object.keys(collectionAddressHash)
@@ -50,6 +55,7 @@ export const saveNfts = async (wallet: string): Promise<boolean> => {
         mint: metadata.mint,
         name: metadata?.name ?? metadata?.symbol,
         image: metadata?.cached_image_uri ?? metadata?.image_uri,
+        nftMint: collectionAddressHash[metadata.mint].nftMint,
       })
     )
   }
@@ -61,7 +67,8 @@ export const saveNfts = async (wallet: string): Promise<boolean> => {
     collectionEntities.push(
       NftCollection.create({
         name,
-        image: collectionNameHash[name],
+        image: collectionNameHash[name].image,
+        nftMint: collectionNameHash[name].nftMint,
       })
     )
   })
