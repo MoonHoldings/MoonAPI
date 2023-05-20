@@ -41,14 +41,14 @@ export async function getCoinPrices(userCoins: Coin[]) {
     const data = await pythClient.getAssetPricesFromAccounts(pythCoins)
 
     const pythWithPrice = pythList.map((myCoin, index) => {
-      return { ...myCoin, price: data[index].price }
+      return { ...myCoin, price: data[index].price?.toFixed(10) }
     })
 
     const moonCoins = moonList.map((obj) => obj.key) as [string]
     const moonData = await getMoonTokenPrice(moonCoins)
 
     const moonWithPrice = moonList.map((myCoin, index) => {
-      return { ...myCoin, price: moonData[index].price }
+      return { ...myCoin, price: moonData[index].price / 1000000 }
     })
 
     return pythWithPrice.concat(moonWithPrice)
