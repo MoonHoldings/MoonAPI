@@ -562,10 +562,12 @@ export const saveLoans = async () => {
 
   const { program } = sharkyClient
   let newLoans = await sharkyClient.fetchAllLoans({ program })
+  console.log('newLoans')
   let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
 
   // Create new loans that are not yet created, and update existing ones
   const existingLoans = await loanRepository.find({ where: { pubKey: In(newLoansPubKeys) }, relations: { orderBook: true }, withDeleted: true })
+  console.log('existingLoans')
   const existingLoansByPubKey = existingLoans.reduce((accumulator: any, loan) => {
     accumulator[loan.pubKey] = loan
     return accumulator
@@ -648,12 +650,19 @@ export const saveLoans = async () => {
     await loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) })
   }
 
+  console.log('done saving loans')
+
   const timeBeforeFetch = new Date()
   // Delete loans that are not in the new loans
   const loansForDelete = await sharkyClient.fetchAllLoans({ program })
+  console.log('loansForDelete')
   // We only delete loans that are created before we fetch the new loans so that it doesn't delete loans created while old data is fetching
   const loansForDeletePubKeys = loansForDelete.map((loan) => loan.pubKey.toBase58())
-  await loanRepository.softDelete({ pubKey: Not(In(loansForDeletePubKeys)), updatedAt: LessThan(timeBeforeFetch) })
+  console.log('loansForDeletePubKeys', loansForDeletePubKeys.length)
+  const loansForDeleteEntities = await loanRepository.find({ select: ['id'], where: { pubKey: Not(In(loansForDeletePubKeys)), updatedAt: LessThan(timeBeforeFetch) } })
+  console.log('loansForDeleteEntities', loansForDeleteEntities.length)
+  await loanRepository.softRemove(loansForDeleteEntities)
+  console.log('loanRepository.softRemove')
 
   console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
 }
