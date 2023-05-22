@@ -3,6 +3,8 @@ import { User, UserWallet } from '../entities'
 import { saveNfts } from './Nft'
 import { UserWalletType } from '../types'
 
+import { connectCoins } from './Coin'
+
 export const getUserWallets = async (type: UserWalletType, userId?: number): Promise<UserWallet[]> => {
   return await UserWallet.find({ where: { user: { id: userId }, hidden: false, type } })
 }
@@ -58,7 +60,7 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
   // Call save nfts, put inside background job
   await saveNfts(wallet)
   // TODO: Call save coins
-
+  await connectCoins(wallet)
   return true
 }
 

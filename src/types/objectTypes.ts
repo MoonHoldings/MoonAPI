@@ -1,4 +1,4 @@
-import { Loan } from '../entities'
+import { Coin, Loan } from '../entities'
 import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()
@@ -153,4 +153,12 @@ export class TotalLoanResponse {
   total: number
   @Field(() => Number)
   interest: number
+}
+
+@ObjectType()
+export class CoinResponse {
+  @Field(() => [Coin], { nullable: true })
+  coins: Coin[]
+  @Field(() => String)
+  price: string
 }

@@ -15,6 +15,10 @@ export class NftCollection extends BaseEntity {
 
   @Field(() => String, { nullable: true })
   @Column('varchar', { nullable: true })
+  nftMint: string
+
+  @Field(() => String, { nullable: true })
+  @Column('varchar', { nullable: true })
   name: string
 
   @Field(() => String, { nullable: true })

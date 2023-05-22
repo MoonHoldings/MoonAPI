@@ -4,6 +4,8 @@ import { In, IsNull } from 'typeorm'
 import { NftList } from '../entities'
 import axios from 'axios'
 import { HELLO_MOON_URL, AXIOS_CONFIG_HELLO_MOON_KEY, SHYFT_URL, AXIOS_CONFIG_SHYFT_KEY } from '../constants'
+import fetchHelloMoonCollectionIds from '../utils/fetchHelloMoonCollectionIds'
+import fetchFloorPrice from '../utils/fetchFloorPrice'
 
 export const saveNftList = async () => {
   console.log(format(new Date(), "'saveNftList start:' MMMM d, yyyy h:mma"))
@@ -88,31 +90,6 @@ export const saveNftListFloorPrices = async () => {
   console.log(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy h:mma"))
 
   const nftListRepository = NftList.getRepository()
-
-  const fetchHelloMoonCollectionIds = async (addresses: any[], paginationToken?: string) => {
-    const { data: collectionIdResponse } = await axios.post(
-      `${HELLO_MOON_URL}/nft/collection/mints`,
-      {
-        nftMint: addresses,
-        paginationToken,
-      },
-      AXIOS_CONFIG_HELLO_MOON_KEY
-    )
-
-    return collectionIdResponse
-  }
-
-  const fetchFloorPrice = async (id: any) => {
-    const res = await axios.post(
-      `${HELLO_MOON_URL}/nft/collection/floorprice`,
-      {
-        helloMoonCollectionId: id,
-      },
-      AXIOS_CONFIG_HELLO_MOON_KEY
-    )
-
-    return res?.data?.data?.length ? res?.data?.data[0] : undefined
-  }
 
   try {
     const nftLists = await nftListRepository.find()
