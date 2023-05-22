@@ -1,5 +1,5 @@
 import { Field, ID, Int, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
 import { OrderBook } from '.'
 
 @ObjectType()
@@ -9,6 +9,7 @@ export class Loan extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number
 
+  @Index()
   @Field(() => String)
   @Column('varchar')
   pubKey!: string

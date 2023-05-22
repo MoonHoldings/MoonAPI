@@ -39,3 +39,9 @@ export enum UserWalletType {
   Manual = 'Manual',
   Auto = 'Auto',
 }
+
+export enum TimeRangeType {
+  Day = 'Day',
+  Week = 'Week',
+  Month = 'Month',
+}
