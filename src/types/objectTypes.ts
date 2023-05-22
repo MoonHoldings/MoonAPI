@@ -162,3 +162,23 @@ export class CoinResponse {
   @Field(() => String)
   price: string
 }
+
+@ObjectType()
+export class UserDashboardData {
+  @Field(() => Number)
+  total: number
+  @Field(() => Number)
+  percentChange: number
+}
+
+@ObjectType()
+export class UserDashboardResponse {
+  @Field()
+  crypto: UserDashboardData
+  @Field()
+  nft: UserDashboardData
+  @Field()
+  loan: UserDashboardData
+  @Field()
+  borrow: UserDashboardData
+}
