@@ -5,7 +5,7 @@ import { AuthChecker, buildSchema } from 'type-graphql'
 import cors from 'cors'
 import { __prod__ } from './constants'
 import { AppDataSource } from './utils/db'
-import { LoanResolver, OrderBookResolver, PortfolioResolver, UserResolver } from './resolvers'
+import { LoanResolver, OrderBookResolver, PortfolioResolver, UserResolver, DashboardResolver } from './resolvers'
 import cookieParser from 'cookie-parser'
 import restRouter from './utils/restapi'
 import dotenv from 'dotenv'
@@ -67,7 +67,7 @@ const main = async () => {
 
   try {
     await AppDataSource.initialize()
-  } catch (_) { }
+  } catch (_) {}
 
   const authChecker: AuthChecker<ContextType> = async ({ context }: { context: any }, roles) => {
     try {
@@ -92,7 +92,7 @@ const main = async () => {
   // APOLLO
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [LoanResolver, OrderBookResolver, UserResolver, PortfolioResolver],
+      resolvers: [LoanResolver, OrderBookResolver, UserResolver, PortfolioResolver, DashboardResolver],
       validate: false,
       authChecker,
     }),
@@ -119,8 +119,8 @@ const main = async () => {
           <p>The requested URL ${req.url} was not found on this server.</p>
         </body>
       </html>
-    `);
-  });
+    `)
+  })
 
   app.listen(process.env.PORT || 80, () => {
     console.log(`server started at http://localhost:${process.env.PORT ?? ''}/graphql`)
