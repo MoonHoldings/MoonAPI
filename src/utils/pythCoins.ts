@@ -2,6 +2,7 @@ import { PythHttpClient, getPythClusterApiUrl, getPythProgramKeyForCluster } fro
 import { Connection, PublicKey } from '@solana/web3.js'
 import { Coin } from '../entities'
 import { getMoonTokenPrice } from '../services/Coin'
+import { CoinResponse } from '../types'
 
 const PYTHNET_CLUSTER_NAME = 'pythnet'
 const connection = new Connection(getPythClusterApiUrl(PYTHNET_CLUSTER_NAME))
@@ -32,26 +33,38 @@ function getMatchingCoins(coinKeys: any[], coins: any[]) {
 }
 
 export async function getCoinPrices(userCoins: Coin[]) {
-  const pythList = getMatchingCoins(userCoins, pythCoins)
-  const moonList = getMatchingCoins(userCoins, moonCoins)
-
   try {
-    //get price of pythCoins
-    const pythCoins = pythList.map((obj) => new PublicKey(obj.key))
-    const data = await pythClient.getAssetPricesFromAccounts(pythCoins)
+    const pythList = getMatchingCoins(userCoins, PYTH_COINS)
+    let coinsArray: any[] = []
 
-    const pythWithPrice = pythList.map((myCoin, index) => {
-      return { ...myCoin, price: data[index].price?.toFixed(10) }
-    })
+    if (pythList.length > 0) {
+      const pythCoins = pythList.map((obj) => new PublicKey(obj.key))
+      const data = await pythClient.getAssetPricesFromAccounts(pythCoins)
 
-    const moonCoins = moonList.map((obj) => obj.key) as [string]
-    const moonData = await getMoonTokenPrice(moonCoins)
+      let pythWithPrice = pythList.map((myCoin, index) => {
+        const formattedPrice = Math.abs(data[index].price!) > 0.009 ? data[index].price!.toFixed(2) : data[index].price!.toFixed(10)
+        return { ...myCoin, price: formattedPrice }
+      })
+      coinsArray = pythWithPrice
+    }
 
-    const moonWithPrice = moonList.map((myCoin, index) => {
-      return { ...myCoin, price: moonData[index].price / 1000000 }
-    })
+    const moonList = getMatchingCoins(userCoins, MOON_COINS)
+    if (moonList.length > 0) {
+      const moonCoins = moonList.map((obj) => obj.key) as [string]
+      const moonData = await getMoonTokenPrice(moonCoins)
 
-    return pythWithPrice.concat(moonWithPrice)
+      let moonWithPrice = moonList.map((myCoin, index) => {
+        return { ...myCoin, price: moonData[index].price / 1000000 }
+      })
+
+      if (coinsArray.length > 0) {
+        coinsArray = [...coinsArray, ...moonWithPrice]
+      } else {
+        coinsArray = moonWithPrice
+      }
+    }
+
+    return coinsArray
   } catch (error) {
     return userCoins.map((myCoin) => {
       return { ...myCoin, price: 0 }
@@ -59,7 +72,37 @@ export async function getCoinPrices(userCoins: Coin[]) {
   }
 }
 
-export const pythCoins = [
+export async function getCoinPrice(userCoins: any[], symbol: string) {
+  let price = '0'
+  let resp = new CoinResponse()
+  try {
+    const coinWithKey = PYTH_COINS.find((coin) => coin.symbol === symbol)
+    if (coinWithKey) {
+      const pythCoins = new PublicKey(coinWithKey.key)
+      const data = await pythClient.getAssetPricesFromAccounts([pythCoins])
+      const formattedPrice = Math.abs(data[0].price!) > 0.009 ? data[0].price!.toFixed(2) : data[0].price!.toFixed(10)
+      price = formattedPrice
+    }
+
+    const moonWithKey = MOON_COINS.find((coin) => coin.symbol === symbol)
+    if (moonWithKey) {
+      const moonCoins = [moonWithKey.key] as [string]
+      const moonData = await getMoonTokenPrice(moonCoins)
+
+      price = (moonData[0].price / 1000000).toString()
+    }
+
+    resp.coins = userCoins
+    resp.price = price
+  } catch (error) {
+    console.log(error.message)
+    resp.coins = userCoins
+    resp.price = price
+  }
+  return resp
+}
+
+export const PYTH_COINS = [
   {
     symbol: 'ALGO',
     name: 'Algorand',
@@ -327,7 +370,7 @@ export const pythCoins = [
   },
 ]
 
-export const moonCoins = [
+export const MOON_COINS = [
   {
     symbol: 'FRONK',
     name: 'FRONK',

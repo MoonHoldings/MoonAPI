@@ -1,4 +1,4 @@
-import { CoinData, UserWalletType } from '../types'
+import { CoinData, CoinResponse, UserWalletType } from '../types'
 import { Coin } from '../entities'
 import * as coinService from './Coin'
 import * as userService from './User'
@@ -13,7 +13,7 @@ export const getUserPortfolioCoins = async (userId: number): Promise<Coin[]> => 
   return await coinService.getCoinsByUser(user)
 }
 
-export const getUserPortfolioCoinsBySymbol = async (userId: number, symbol: string): Promise<Coin[]> => {
+export const getUserPortfolioCoinsBySymbol = async (userId: number, symbol: string): Promise<CoinResponse> => {
   const user = await userService.getUserById(userId)
   if (!user) {
     throw new UserInputError('User not found')

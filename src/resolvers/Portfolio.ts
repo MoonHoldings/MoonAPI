@@ -6,7 +6,7 @@ import * as nftService from '../services/Nft'
 
 import { Context } from 'apollo-server-core'
 import { isAuth } from '../utils'
-import { CoinData, UserWalletType } from '../types'
+import { CoinData, CoinResponse, UserWalletType } from '../types'
 
 @Resolver()
 export class PortfolioResolver {
@@ -14,12 +14,13 @@ export class PortfolioResolver {
   @UseMiddleware(isAuth)
   getUserPortfolioCoins(@Ctx() context: Context<any>): Promise<Coin[]> {
     const { payload } = context
+
     return portfolioService.getUserPortfolioCoins(payload.userId)
   }
 
-  @Query(() => [Coin])
+  @Query(() => CoinResponse)
   @UseMiddleware(isAuth)
-  getUserPortfolioCoinsBySymbol(@Ctx() context: Context<any>, @Arg('symbol', () => String) symbol: string): Promise<Coin[]> {
+  getUserPortfolioCoinsBySymbol(@Ctx() context: Context<any>, @Arg('symbol', () => String) symbol: string): Promise<CoinResponse> {
     const { payload } = context
     return portfolioService.getUserPortfolioCoinsBySymbol(payload.userId, symbol)
   }

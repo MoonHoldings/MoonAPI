@@ -1,8 +1,8 @@
 import { UserInputError } from 'apollo-server-express'
 import { Coin, User, UserWallet } from '../entities'
-import { CoinData, UserWalletType } from '../types'
+import { CoinData, CoinResponse, UserWalletType } from '../types'
 import { shyft } from '../utils/shyft'
-import { getCoinPrices, moonCoins, pythCoins } from '../utils/pythCoins'
+import { getCoinPrice, getCoinPrices, MOON_COINS, PYTH_COINS } from '../utils/pythCoins'
 import { In } from 'typeorm'
 import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
 import axios from 'axios'
@@ -38,10 +38,9 @@ export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
   }
 
   return await getCoinPrices(Object.values(mergedCoins))
-  // return Object.values(mergedCoins)
 }
 
-export const getCoinsBySymbol = async (user: User, symbol: string): Promise<Coin[]> => {
+export const getCoinsBySymbol = async (user: User, symbol: string): Promise<CoinResponse> => {
   const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false } })
 
   const coins = await Coin.find({
@@ -61,7 +60,9 @@ export const getCoinsBySymbol = async (user: User, symbol: string): Promise<Coin
     coin.holdings = parseFloat(parseFloat(coin.holdings.toString()).toFixed(2))
   })
 
-  return coins
+  const finalCoins = await getCoinPrice(Object.values(coins), symbol)
+
+  return finalCoins
 }
 
 export const updateCoinData = async (editCoin: CoinData, user: User): Promise<Coin> => {
@@ -139,10 +140,10 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
   try {
     const balances = await shyft.wallet.getAllTokenBalance({ wallet: walletAddress })
     for (const balance of balances) {
-      let matchingCoin = pythCoins.find((coin) => coin.name.toLowerCase() === balance.info.name.toLowerCase())
+      let matchingCoin = PYTH_COINS.find((coin) => coin.name.toLowerCase() === balance.info.name.toLowerCase())
 
       if (!matchingCoin) {
-        matchingCoin = moonCoins.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase())
+        matchingCoin = MOON_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase())
       }
       if (matchingCoin && balance.balance > 0.009) {
         const existingCoin = await Coin.findOne({ where: { walletAddress: walletAddress, symbol: matchingCoin.symbol } })
