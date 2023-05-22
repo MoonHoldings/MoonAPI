@@ -32,10 +32,15 @@ export class Coin extends BaseEntity {
   @Column({ nullable: true, type: 'numeric', precision: 30, scale: 10 })
   holdings: number
 
-  @Field(() => Boolean, { defaultValue: false })
-  @Column({ type: 'boolean', default: false })
-  verified: boolean = false
-
-  @Field()
+  @Field({ nullable: true })
   price: String
+
+  @Field({ nullable: true })
+  key: String
+
+  @Field({ nullable: true })
+  isConnected: boolean = false
+
+  @Field(() => Boolean, { defaultValue: false })
+  verified: boolean = false
 }
