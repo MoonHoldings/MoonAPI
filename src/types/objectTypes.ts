@@ -181,4 +181,6 @@ export class UserDashboardResponse {
   loan: UserDashboardData
   @Field()
   borrow: UserDashboardData
+  @Field(() => Number)
+  percentChangeTotal: number
 }
