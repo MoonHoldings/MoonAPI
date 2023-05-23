@@ -120,7 +120,7 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: num
 
     const total = cryptoTotal + nftTotal + loanTotal + borrowTotal
     const prevTotal = parseFloat(prevCryptoTotal as any) + parseFloat(prevNftTotal as any) + parseFloat(prevLoanTotal as any) + parseFloat(prevBorrowTotal as any)
-    const percentChangeTotal = calculatePercentageChange(prevTotal, total)
+    const percentChangeTotal = prevTotal === 0 ? 0 : calculatePercentageChange(prevTotal, total)
 
     return {
       crypto: {
