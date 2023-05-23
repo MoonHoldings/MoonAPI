@@ -1,10 +1,11 @@
 import { Between, In } from 'typeorm'
-import { Nft, User, UserDashboard, UserWallet, Loan } from '../entities'
+import { Nft, User, UserDashboard, UserWallet, Loan, Coin } from '../entities'
 import { TimeRangeType, UserDashboardResponse, UserWalletType } from '../types'
 import * as userService from './User'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import calculateOfferInterest from '../utils/calculateOfferInterest'
 import calculateBorrowInterest from '../utils/calculateBorrowInterest'
+import { getUserPortfolioCoins } from './Porfolio'
 
 const calculatePercentageChange = (previousValue: number, currentValue: number): number => {
   const difference = currentValue - previousValue
@@ -36,6 +37,22 @@ const getNftTotal = async (user: User): Promise<number> => {
   }, 0)
 
   return total
+}
+
+export const getCryptoTotal = async (user: User): Promise<number> => {
+  const portFolioCoins = await getUserPortfolioCoins(user.id)
+  let totalPrice = 0
+
+  portFolioCoins.forEach((coin) => {
+    const price = parseFloat(coin.price.toString())
+    const holdings = coin.holdings
+
+    if (!isNaN(price) && !isNaN(holdings)) {
+      totalPrice += price * holdings
+    }
+  })
+
+  return totalPrice
 }
 
 const getLoanTotal = async (user: User): Promise<number> => {
@@ -105,7 +122,7 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: num
     const prevBorrow = previousDashboard.find((data) => data.type === 'borrow')
     const prevCrypto = previousDashboard.find((data) => data.type === 'crypto')
 
-    const cryptoTotalPromise = 0 // TODO: Crypto
+    const cryptoTotalPromise = getCryptoTotal(user) // TODO: Crypto
     const nftTotalPromise = getNftTotal(user)
     const loanTotalPromise = getLoanTotal(user)
     const borrowTotalPromise = getBorrowTotal(user)
