@@ -5,6 +5,7 @@ import { OrderBook } from '.'
 @ObjectType()
 @Entity()
 export class Loan extends BaseEntity {
+  @Index()
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id!: number
