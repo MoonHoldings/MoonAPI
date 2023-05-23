@@ -8,7 +8,7 @@ import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
 import axios from 'axios'
 
 export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: user.id } } })
+  const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false } })
   const manualWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Manual)
   const autoWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Auto)
   const coins = await Coin.find({
