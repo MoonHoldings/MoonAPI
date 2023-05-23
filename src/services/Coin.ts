@@ -152,7 +152,7 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
       }
 
       if (matchingCoin) {
-        processCoin(walletAddress, balance.info.symbol, balance.info.name, balance.balance)
+        processCoin(walletAddress, matchingCoin.symbol, balance.info.name, balance.balance)
       }
     }
     return true
