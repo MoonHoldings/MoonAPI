@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { format } from 'date-fns'
 import { UserWalletType } from '../types'
+import { getCoinsByUser } from '../services/Coin'
 
 @Injectable()
 export class DashboardService {
@@ -144,6 +145,45 @@ export class DashboardService {
         total: userNftTotal.total,
         type: 'nft',
         user: userNftTotal.user,
+      })
+    )
+
+    if (userDashboards.length) await this.userDashboardRepository.save(userDashboards)
+
+    console.log(format(new Date(), "'saveNftDashboardData end:' MMMM d, yyyy h:mma"))
+  }
+
+  // TODO: Crypto
+  @Cron('0 0 * * *')
+  async saveCryptoDashboardData() {
+    console.log(format(new Date(), "'saveCryptoDashboardData start:' MMMM d, yyyy h:mma"))
+    const users = await this.userRepository.find({ select: ['id'] })
+
+    const userCryptoValuePromises = users.map(async (user) => {
+      const portfolioCoins = await getCoinsByUser(user)
+      let total = 0
+      portfolioCoins.forEach((coin) => {
+        const price = parseFloat(coin.price.toString())
+        const holdings = coin.holdings
+
+        if (!isNaN(price) && !isNaN(holdings)) {
+          total += price * holdings
+        }
+      })
+
+      return {
+        user,
+        total,
+      }
+    })
+
+    const userCryptosTotal = await Promise.all(userCryptoValuePromises)
+
+    const userDashboards = userCryptosTotal.map((userCryptoTotal) =>
+      this.userDashboardRepository.create({
+        total: userCryptoTotal.total,
+        type: 'crypto',
+        user: userCryptoTotal.user,
       })
     )
 

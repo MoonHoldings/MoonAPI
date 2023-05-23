@@ -121,7 +121,7 @@ export const removeUserWallet = async (wallet: string, userId?: number): Promise
 }
 
 export const removeAllUserWallets = async (userId?: number): Promise<boolean> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: userId } } })
+  const userWallets = await UserWallet.find({ where: { user: { id: userId }, type: UserWalletType.Auto } })
   const verifiedWallets: UserWallet[] = []
 
   userWallets.forEach(async (wallet) => {

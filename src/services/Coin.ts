@@ -8,7 +8,7 @@ import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
 import axios from 'axios'
 
 export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: user.id } } })
+  const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false } })
   const manualWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Manual)
   const autoWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Auto)
   const coins = await Coin.find({
@@ -139,27 +139,20 @@ export const deleteCoinDataBySymbol = async (symbol: string, user: User): Promis
 export const connectCoins = async (walletAddress: string): Promise<boolean> => {
   try {
     const balances = await shyft.wallet.getAllTokenBalance({ wallet: walletAddress })
+    const solBalance = await shyft.wallet.getBalance({ wallet: walletAddress })
+
+    if (solBalance > 0) {
+      processCoin(walletAddress, 'SOL', 'Solana', solBalance)
+    }
     for (const balance of balances) {
       let matchingCoin = PYTH_COINS.find((coin) => coin.name.toLowerCase() === balance.info.name.toLowerCase())
 
       if (!matchingCoin) {
         matchingCoin = MOON_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase())
       }
-      if (matchingCoin && balance.balance > 0.009) {
-        const existingCoin = await Coin.findOne({ where: { walletAddress: walletAddress, symbol: matchingCoin.symbol } })
-        if (existingCoin) {
-          existingCoin.symbol = matchingCoin.symbol
-          existingCoin.name = balance.info.name
-          existingCoin.holdings = balance.balance
-          existingCoin.save()
-        } else {
-          const newCoin = new Coin()
-          newCoin.symbol = matchingCoin.symbol
-          newCoin.name = balance.info.name
-          newCoin.holdings = balance.balance
-          newCoin.walletAddress = walletAddress
-          await newCoin.save()
-        }
+
+      if (matchingCoin) {
+        processCoin(walletAddress, matchingCoin.symbol, balance.info.name, balance.balance)
       }
     }
     return true
@@ -168,6 +161,24 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
   }
 }
 
+export const processCoin = async (walletAddress: string, symbol: string, name: string, balance: number) => {
+  const existingCoin = await Coin.findOne({ where: { walletAddress: walletAddress, symbol: symbol } })
+  if (existingCoin && balance > 0.009) {
+    existingCoin.symbol = symbol
+    existingCoin.name = name
+    existingCoin.holdings = balance
+    existingCoin.save()
+  } else if (existingCoin && balance < 0.009) {
+    await existingCoin.remove()
+  } else if (balance > 0.009) {
+    const newCoin = new Coin()
+    newCoin.symbol = symbol
+    newCoin.name = name
+    newCoin.holdings = balance
+    newCoin.walletAddress = walletAddress
+    await newCoin.save()
+  }
+}
 export const getMoonTokenPrice = async (mintAddress: [string]) => {
   const { data: tokenPrices }: { data: any } = await axios.post(
     `${HELLO_MOON_URL}/token/price/batched`,
