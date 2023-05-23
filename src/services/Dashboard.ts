@@ -118,6 +118,10 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: num
     const prevLoanTotal = prevLoan ? prevLoan.total : 0
     const prevBorrowTotal = prevBorrow ? prevBorrow.total : 0
 
+    const total = cryptoTotal + nftTotal + loanTotal + borrowTotal
+    const prevTotal = parseFloat(prevCryptoTotal as any) + parseFloat(prevNftTotal as any) + parseFloat(prevLoanTotal as any) + parseFloat(prevBorrowTotal as any)
+    const percentChangeTotal = calculatePercentageChange(prevTotal, total)
+
     return {
       crypto: {
         total: cryptoTotal,
@@ -135,6 +139,7 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: num
         total: borrowTotal,
         percentChange: prevBorrow ? calculatePercentageChange(prevBorrowTotal, borrowTotal) : 0,
       },
+      percentChangeTotal,
     }
   }
 
@@ -155,5 +160,6 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: num
       total: 0,
       percentChange: 0,
     },
+    percentChangeTotal: 0,
   }
 }
