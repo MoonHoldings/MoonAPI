@@ -661,7 +661,12 @@ export const saveLoans = async () => {
   console.log('loansForDeletePubKeys', loansForDeletePubKeys.length)
   const loansForDeleteEntities = await loanRepository.find({ select: ['id'], where: { pubKey: Not(In(loansForDeletePubKeys)), updatedAt: LessThan(timeBeforeFetch) } })
   console.log('loansForDeleteEntities', loansForDeleteEntities.length)
-  await loanRepository.softRemove(loansForDeleteEntities)
+  await loanRepository
+    .createQueryBuilder()
+    .update(Loan)
+    .set({ deletedAt: new Date() })
+    .where('id IN (:...ids)', { ids: loansForDeleteEntities.map((loan) => loan.id) })
+    .execute()
   console.log('loanRepository.softRemove')
 
   console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
