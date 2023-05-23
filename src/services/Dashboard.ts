@@ -86,7 +86,7 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: num
       const previousWeekStart = new Date()
       previousWeekStart.setDate(previousWeekStart.getDate() - 7)
       startOfPreviousDay = new Date(previousWeekStart.getFullYear(), previousWeekStart.getMonth(), previousWeekStart.getDate(), 0, 0, 0)
-      endOfPreviousDate = new Date()
+      endOfPreviousDate = new Date(previousWeekStart.getFullYear(), previousWeekStart.getMonth(), previousWeekStart.getDate(), 23, 59, 59)
     } else if (timeRangeType === TimeRangeType.Month) {
       const previousMonthStart = new Date()
       previousMonthStart.setMonth(previousMonthStart.getMonth() - 1)
