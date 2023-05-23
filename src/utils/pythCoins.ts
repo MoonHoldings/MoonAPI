@@ -374,7 +374,7 @@ export const MOON_COINS = [
   {
     symbol: 'FRONK',
     name: 'FRONK',
-    key: 'FronkXnfBgzfhsEV2bjwoJ5VgYhpEVCSN3pzpJkvZGUf',
+    key: '5yxNbU8DgYJZNi3mPD9rs4XLh9ckXrhPjJ5VCujUWg5H',
   },
   {
     symbol: 'KING',
