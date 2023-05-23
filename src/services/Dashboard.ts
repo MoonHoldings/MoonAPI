@@ -1,5 +1,5 @@
 import { Between, In } from 'typeorm'
-import { Nft, User, UserDashboard, UserWallet, Loan, Coin } from '../entities'
+import { Nft, User, UserDashboard, UserWallet, Loan } from '../entities'
 import { TimeRangeType, UserDashboardResponse, UserWalletType } from '../types'
 import * as userService from './User'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
