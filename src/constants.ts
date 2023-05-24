@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
-export const __prod__ = process.env.NODE_ENV !== 'production'
+export const __prod__ = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging'
 export const RPC_URL = process.env.RPC_URL
 export const HELLO_MOON_RPC_URL = process.env.HELLO_MOON_RPC_URL
 export const HELLO_MOON_URL = `${process.env.HELLO_MOON_SERVER_URL}`

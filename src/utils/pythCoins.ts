@@ -398,12 +398,12 @@ export const MOON_COINS = [
   },
   {
     symbol: 'SAMO',
-    name: 'SAMO',
+    name: 'Samoyed coin',
     key: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
   },
   {
     symbol: 'POLIS',
-    name: 'POLIS',
+    name: 'Star Atlas DAO',
     key: 'poLisWXnNRwC6oBu1vHiuKQzFjGL4XDSu4g9qjz9qVk',
   },
   {
@@ -414,7 +414,7 @@ export const MOON_COINS = [
 
   {
     symbol: 'DUST',
-    name: 'DUST',
+    name: 'DUST Protocol',
     key: 'DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ',
   },
 ]
