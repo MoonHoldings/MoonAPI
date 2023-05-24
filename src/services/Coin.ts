@@ -148,7 +148,7 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
       let matchingCoin = PYTH_COINS.find((coin) => coin.name.toLowerCase() === balance.info.name.toLowerCase())
 
       if (!matchingCoin) {
-        matchingCoin = MOON_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase())
+        matchingCoin = MOON_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase() && coin.key === balance.address)
       }
 
       if (matchingCoin) {
