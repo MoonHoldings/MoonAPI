@@ -13,5 +13,5 @@ export const AppDataSource = new DataSource({
   port: 5432,
   entities: [Loan, OrderBook, NftList, NftMint, User, EmailToken, SignInType, Username, AuthToken, Coin, Nft, NftCollection, UserWallet, UserDashboard],
   synchronize: true,
-  logging: process.env.NODE_ENV === 'development',
+  logging: true,
 })

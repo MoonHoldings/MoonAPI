@@ -13,6 +13,7 @@ import { ContextType } from '@nestjs/common'
 import { UserRole } from './types'
 import { AuthToken } from './entities'
 import decrypt from './utils/decrypt'
+import * as Sentry from '@sentry/node'
 
 dotenv.config()
 
@@ -24,7 +25,12 @@ export type IContext = {
 const app = express()
 
 const main = async () => {
-  // EXPRESS
+  // SENTRY
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: 1.0,
+    environment: process.env.NODE_ENV,
+  })
 
   const whitelist = process?.env?.CORS_ALLOW_ORIGIN?.split(',') ?? []
   const corsOptions = {
