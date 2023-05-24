@@ -15,12 +15,12 @@ import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
 import { In, LessThan, Not } from 'typeorm'
 import { addSeconds, differenceInSeconds, format } from 'date-fns'
-
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
 import calculateOfferInterest from '../utils/calculateOfferInterest'
 import calculateBorrowInterest from '../utils/calculateBorrowInterest'
 import sharkyClient from '../utils/sharkyClient'
+import * as Sentry from '@sentry/node'
 
 const getRemainingDays = (start: number, duration: number) => {
   const startTime = new Date(start * 1000)
@@ -555,119 +555,123 @@ export const deleteLoanByPubKey = async (pubKey: string): Promise<string | null>
 }
 
 export const saveLoans = async () => {
-  console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy h:mma"))
+  try {
+    console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy h:mma"))
 
-  const loanRepository = Loan.getRepository()
-  const orderBookRepository = OrderBook.getRepository()
+    const loanRepository = Loan.getRepository()
+    const orderBookRepository = OrderBook.getRepository()
 
-  const { program } = sharkyClient
-  let newLoans = await sharkyClient.fetchAllLoans({ program })
-  console.log('newLoans')
-  let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
+    const { program } = sharkyClient
+    let newLoans = await sharkyClient.fetchAllLoans({ program })
+    console.log('newLoans')
+    let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
 
-  // Create new loans that are not yet created, and update existing ones
-  const existingLoans = await loanRepository.find({ where: { pubKey: In(newLoansPubKeys) }, relations: { orderBook: true }, withDeleted: true })
-  console.log('existingLoans')
-  const existingLoansByPubKey = existingLoans.reduce((accumulator: any, loan) => {
-    accumulator[loan.pubKey] = loan
-    return accumulator
-  }, {})
+    // Create new loans that are not yet created, and update existing ones
+    const existingLoans = await loanRepository.find({ where: { pubKey: In(newLoansPubKeys) }, relations: { orderBook: true }, withDeleted: true })
+    console.log('existingLoans')
+    const existingLoansByPubKey = existingLoans.reduce((accumulator: any, loan) => {
+      accumulator[loan.pubKey] = loan
+      return accumulator
+    }, {})
 
-  const existingLoansPubKeys = new Set(existingLoans.map((loan) => loan.pubKey))
+    const existingLoansPubKeys = new Set(existingLoans.map((loan) => loan.pubKey))
 
-  const newlyAddedLoans = []
-  const updatedLoanEntities = []
+    const newlyAddedLoans = []
+    const updatedLoanEntities = []
 
-  for (const newLoan of newLoans) {
-    if (!existingLoansPubKeys.has(newLoan.pubKey.toBase58())) {
-      newlyAddedLoans.push(newLoan)
-    } else {
-      // If loan exists, check if state changed
-      const newLoanPubKey = newLoan.pubKey.toBase58()
-      const savedLoan: Loan = existingLoansByPubKey[newLoanPubKey]
+    for (const newLoan of newLoans) {
+      if (!existingLoansPubKeys.has(newLoan.pubKey.toBase58())) {
+        newlyAddedLoans.push(newLoan)
+      } else {
+        // If loan exists, check if state changed
+        const newLoanPubKey = newLoan.pubKey.toBase58()
+        const savedLoan: Loan = existingLoansByPubKey[newLoanPubKey]
 
-      if (savedLoan) {
-        if (!savedLoan.orderBook) {
-          const orderBook = await OrderBook.findOne({ where: { pubKey: newLoan.data.orderBook.toBase58() } })
+        if (savedLoan) {
+          if (!savedLoan.orderBook) {
+            const orderBook = await OrderBook.findOne({ where: { pubKey: newLoan.data.orderBook.toBase58() } })
 
-          if (orderBook) {
-            savedLoan.orderBook = orderBook
+            if (orderBook) {
+              savedLoan.orderBook = orderBook
+              updatedLoanEntities.push(savedLoan)
+            }
+          }
+
+          if (savedLoan.state === LoanType.Offer && newLoan.state === LoanType.Taken) {
+            savedLoan.lenderWallet = newLoan.data.loanState.offer?.offer.lenderWallet.toBase58()
+            savedLoan.offerTime = newLoan.data.loanState.offer?.offer.offerTime?.toNumber()
+            savedLoan.nftCollateralMint = newLoan.data.loanState.taken?.taken.nftCollateralMint.toBase58()
+            savedLoan.lenderNoteMint = newLoan.data.loanState.taken?.taken.lenderNoteMint.toBase58()
+            savedLoan.borrowerNoteMint = newLoan.data.loanState.taken?.taken.borrowerNoteMint.toBase58()
+            savedLoan.apy = newLoan.data.loanState.taken?.taken.apy.fixed?.apy
+            savedLoan.start = newLoan.data.loanState.taken?.taken.terms.time?.start?.toNumber()
+            savedLoan.totalOwedLamports = newLoan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber()
+            savedLoan.state = newLoan.state
+
             updatedLoanEntities.push(savedLoan)
           }
         }
-
-        if (savedLoan.state === LoanType.Offer && newLoan.state === LoanType.Taken) {
-          savedLoan.lenderWallet = newLoan.data.loanState.offer?.offer.lenderWallet.toBase58()
-          savedLoan.offerTime = newLoan.data.loanState.offer?.offer.offerTime?.toNumber()
-          savedLoan.nftCollateralMint = newLoan.data.loanState.taken?.taken.nftCollateralMint.toBase58()
-          savedLoan.lenderNoteMint = newLoan.data.loanState.taken?.taken.lenderNoteMint.toBase58()
-          savedLoan.borrowerNoteMint = newLoan.data.loanState.taken?.taken.borrowerNoteMint.toBase58()
-          savedLoan.apy = newLoan.data.loanState.taken?.taken.apy.fixed?.apy
-          savedLoan.start = newLoan.data.loanState.taken?.taken.terms.time?.start?.toNumber()
-          savedLoan.totalOwedLamports = newLoan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber()
-          savedLoan.state = newLoan.state
-
-          updatedLoanEntities.push(savedLoan)
-        }
       }
     }
-  }
 
-  const newlyAddedLoansOrderBookPubKeys = newlyAddedLoans.map((loan) => loan.data.orderBook.toBase58())
-  const uniqueOrderBookPubKeys = newlyAddedLoansOrderBookPubKeys.filter((value, index, self) => {
-    return self.indexOf(value) === index
-  })
-
-  if (newlyAddedLoans.length > 0) {
-    const orderBooks = await orderBookRepository.find({ where: { pubKey: In(uniqueOrderBookPubKeys) } })
-
-    const newLoanEntities = newlyAddedLoans.map((loan) => {
-      const orderBook = orderBooks.find((orderBook) => loan.data.orderBook.toBase58() === orderBook.pubKey)
-
-      return loanRepository.create({
-        pubKey: loan.pubKey.toBase58(),
-        version: loan.data.version,
-        principalLamports: loan.data.principalLamports.toNumber(),
-        valueTokenMint: loan.data.valueTokenMint.toBase58(),
-        supportsFreezingCollateral: loan.supportsFreezingCollateral,
-        isCollateralFrozen: loan.isCollateralFrozen,
-        isHistorical: loan.isHistorical,
-        isForeclosable: loan.isForeclosable(),
-        state: loan.state,
-        duration: loan.data.loanState?.offer?.offer.termsSpec.time?.duration?.toNumber() || loan.data.loanState.taken?.taken.terms.time?.duration?.toNumber(),
-        lenderWallet: loan.data.loanState.offer?.offer.lenderWallet.toBase58(),
-        offerTime: loan.data.loanState.offer?.offer.offerTime?.toNumber(),
-        nftCollateralMint: loan.data.loanState.taken?.taken.nftCollateralMint.toBase58(),
-        lenderNoteMint: loan.data.loanState.taken?.taken.lenderNoteMint.toBase58(),
-        borrowerNoteMint: loan.data.loanState.taken?.taken.borrowerNoteMint.toBase58(),
-        apy: loan.data.loanState.taken?.taken.apy.fixed?.apy,
-        start: loan.data.loanState.taken?.taken.terms.time?.start?.toNumber(),
-        totalOwedLamports: loan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber(),
-        orderBook: orderBook,
-      })
+    const newlyAddedLoansOrderBookPubKeys = newlyAddedLoans.map((loan) => loan.data.orderBook.toBase58())
+    const uniqueOrderBookPubKeys = newlyAddedLoansOrderBookPubKeys.filter((value, index, self) => {
+      return self.indexOf(value) === index
     })
 
-    await loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) })
+    if (newlyAddedLoans.length > 0) {
+      const orderBooks = await orderBookRepository.find({ where: { pubKey: In(uniqueOrderBookPubKeys) } })
+
+      const newLoanEntities = newlyAddedLoans.map((loan) => {
+        const orderBook = orderBooks.find((orderBook) => loan.data.orderBook.toBase58() === orderBook.pubKey)
+
+        return loanRepository.create({
+          pubKey: loan.pubKey.toBase58(),
+          version: loan.data.version,
+          principalLamports: loan.data.principalLamports.toNumber(),
+          valueTokenMint: loan.data.valueTokenMint.toBase58(),
+          supportsFreezingCollateral: loan.supportsFreezingCollateral,
+          isCollateralFrozen: loan.isCollateralFrozen,
+          isHistorical: loan.isHistorical,
+          isForeclosable: loan.isForeclosable(),
+          state: loan.state,
+          duration: loan.data.loanState?.offer?.offer.termsSpec.time?.duration?.toNumber() || loan.data.loanState.taken?.taken.terms.time?.duration?.toNumber(),
+          lenderWallet: loan.data.loanState.offer?.offer.lenderWallet.toBase58(),
+          offerTime: loan.data.loanState.offer?.offer.offerTime?.toNumber(),
+          nftCollateralMint: loan.data.loanState.taken?.taken.nftCollateralMint.toBase58(),
+          lenderNoteMint: loan.data.loanState.taken?.taken.lenderNoteMint.toBase58(),
+          borrowerNoteMint: loan.data.loanState.taken?.taken.borrowerNoteMint.toBase58(),
+          apy: loan.data.loanState.taken?.taken.apy.fixed?.apy,
+          start: loan.data.loanState.taken?.taken.terms.time?.start?.toNumber(),
+          totalOwedLamports: loan.data.loanState.taken?.taken.terms.time?.totalOwedLamports?.toNumber(),
+          orderBook: orderBook,
+        })
+      })
+
+      await loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) })
+    }
+
+    console.log('done saving loans')
+
+    const timeBeforeFetch = new Date()
+    // Delete loans that are not in the new loans
+    const loansForDelete = await sharkyClient.fetchAllLoans({ program })
+    console.log('loansForDelete')
+    // We only delete loans that are created before we fetch the new loans so that it doesn't delete loans created while old data is fetching
+    const loansForDeletePubKeys = loansForDelete.map((loan) => loan.pubKey.toBase58())
+    console.log('loansForDeletePubKeys', loansForDeletePubKeys.length)
+    const loansForDeleteEntities = await loanRepository.find({ select: ['id'], where: { pubKey: Not(In(loansForDeletePubKeys)), updatedAt: LessThan(timeBeforeFetch) } })
+    console.log('loansForDeleteEntities', loansForDeleteEntities.length)
+    await loanRepository
+      .createQueryBuilder()
+      .update(Loan)
+      .set({ deletedAt: new Date() })
+      .where('id IN (:...ids)', { ids: loansForDeleteEntities.map((loan) => loan.id) })
+      .execute()
+    console.log('loanRepository.softRemove')
+
+    console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
+  } catch (error) {
+    Sentry.captureException(error)
   }
-
-  console.log('done saving loans')
-
-  const timeBeforeFetch = new Date()
-  // Delete loans that are not in the new loans
-  const loansForDelete = await sharkyClient.fetchAllLoans({ program })
-  console.log('loansForDelete')
-  // We only delete loans that are created before we fetch the new loans so that it doesn't delete loans created while old data is fetching
-  const loansForDeletePubKeys = loansForDelete.map((loan) => loan.pubKey.toBase58())
-  console.log('loansForDeletePubKeys', loansForDeletePubKeys.length)
-  const loansForDeleteEntities = await loanRepository.find({ select: ['id'], where: { pubKey: Not(In(loansForDeletePubKeys)), updatedAt: LessThan(timeBeforeFetch) } })
-  console.log('loansForDeleteEntities', loansForDeleteEntities.length)
-  await loanRepository
-    .createQueryBuilder()
-    .update(Loan)
-    .set({ deletedAt: new Date() })
-    .where('id IN (:...ids)', { ids: loansForDeleteEntities.map((loan) => loan.id) })
-    .execute()
-  console.log('loanRepository.softRemove')
-
-  console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
 }
