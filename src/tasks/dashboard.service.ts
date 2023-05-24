@@ -35,7 +35,7 @@ export class DashboardService {
       const users = await this.userRepository.find({ select: ['id'] })
 
       const userLoansTotalPromises = users.map(async (user) => {
-        const verifiedWallets = (await this.userWalletRepository.find({ where: { user: { id: user.id }, verified: true } })).map((wallet) => wallet.address)
+        const verifiedWallets = (await this.userWalletRepository.find({ where: { user: { id: user.id }, type: UserWalletType.Auto } })).map((wallet) => wallet.address)
         const loans = await this.loanRepository.find({ where: { lenderWallet: In(verifiedWallets) }, relations: { orderBook: true } })
         let total = 0
 
@@ -80,7 +80,7 @@ export class DashboardService {
       const users = await this.userRepository.find({ select: ['id'] })
 
       const userLoansTotalPromises = users.map(async (user) => {
-        const verifiedWallets = (await this.userWalletRepository.find({ where: { user: { id: user.id }, verified: true } })).map((wallet) => wallet.address)
+        const verifiedWallets = (await this.userWalletRepository.find({ where: { user: { id: user.id }, type: UserWalletType.Auto } })).map((wallet) => wallet.address)
         const loans = await this.loanRepository.find({ where: { borrowerNoteMint: In(verifiedWallets) }, relations: { orderBook: true } })
         let total = 0
 

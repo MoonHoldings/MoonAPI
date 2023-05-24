@@ -51,16 +51,19 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
     }).save()
   } else if (userWallet.verified && userWallet.hidden) {
     userWallet.hidden = false
-
+    await userWallet.save()
+  } else if (verified && !userWallet.verified) {
+    userWallet.verified = true
+    userWallet.hidden = false
     await userWallet.save()
   } else {
     return false
   }
 
-  // Call save nfts, put inside background job
+  // Call save nfts and coins, put inside background job
   await saveNfts(wallet)
-  // TODO: Call save coins
   await connectCoins(wallet)
+
   return true
 }
 
