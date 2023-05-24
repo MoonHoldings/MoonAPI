@@ -1,4 +1,6 @@
-import { ApolloServer } from 'apollo-server-express'
+import { ApolloServer } from '@apollo/server'
+import { expressMiddleware } from '@apollo/server/express4'
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
 import express, { Request, Response } from 'express'
 import session from 'express-session'
 import { AuthChecker, buildSchema } from 'type-graphql'
@@ -13,6 +15,8 @@ import { ContextType } from '@nestjs/common'
 import { UserRole } from './types'
 import { AuthToken } from './entities'
 import decrypt from './utils/decrypt'
+import http from 'http'
+import { json } from 'body-parser'
 import * as Sentry from '@sentry/node'
 
 dotenv.config()
@@ -96,23 +100,25 @@ const main = async () => {
   }
 
   // APOLLO
+  const httpServer = http.createServer(app)
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
       resolvers: [LoanResolver, OrderBookResolver, UserResolver, PortfolioResolver, DashboardResolver],
       validate: false,
       authChecker,
     }),
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
     csrfPrevention: false,
-    context: async ({ req, res }: IContext) => {
-      return {
-        req,
-        res,
-      }
-    },
   })
   await apolloServer.start()
 
-  apolloServer.applyMiddleware({ app, cors: false })
+  app.use(
+    '/graphql',
+    json(),
+    expressMiddleware(apolloServer, {
+      context: async ({ req, res }) => ({ req, res }),
+    })
+  )
 
   app.get('*', (req, res) => {
     res.status(404).send(`
@@ -128,9 +134,8 @@ const main = async () => {
     `)
   })
 
-  app.listen(process.env.PORT || 80, () => {
-    console.log(`server started at http://localhost:${process.env.PORT ?? ''}/graphql`)
-  })
+  await new Promise((resolve) => httpServer.listen({ port: process.env.PORT || 80 }, resolve as any))
+  console.log(`🚀 Server ready at http://localhost:${process.env.PORT || 80}`)
 }
 
 main().catch((err) => {
