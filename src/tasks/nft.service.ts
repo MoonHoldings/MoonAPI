@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { format } from 'date-fns'
 import fetchHelloMoonCollectionIds from '../utils/fetchHelloMoonCollectionIds'
 import fetchFloorPrice from '../utils/fetchFloorPrice'
+import * as Sentry from '@sentry/node'
 
 @Injectable()
 export class NftService {
@@ -17,62 +18,66 @@ export class NftService {
 
   @Interval(180000)
   async saveNftCollectionFloorPrices() {
-    console.log(format(new Date(), "'saveNftCollectionFloorPrices start:' MMMM d, yyyy h:mma"))
-
     try {
-      const nftCollections = await this.nftCollectionRepository.find()
-      const nftMintToListMap: Record<string, NftCollection> = nftCollections.reduce((map: Record<string, NftCollection>, nftCollection) => {
-        map[nftCollection.nftMint] = nftCollection
-        return map
-      }, {})
+      console.log(format(new Date(), "'saveNftCollectionFloorPrices start:' MMMM d, yyyy h:mma"))
 
-      const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(nftCollections.map((nftCollection) => nftCollection.nftMint))
-      let allIds = [...collectionIds]
-      let currentPaginationToken = paginationToken
+      try {
+        const nftCollections = await this.nftCollectionRepository.find()
+        const nftMintToListMap: Record<string, NftCollection> = nftCollections.reduce((map: Record<string, NftCollection>, nftCollection) => {
+          map[nftCollection.nftMint] = nftCollection
+          return map
+        }, {})
 
-      while (currentPaginationToken) {
-        const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(
-          nftCollections.map((nftCollection) => nftCollection.nftMint),
-          currentPaginationToken
-        )
+        const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(nftCollections.map((nftCollection) => nftCollection.nftMint))
+        let allIds = [...collectionIds]
+        let currentPaginationToken = paginationToken
 
-        currentPaginationToken = paginationToken
-        allIds = [...allIds, ...collectionIds]
-      }
+        while (currentPaginationToken) {
+          const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(
+            nftCollections.map((nftCollection) => nftCollection.nftMint),
+            currentPaginationToken
+          )
 
-      const collectionIdToNftCollectionMap: Record<string, NftCollection> = {}
-
-      allIds?.forEach((data: any) => {
-        collectionIdToNftCollectionMap[data.helloMoonCollectionId] = nftMintToListMap[data.nftMint]
-      })
-
-      console.log('collectionIds', allIds.length)
-
-      const promises = allIds.map(async (id: any) => {
-        const { floorPriceLamports, helloMoonCollectionId } = (await fetchFloorPrice(id.helloMoonCollectionId)) ?? {}
-        return { floorPriceLamports, helloMoonCollectionId }
-      })
-
-      const floorPrices = await Promise.all(promises)
-
-      console.log('floorPrices', floorPrices.length)
-
-      const nftCollectionsToSave: NftCollection[] = []
-
-      for (const { floorPriceLamports, helloMoonCollectionId } of floorPrices) {
-        if (floorPriceLamports && helloMoonCollectionId) {
-          const nftCollection = collectionIdToNftCollectionMap[helloMoonCollectionId]
-
-          nftCollection.floorPrice = floorPriceLamports
-          nftCollectionsToSave.push(nftCollection)
+          currentPaginationToken = paginationToken
+          allIds = [...allIds, ...collectionIds]
         }
+
+        const collectionIdToNftCollectionMap: Record<string, NftCollection> = {}
+
+        allIds?.forEach((data: any) => {
+          collectionIdToNftCollectionMap[data.helloMoonCollectionId] = nftMintToListMap[data.nftMint]
+        })
+
+        console.log('collectionIds', allIds.length)
+
+        const promises = allIds.map(async (id: any) => {
+          const { floorPriceLamports, helloMoonCollectionId } = (await fetchFloorPrice(id.helloMoonCollectionId)) ?? {}
+          return { floorPriceLamports, helloMoonCollectionId }
+        })
+
+        const floorPrices = await Promise.all(promises)
+
+        console.log('floorPrices', floorPrices.length)
+
+        const nftCollectionsToSave: NftCollection[] = []
+
+        for (const { floorPriceLamports, helloMoonCollectionId } of floorPrices) {
+          if (floorPriceLamports && helloMoonCollectionId) {
+            const nftCollection = collectionIdToNftCollectionMap[helloMoonCollectionId]
+
+            nftCollection.floorPrice = floorPriceLamports
+            nftCollectionsToSave.push(nftCollection)
+          }
+        }
+
+        await this.nftCollectionRepository.save(nftCollectionsToSave)
+      } catch (e) {
+        console.log(e)
       }
 
-      await this.nftCollectionRepository.save(nftCollectionsToSave)
-    } catch (e) {
-      console.log(e)
+      console.log(format(new Date(), "'saveNftCollectionFloorPrices end:' MMMM d, yyyy h:mma"))
+    } catch (error) {
+      Sentry.captureException(error)
     }
-
-    console.log(format(new Date(), "'saveNftCollectionFloorPrices end:' MMMM d, yyyy h:mma"))
   }
 }

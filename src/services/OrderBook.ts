@@ -7,6 +7,7 @@ import { SHYFT_URL, AXIOS_CONFIG_SHYFT_KEY } from '../constants'
 import { format } from 'date-fns'
 import sharkyClient from '../utils/sharkyClient'
 import { Not, In } from 'typeorm'
+import * as Sentry from '@sentry/node'
 
 export const getOrderBookById = async (id: number): Promise<OrderBook> => {
   return await OrderBook.findOneOrFail({
@@ -158,50 +159,54 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
 }
 
 export const saveOrderBooks = async () => {
-  console.log(format(new Date(), "'saveOrderBooks start:' MMMM d, yyyy h:mma"))
+  try {
+    console.log(format(new Date(), "'saveOrderBooks start:' MMMM d, yyyy h:mma"))
 
-  const orderBookRepository = OrderBook.getRepository()
-  const nftListRepository = NftList.getRepository()
+    const orderBookRepository = OrderBook.getRepository()
+    const nftListRepository = NftList.getRepository()
 
-  const { program } = sharkyClient
+    const { program } = sharkyClient
 
-  let newOrderBooks = await sharkyClient.fetchAllOrderBooks({ program })
-  let newOrderBooksPubKeys = newOrderBooks.map((orderBook) => orderBook.pubKey.toBase58())
+    let newOrderBooks = await sharkyClient.fetchAllOrderBooks({ program })
+    let newOrderBooksPubKeys = newOrderBooks.map((orderBook) => orderBook.pubKey.toBase58())
 
-  // Delete order books that are not in the new order books
-  await orderBookRepository.delete({ pubKey: Not(In(newOrderBooksPubKeys)) })
+    // Delete order books that are not in the new order books
+    await orderBookRepository.delete({ pubKey: Not(In(newOrderBooksPubKeys)) })
 
-  // Create new order books that are not yet created
-  const existingOrderBooks = await orderBookRepository.find({ where: { pubKey: In(newOrderBooksPubKeys) } })
-  const existingOrderBooksPubKeys = new Set(existingOrderBooks.map((orderBook) => orderBook.pubKey))
+    // Create new order books that are not yet created
+    const existingOrderBooks = await orderBookRepository.find({ where: { pubKey: In(newOrderBooksPubKeys) } })
+    const existingOrderBooksPubKeys = new Set(existingOrderBooks.map((orderBook) => orderBook.pubKey))
 
-  const newlyAddedOrderBooks = []
-  for (const newOrderBook of newOrderBooks) {
-    if (!existingOrderBooksPubKeys.has(newOrderBook.pubKey.toBase58())) {
-      newlyAddedOrderBooks.push(newOrderBook)
+    const newlyAddedOrderBooks = []
+    for (const newOrderBook of newOrderBooks) {
+      if (!existingOrderBooksPubKeys.has(newOrderBook.pubKey.toBase58())) {
+        newlyAddedOrderBooks.push(newOrderBook)
+      }
     }
-  }
 
-  if (newlyAddedOrderBooks.length > 0) {
-    const orderBookEntities = await Promise.all(
-      newlyAddedOrderBooks.map(async (orderBook) => {
-        const nftList = await nftListRepository.findOne({ where: { pubKey: orderBook.orderBookType.nftList?.listAccount.toBase58() } })
+    if (newlyAddedOrderBooks.length > 0) {
+      const orderBookEntities = await Promise.all(
+        newlyAddedOrderBooks.map(async (orderBook) => {
+          const nftList = await nftListRepository.findOne({ where: { pubKey: orderBook.orderBookType.nftList?.listAccount.toBase58() } })
 
-        return orderBookRepository.create({
-          pubKey: orderBook.pubKey.toBase58(),
-          version: orderBook.version,
-          apy: orderBook.apy.fixed?.apy,
-          listAccount: orderBook.orderBookType.nftList?.listAccount.toBase58(),
-          duration: orderBook.loanTerms.fixed?.terms.time?.duration.toNumber(),
-          feePermillicentage: orderBook.feePermillicentage,
-          feeAuthority: orderBook.feeAuthority.toBase58(),
-          nftList: nftList || undefined,
+          return orderBookRepository.create({
+            pubKey: orderBook.pubKey.toBase58(),
+            version: orderBook.version,
+            apy: orderBook.apy.fixed?.apy,
+            listAccount: orderBook.orderBookType.nftList?.listAccount.toBase58(),
+            duration: orderBook.loanTerms.fixed?.terms.time?.duration.toNumber(),
+            feePermillicentage: orderBook.feePermillicentage,
+            feeAuthority: orderBook.feeAuthority.toBase58(),
+            nftList: nftList || undefined,
+          })
         })
-      })
-    )
+      )
 
-    await orderBookRepository.save(orderBookEntities)
+      await orderBookRepository.save(orderBookEntities)
+    }
+
+    console.log(format(new Date(), "'saveOrderBooks end:' MMMM d, yyyy h:mma"))
+  } catch (error) {
+    Sentry.captureException(error)
   }
-
-  console.log(format(new Date(), "'saveOrderBooks end:' MMMM d, yyyy h:mma"))
 }
