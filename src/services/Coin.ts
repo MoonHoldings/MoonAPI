@@ -188,5 +188,16 @@ export const getMoonTokenPrice = async (mintAddress: [string]) => {
     AXIOS_CONFIG_HELLO_MOON_KEY
   )
 
-  return tokenPrices.data.slice().reverse()
+  const mintsMapping: Record<string, any> = {}
+  tokenPrices.data.forEach((item: any) => {
+    mintsMapping[item.mints] = item
+  })
+
+  const result: any[] = []
+  mintAddress.forEach((mint: string) => {
+    const dataObject = mintsMapping[mint]
+    result.push(dataObject)
+  })
+
+  return result
 }
