@@ -1,9 +1,8 @@
-import { ExpressContext, UserInputError } from 'apollo-server-express'
+import { GraphQLError } from 'graphql'
+import { ApolloServerErrorCode } from '@apollo/server/errors'
 import { User } from '../entities'
-
 import { EmailTokenType, SignInType } from '../enums'
 import { REFRESH_TOKEN_SECRET, SENDGRID_KEY, SG_SENDER } from '../constants'
-
 import sgMail from '@sendgrid/mail'
 import * as utils from '../utils'
 import * as signInTypeService from './SignInType'
@@ -20,11 +19,19 @@ export const register = async (email: string, password: string) => {
   let hashedPassword: string | null = null
 
   if (!utils.isValidEmail(email)) {
-    throw new UserInputError('Please enter a valid email')
+    throw new GraphQLError('Please enter a valid email', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 
   if (!password) {
-    throw new UserInputError('Please enter a valid password')
+    throw new GraphQLError('Please enter a valid password', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 
   hashedPassword = await utils.generatePassword(password)
@@ -46,36 +53,51 @@ export const register = async (email: string, password: string) => {
     await signInTypeService.createSignInType(email, SignInType.EMAIL)
     return user
   } else {
-    throw new UserInputError('Signup is unavailable at the moment. Please try again later.')
+    throw new GraphQLError('Signup is unavailable at the moment. Please try again later.', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 }
 
-export const login = async (email: string, password: string, ctx: ExpressContext) => {
+export const login = async (email: string, password: string, ctx: any) => {
   const user = await getUserByEmail(email)
 
   if (!user) {
-    throw new UserInputError('User does not exist')
+    throw new GraphQLError('User does not exist', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 
   if (user.isLocked) {
     const isUnlocked = await user.checkToUnlock()
-    if (!isUnlocked) throw new UserInputError('You are locked out please try again after 5 minutes.')
+    if (!isUnlocked)
+      throw new GraphQLError('You are locked out please try again after 5 minutes.', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT,
+        },
+      })
   }
 
   let passwordMatched: boolean
+
   passwordMatched = await utils.comparePassword(password, user.password)
+
   if (!passwordMatched) {
     await user.incrementFailedAttempts()
-    throw new UserInputError('Incorrect credentials.')
+    throw new Error('Incorrect credentials.')
   }
 
   const hasEmailType = await signInTypeService.hasSignInType(user.email, SignInType.EMAIL)
   if (!hasEmailType) {
-    throw new UserInputError('Incorrect credentials.')
+    throw new Error('Incorrect credentials.')
   }
 
   if (!user.isVerified) {
-    throw new UserInputError('Please verify your profile sent via email to login.')
+    throw new Error('Please verify your profile sent via email to login.')
   }
 
   user.lastLoginTimestamp = new Date()
@@ -122,40 +144,41 @@ export const sendConfirmationEmail = async (email: string, username: string) => 
     if (res[0].statusCode == 202) {
       await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.CONFIRMATION_EMAIL, token)
     } else {
-      throw new UserInputError("Email was not sent please try again later.")
+      throw new Error('Email was not sent please try again later.')
     }
   } catch (error) {
-    throw new UserInputError(error.message)
+    throw new Error(error.message)
   }
 
   return true
 }
 
 export const resendEmailConfrmation = async (email: string) => {
-  const user = await getUserByEmail(email);
-  if (!user) {
-    throw new UserInputError("User is not found.")
-  }
-  return await sendConfirmationEmail(user.email, user.username)
+  const user = await getUserByEmail(email)
 
+  if (!user) {
+    throw new Error('User is not found.')
+  }
+
+  return await sendConfirmationEmail(user.email, user.username)
 }
 
 export const getPasswordResetEmail = async (email: string) => {
   if (!utils.isValidEmail(email)) {
-    throw new UserInputError('Please enter a valid email.')
+    throw new Error('Please enter a valid email.')
   }
 
   let user = await getUserByEmail(email)
 
   if (!user) {
-    throw new UserInputError('User does not exist.')
+    throw new Error('User does not exist.')
   } else {
     if (!user.isVerified) {
-      throw new UserInputError('Please verify your email to reset your password')
+      throw new Error('Please verify your email to reset your password')
     }
 
     if (!user.password) {
-      throw new UserInputError('Please signup using this email first to register a password.')
+      throw new Error('Please signup using this email first to register a password.')
     }
 
     await emailTokenService.isLocked(email, EmailTokenType.RESET_PASSWORD)
@@ -174,10 +197,10 @@ export const getPasswordResetEmail = async (email: string) => {
       if (res[0].statusCode == 202) {
         await emailTokenService.generateUserConfirmationToken(email, EmailTokenType.RESET_PASSWORD, token)
       } else {
-        throw new UserInputError("Email was not sent please try again later.")
+        throw new Error('Email was not sent please try again later.')
       }
     } catch (error) {
-      throw new UserInputError(error.message)
+      throw new Error(error.message)
     }
 
     return true
@@ -186,7 +209,7 @@ export const getPasswordResetEmail = async (email: string) => {
 
 export const updatePassword = async (password: string, token: string) => {
   if (!token) {
-    throw new UserInputError('Too too long to reset password - please reset again')
+    throw new Error('Too too long to reset password - please reset again')
   }
 
   let payload: any = null
@@ -194,17 +217,17 @@ export const updatePassword = async (password: string, token: string) => {
   try {
     payload = verify(token, REFRESH_TOKEN_SECRET!)
   } catch (err) {
-    throw new UserInputError('Invalid token')
+    throw new Error('Invalid token')
   }
 
   const user = await User.findOne({ where: { id: payload.userId } })
 
   if (!user) {
-    throw new UserInputError('User Not found')
+    throw new Error('User Not found')
   }
 
   if (!password) {
-    throw new UserInputError('Please provide a valid password')
+    throw new Error('Please provide a valid password')
   }
 
   const hashedPassword = await utils.generatePassword(password)
@@ -213,7 +236,7 @@ export const updatePassword = async (password: string, token: string) => {
     let passwordMatched: boolean
     passwordMatched = await utils.comparePassword(password, user.password)
     if (passwordMatched) {
-      throw new UserInputError('Please use a different password.')
+      throw new Error('Please use a different password.')
     }
   }
 
@@ -233,7 +256,7 @@ export const discordAuth = async (email: string) => {
     if (hasSent) {
       return await createUser(email, SignInType.DISCORD, username)
     } else {
-      throw new UserInputError('Signup is unavailable at the moment. Please try again later.')
+      throw new Error('Signup is unavailable at the moment. Please try again later.')
     }
   } else {
     isRegUser = await isRegisteredUser(user, SignInType.DISCORD)

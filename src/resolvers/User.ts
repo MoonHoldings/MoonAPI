@@ -1,4 +1,3 @@
-import { Context } from 'apollo-server-core'
 import { User } from '../entities'
 import * as userService from '../services/User'
 import { Arg, Ctx, Int, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql'
@@ -14,7 +13,7 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  async login(@Arg('email') email: string, @Arg('password') password: string, @Ctx() ctx: Context<any>): Promise<User> {
+  async login(@Arg('email') email: string, @Arg('password') password: string, @Ctx() ctx: any): Promise<User> {
     return await userService.login(email, password, ctx)
   }
 
@@ -43,7 +42,7 @@ export class UserResolver {
 
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
-  async logout(@Ctx() ctx: Context<any>): Promise<boolean> {
+  async logout(@Ctx() ctx: any): Promise<boolean> {
     if (ctx.res) {
       const cookieOptions = !__prod__
         ? {
@@ -62,7 +61,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  async updatePassword(@Arg('password') email: string, @Ctx() ctx: Context<any>): Promise<boolean> {
+  async updatePassword(@Arg('password') email: string, @Ctx() ctx: any): Promise<boolean> {
     const token = ctx.req.cookies.jid
     const isUpdated = await userService.updatePassword(email, token)
     if (isUpdated) {

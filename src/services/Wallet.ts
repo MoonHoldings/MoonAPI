@@ -1,4 +1,3 @@
-import { UserInputError } from 'apollo-server-express'
 import { User, UserWallet } from '../entities'
 import { saveNfts } from './Nft'
 import { UserWalletType } from '../types'
@@ -93,7 +92,7 @@ export const updateWallet = async (walletId: number, walletName: string, userId:
   const userWallet = await UserWallet.findOne({ where: { id: walletId, user: { id: userId } } })
 
   if (!userWallet) {
-    throw new UserInputError('User wallet not found')
+    throw new Error('User wallet not found')
   }
 
   const existingWallet = await UserWallet.findOne({ where: { name: walletName, user: { id: userId } } })
@@ -101,7 +100,9 @@ export const updateWallet = async (walletId: number, walletName: string, userId:
   if (existingWallet) {
     return existingWallet
   }
+
   userWallet.name = walletName
+
   return await userWallet.save()
 }
 
