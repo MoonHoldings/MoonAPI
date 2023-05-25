@@ -1,4 +1,5 @@
-import { UserInputError } from 'apollo-server-express'
+import { GraphQLError } from 'graphql'
+import { ApolloServerErrorCode } from '@apollo/server/errors'
 import { Coin, User, UserWallet } from '../entities'
 import { CoinData, CoinResponse, UserWalletType } from '../types'
 import { shyft } from '../utils/shyft'
@@ -71,12 +72,20 @@ export const updateCoinData = async (editCoin: CoinData, user: User): Promise<Co
   })
 
   if (!coin) {
-    throw new UserInputError('Coin not found')
+    throw new GraphQLError('Coin not found', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 
   const userWallet = await UserWallet.find({ where: { user: { id: user.id }, name: coin.walletName, type: UserWalletType.Manual } })
   if (!userWallet) {
-    throw new UserInputError('Wallet Not owned by user.')
+    throw new GraphQLError('Wallet not owned by user', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 
   coin.walletName = editCoin.walletName
@@ -102,18 +111,31 @@ export const deleteCoinData = async (coinData: CoinData, user: User): Promise<bo
   })
 
   if (!coin) {
-    throw new UserInputError('Coin not found')
+    throw new GraphQLError('Coin not found', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
   const userWallet = await UserWallet.find({ where: { user: { id: user.id }, id: coin.walletId, type: UserWalletType.Manual } })
 
   if (!userWallet) {
-    throw new UserInputError('User wallet not owned')
+    throw new GraphQLError('User wallet not owned', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
+
   try {
     await coin.remove()
     return true
   } catch (error) {
-    throw new UserInputError(error)
+    throw new GraphQLError('', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 }
 
@@ -123,7 +145,11 @@ export const deleteCoinDataBySymbol = async (symbol: string, user: User): Promis
     where: [{ walletId: In(userWallets.map((wallet) => wallet.id)), symbol: symbol }],
   })
   if (!coins) {
-    throw new UserInputError('Coins not found')
+    throw new GraphQLError('Coins not found', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 
   try {
@@ -132,7 +158,11 @@ export const deleteCoinDataBySymbol = async (symbol: string, user: User): Promis
     }
     return true
   } catch (error) {
-    throw new UserInputError(error)
+    throw new GraphQLError('', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 }
 
@@ -148,7 +178,7 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
       let matchingCoin = PYTH_COINS.find((coin) => coin.name.toLowerCase() === balance.info.name.toLowerCase())
 
       if (!matchingCoin) {
-        matchingCoin = MOON_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase())
+        matchingCoin = MOON_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase() && coin.key === balance.address)
       }
 
       if (matchingCoin) {
@@ -157,7 +187,11 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
     }
     return true
   } catch (error) {
-    throw new UserInputError(error)
+    throw new GraphQLError('', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
   }
 }
 
