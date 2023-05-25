@@ -94,14 +94,10 @@ export class PortfolioResolver {
     return await walletService.refreshUserWallets(payload?.userId)
   }
 
-  // @Mutation(() => Boolean)
-  // @UseMiddleware(isAuth)
-  // async connectWalletCoins(
-  // @Arg('walletAddress', () => String) walletAddress: string // Update parameter type to string[]
-  // @Ctx() context: any
-  // ): Promise<Boolean> {
-  // const { payload } = context;
-  // return await portfolioService.connectWalletCoins(walletAddress, 1)
-  //   return true
-  // }
+  @Query(() => Number)
+  @UseMiddleware(isAuth)
+  getUserPortfolioTotalByType(@Ctx() context: any, @Arg('type') type: string): Promise<number> {
+    const { payload } = context
+    return portfolioService.getPortfolioTotalByType(payload?.userId, type)
+  }
 }
