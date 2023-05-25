@@ -82,17 +82,20 @@ export const login = async (email: string, password: string, ctx: any) => {
       })
   }
 
-  let passwordMatched: boolean
+  const hasEmailType = await signInTypeService.hasSignInType(user.email, SignInType.EMAIL)
+  if (!hasEmailType) {
+    throw new Error('Incorrect credentials.')
+  }
 
+  if (!user.password) {
+    throw new Error('Please reset your password.')
+  }
+
+  let passwordMatched: boolean
   passwordMatched = await utils.comparePassword(password, user.password)
 
   if (!passwordMatched) {
     await user.incrementFailedAttempts()
-    throw new Error('Incorrect credentials.')
-  }
-
-  const hasEmailType = await signInTypeService.hasSignInType(user.email, SignInType.EMAIL)
-  if (!hasEmailType) {
     throw new Error('Incorrect credentials.')
   }
 
@@ -251,15 +254,22 @@ export const discordAuth = async (email: string) => {
 
   if (!user) {
     const username = await generateUsername()
-    const hasSent = await sendConfirmationEmail(email, username)
 
-    if (hasSent) {
-      return await createUser(email, SignInType.DISCORD, username)
-    } else {
-      throw new Error('Signup is unavailable at the moment. Please try again later.')
-    }
+    const user = await createUser(email, SignInType.DISCORD, username)
+    await signInTypeService.createSignInType(user.email, SignInType.DISCORD)
+    user.isVerified = true
+    user.verifiedAt = new Date()
+    user.lastLoginTimestamp = new Date()
+    await User.save(user)
+
+    return user
   } else {
     isRegUser = await isRegisteredUser(user, SignInType.DISCORD)
+  }
+
+  if (!user.isVerified) {
+    user.isVerified = true
+    user.verifiedAt = new Date()
   }
 
   if (!isRegUser) {
@@ -281,7 +291,7 @@ export const createUser = async (email: string, signInType: string, username: st
   if (password) {
     newUser.password = password
   }
-  signInTypeService.createSignInType(email, signInType)
+  await signInTypeService.createSignInType(email, signInType)
   return await User.save(newUser)
 }
 
