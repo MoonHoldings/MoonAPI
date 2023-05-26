@@ -64,7 +64,10 @@ export const saveNfts = async (wallet: string): Promise<boolean> => {
 
     // Append names to the unique names
     // Note: These are collections that has no on-chain address, image used is the last nft fetched
-    const notExistingCollectionNames = collectionNames.filter((name) => existingCollections.findIndex((collection) => collection.name === name) === -1)
+    const notExistingCollectionNames = collectionNames
+      .filter((name) => existingCollections.findIndex((collection) => collection.name === name) === -1)
+      .filter((name) => collectionEntities.findIndex((collection) => collection.name === name) === -1)
+
     notExistingCollectionNames.forEach((name) => {
       collectionEntities.push(
         NftCollection.create({
