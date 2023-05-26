@@ -84,7 +84,7 @@ export const saveNfts = async (wallet: string): Promise<boolean> => {
     // Save new collections
     await NftCollection.save(collectionEntities)
 
-    // TODO: Call worker to save floor prices
+    // Save floor price
     await saveNftCollectionFloorPrices(collectionEntities)
 
     const nftCollectionEntities = await NftCollection.find({ where: [{ mint: In(collectionAddresses) }, { name: In(collectionNames) }] })
