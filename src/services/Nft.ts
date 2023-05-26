@@ -3,6 +3,9 @@ import { Nft, NftCollection, UserWallet } from '../entities'
 import { shyft } from '../utils/shyft'
 import { UserWalletType } from '../types'
 import * as Sentry from '@sentry/node'
+import { format } from 'date-fns'
+import fetchFloorPrice from '../utils/fetchFloorPrice'
+import fetchHelloMoonCollectionIds from '../utils/fetchHelloMoonCollectionIds'
 
 export const getUserNfts = async (userId: number): Promise<Nft[]> => {
   const userWallets = await UserWallet.find({ where: { user: { id: userId }, hidden: false, type: UserWalletType.Auto } })
@@ -64,7 +67,10 @@ export const saveNfts = async (wallet: string): Promise<boolean> => {
 
     // Append names to the unique names
     // Note: These are collections that has no on-chain address, image used is the last nft fetched
-    const notExistingCollectionNames = collectionNames.filter((name) => existingCollections.findIndex((collection) => collection.name === name) === -1)
+    const notExistingCollectionNames = collectionNames
+      .filter((name) => existingCollections.findIndex((collection) => collection.name === name) === -1)
+      .filter((name) => collectionEntities.findIndex((collection) => collection.name === name) === -1)
+
     notExistingCollectionNames.forEach((name) => {
       collectionEntities.push(
         NftCollection.create({
@@ -78,7 +84,8 @@ export const saveNfts = async (wallet: string): Promise<boolean> => {
     // Save new collections
     await NftCollection.save(collectionEntities)
 
-    // TODO: Call worker to save floor prices
+    // Save floor price
+    await saveNftCollectionFloorPrices(collectionEntities)
 
     const nftCollectionEntities = await NftCollection.find({ where: [{ mint: In(collectionAddresses) }, { name: In(collectionNames) }] })
     const nftEntities = nfts.map((nft) => {
@@ -112,4 +119,65 @@ export const saveNfts = async (wallet: string): Promise<boolean> => {
   }
 
   return true
+}
+
+export const saveNftCollectionFloorPrices = async (collections?: NftCollection[]) => {
+  try {
+    console.log(format(new Date(), "'saveNftCollectionFloorPrices start:' MMMM d, yyyy h:mma"))
+
+    const nftCollectionRepository = NftCollection.getRepository()
+
+    try {
+      const nftCollections = collections ? await nftCollectionRepository.find({ where: { id: In(collections.map((collection) => collection.id)) } }) : await nftCollectionRepository.find()
+      const nftMintToListMap: Record<string, NftCollection> = nftCollections.reduce((map: Record<string, NftCollection>, nftCollection) => {
+        map[nftCollection.nftMint] = nftCollection
+        return map
+      }, {})
+
+      const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(nftCollections.map((nftCollection) => nftCollection.nftMint))
+      let allIds = [...collectionIds]
+      let currentPaginationToken = paginationToken
+
+      while (currentPaginationToken) {
+        const { data: collectionIds, paginationToken } = await fetchHelloMoonCollectionIds(
+          nftCollections.map((nftCollection) => nftCollection.nftMint),
+          currentPaginationToken
+        )
+
+        currentPaginationToken = paginationToken
+        allIds = [...allIds, ...collectionIds]
+      }
+
+      const collectionIdToNftCollectionMap: Record<string, NftCollection> = {}
+
+      allIds?.forEach((data: any) => {
+        collectionIdToNftCollectionMap[data.helloMoonCollectionId] = nftMintToListMap[data.nftMint]
+      })
+
+      const promises = allIds.map(async (id: any) => {
+        const { floorPriceLamports, helloMoonCollectionId } = (await fetchFloorPrice(id.helloMoonCollectionId)) ?? {}
+        return { floorPriceLamports, helloMoonCollectionId }
+      })
+
+      const floorPrices = await Promise.all(promises)
+      const nftCollectionsToSave: NftCollection[] = []
+
+      for (const { floorPriceLamports, helloMoonCollectionId } of floorPrices) {
+        if (floorPriceLamports && helloMoonCollectionId) {
+          const nftCollection = collectionIdToNftCollectionMap[helloMoonCollectionId]
+
+          nftCollection.floorPrice = floorPriceLamports
+          nftCollectionsToSave.push(nftCollection)
+        }
+      }
+
+      await nftCollectionRepository.save(nftCollectionsToSave)
+    } catch (e) {
+      console.log(e)
+    }
+
+    console.log(format(new Date(), "'saveNftCollectionFloorPrices end:' MMMM d, yyyy h:mma"))
+  } catch (error) {
+    Sentry.captureException(error)
+  }
 }

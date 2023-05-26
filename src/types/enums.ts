@@ -45,3 +45,10 @@ export enum TimeRangeType {
   Week = 'Week',
   Month = 'Month',
 }
+
+export enum PortfolioType {
+  NFT = 'Nft',
+  CRYPTO = 'Crypto',
+  LOAN = 'Loan',
+  BORROW = 'Borrow',
+}
