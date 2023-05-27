@@ -175,13 +175,13 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
       processCoin(walletAddress, 'SOL', 'Solana', solBalance)
     }
     for (const balance of balances) {
-      let matchingCoin = PYTH_COINS.find((coin) => coin.name.toLowerCase() === balance.info.name.toLowerCase())
+      let matchingCoin = PYTH_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase())
 
       if (!matchingCoin) {
         matchingCoin = MOON_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase() && coin.key === balance.address)
       }
 
-      if (matchingCoin) {
+      if (matchingCoin && matchingCoin.symbol.toLowerCase() !== 'sol') {
         processCoin(walletAddress, matchingCoin.symbol, balance.info.name, balance.balance)
       }
     }
