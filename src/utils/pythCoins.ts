@@ -350,7 +350,7 @@ export const PYTH_COINS = [
   },
   {
     symbol: 'USDC',
-    name: 'Force Bridge USDC',
+    name: 'USDC',
     key: 'Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD',
   },
   {
