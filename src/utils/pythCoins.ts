@@ -372,6 +372,21 @@ export const PYTH_COINS = [
 
 export const MOON_COINS = [
   {
+    symbol: 'Jelly',
+    name: 'Jelly',
+    key: '9WMwGcY6TcbSfy9XPpQymY3qNEsvEaYL3wivdwPG2fpp',
+  },
+  {
+    symbol: 'BRUV',
+    name: 'BRUV',
+    key: 'BRUV9DjBeDZRamtWjhzQEH5roosnBApPhfqS1HQ23Xgy',
+  },
+  {
+    symbol: 'FORGE',
+    name: 'Blocksmith Labs Forge',
+    key: 'FoRGERiW7odcCBGU1bztZi16osPBHjxharvDathL5eds',
+  },
+  {
     symbol: 'FRONK',
     name: 'FRONK',
     key: '5yxNbU8DgYJZNi3mPD9rs4XLh9ckXrhPjJ5VCujUWg5H',
