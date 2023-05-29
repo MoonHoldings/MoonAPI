@@ -16,7 +16,11 @@ export const refreshUserWallets = async (userId: number): Promise<boolean> => {
       return await saveNfts(wallet.address)
     })
 
-    await Promise.allSettled(saveNftsPromises)
+    const saveCoinsPromises = userWallets.map(async (wallet) => {
+      return await connectCoins(wallet.address)
+    })
+
+    await Promise.allSettled([...saveNftsPromises, ...saveCoinsPromises])
   } else {
     return false
   }
