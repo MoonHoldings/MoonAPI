@@ -4,7 +4,7 @@ import { Coin, User, UserWallet } from '../entities'
 import { CoinData, CoinResponse, UserWalletType } from '../types'
 import { shyft } from '../utils/shyft'
 import { getCoinPrice, getCoinPrices, MOON_COINS, PYTH_COINS } from '../utils/pythCoins'
-import { In } from 'typeorm'
+import { In, Not } from 'typeorm'
 import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
 import axios from 'axios'
 
@@ -170,21 +170,23 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
   try {
     const balances = await shyft.wallet.getAllTokenBalance({ wallet: walletAddress })
     const solBalance = await shyft.wallet.getBalance({ wallet: walletAddress })
-
+    const deleteChecker = []
     if (solBalance > 0) {
+      deleteChecker.push('SOL')
       processCoin(walletAddress, 'SOL', 'Solana', solBalance)
     }
     for (const balance of balances) {
-      let matchingCoin = PYTH_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase() && coin.name === balance.info.name)
-
+      let matchingCoin = PYTH_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase() && coin.name.toLowerCase() === balance.info.name.toLowerCase())
       if (!matchingCoin) {
         matchingCoin = MOON_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase() && coin.key === balance.address)
       }
 
       if (matchingCoin && matchingCoin.symbol.toLowerCase() !== 'sol') {
-        processCoin(walletAddress, matchingCoin.symbol, matchingCoin.name, balance.balance)
+        deleteChecker.push(matchingCoin.symbol)
+        await processCoin(walletAddress, matchingCoin.symbol, matchingCoin.name, balance.balance)
       }
     }
+    await clearCoin(deleteChecker, walletAddress)
     return true
   } catch (error) {
     throw new GraphQLError('', {
@@ -196,12 +198,24 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
 }
 
 export const processCoin = async (walletAddress: string, symbol: string, name: string, balance: number) => {
-  const existingCoin = await Coin.findOne({ where: { walletAddress: walletAddress, symbol: symbol } })
+  const existingCoins = await Coin.find({ where: { walletAddress: walletAddress, symbol: symbol } })
+  let existingCoin
+
+  // to remove duplicate symbols
+  if (existingCoins && existingCoins.length > 1) {
+    const coinsToRemove = existingCoins.slice(1)
+    await Coin.remove(coinsToRemove)
+  }
+
+  if (existingCoins) {
+    existingCoin = existingCoins[0]
+  }
+
   if (existingCoin && balance > 0.009) {
     existingCoin.symbol = symbol
     existingCoin.name = name
     existingCoin.holdings = balance
-    existingCoin.save()
+    await existingCoin.save()
   } else if (existingCoin && balance < 0.009) {
     await existingCoin.remove()
   } else if (balance > 0.009) {
@@ -211,6 +225,13 @@ export const processCoin = async (walletAddress: string, symbol: string, name: s
     newCoin.holdings = balance
     newCoin.walletAddress = walletAddress
     await newCoin.save()
+  }
+}
+
+export const clearCoin = async (deleteChecker: string[], walletAddress: string) => {
+  const existingCoins = await Coin.find({ where: { walletAddress: walletAddress, symbol: Not(In(deleteChecker)) } })
+  if (existingCoins && existingCoins.length > 0) {
+    await Coin.remove(existingCoins)
   }
 }
 export const getMoonTokenPrice = async (mintAddress: [string]) => {
