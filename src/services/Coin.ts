@@ -228,6 +228,7 @@ export const processCoin = async (walletAddress: string, symbol: string, name: s
   }
 }
 
+//can remove in future
 export const clearCoin = async (deleteChecker: string[], walletAddress: string) => {
   const existingCoins = await Coin.find({ where: { walletAddress: walletAddress, symbol: Not(In(deleteChecker)) } })
   if (existingCoins && existingCoins.length > 0) {
