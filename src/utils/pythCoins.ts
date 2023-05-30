@@ -129,11 +129,6 @@ export const PYTH_COINS = [
     key: '2TdKEvPTKpDtJo6pwxd79atZFQNWiSUT2T47nF9j5qFy',
   },
   {
-    symbol: 'ATLAS',
-    name: 'Atlantis',
-    key: '81Rz3i7MC9nHYo1vQg6kJM5hepjqb63Y1gnr3AkrD36D',
-  },
-  {
     symbol: 'AVAX',
     name: 'Avalanche',
     key: 'Ax9ujW5B9oqcv59N8m6f1BpTBq2rGeGaBcpKjC5UYsXU',
@@ -176,23 +171,10 @@ export const PYTH_COINS = [
     key: '9yoZqrXpNpP8vfE7XhN3jPxzALpFA8C5Nvs1RNXQigCQ',
   },
   {
-    symbol: 'BONK',
-    name: 'Bonk',
-    key: '8ihFLu5FimgTQ1Unh4dVyEHUGodJ5gJQCrQf4KUVB9bN',
-  },
-
-  {
     symbol: 'BUSD',
     name: 'Binance USD',
     key: '7BHyT7XPMSA6LHYTgDTaeTPe3KTkKibMXZNxF5kiVsw1',
   },
-
-  {
-    symbol: 'C98',
-    name: 'Coin98',
-    key: '45rTB9ezDcTX5tMZx2uJUBbBEqAWDhXykYbBfaSWUXvD',
-  },
-
   {
     symbol: 'DOT',
     name: 'Polkadot',
@@ -220,42 +202,26 @@ export const PYTH_COINS = [
     name: 'FTX',
     key: '8JPJJkmDScpcNmBRKGZuPuG2GYAveQgP3t5gFuMymwvF',
   },
-
-  {
-    symbol: 'FIDA',
-    name: 'Bonfida',
-    key: 'ETp9eKXVv1dWwHSpsXRUuXHmw24PwRkttCGVgpZEY9zF',
-  },
   {
     symbol: 'GMT',
     name: 'Gomining Token',
     key: 'DZYZkJcFJThN9nZy4nK3hrHra1LaWeiyoZ9SMdLFEFpY',
   },
-
-  {
-    symbol: 'HNT',
-    name: 'Helium',
-    key: '7moA1i5vQUpfDwSpK6Pw9s56ahB7WFGidtbL2ujWrVvm',
-  },
-
   {
     symbol: 'INJ',
     name: 'Injective',
     key: '9EdtbaivHQYA4Nh3XzGR6DwRaoorqXYnmpfsnFhvwuVj',
   },
-
   {
     symbol: 'LUNC',
     name: 'Terra Classic (Wormhole)',
     key: '5bmWuR1dgP4avtGYMNKLuxumZTVKGgoN2BCMXWDNL9nY',
   },
-
   {
     symbol: 'LDO',
     name: 'Lido DAO',
     key: 'ELrhqYY3WjLRnLwWt3u7sMykNc87EScEAsyCyrDDSAXv',
   },
-
   {
     symbol: 'LTC',
     name: 'Litecoin',
@@ -272,12 +238,6 @@ export const PYTH_COINS = [
     key: 'H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG',
     color: '#BC12EC',
   },
-
-  {
-    symbol: 'MSOL',
-    name: 'Marinade staked SOL',
-    key: 'E4v1BBgoso9s64TQvmyownAVJbhbEPGyzA3qn4n46qj9',
-  },
   {
     symbol: 'MNGO',
     name: 'Mango',
@@ -289,11 +249,7 @@ export const PYTH_COINS = [
     name: 'NEAR Protocol',
     key: 'ECSFWQ1bnnpqPVvoy9237t2wddZAaHisW88mYxuEHKWf',
   },
-  {
-    symbol: 'ORCA',
-    name: 'Orca',
-    key: '4ivThkX8uRxBpHsdWSqyXYihzKF3zpRGAUCqyuagnLoV',
-  },
+
   {
     symbol: 'OP',
     name: 'Optimism',
@@ -305,43 +261,16 @@ export const PYTH_COINS = [
     name: 'PackagePortal',
     key: 'jrMH4afMEodMqirQ7P89q5bGNJxD8uceELcsZaVBDeh',
   },
-
-  {
-    symbol: 'RAY',
-    name: 'Raydium',
-    key: 'AnLf8tVYCM816gmBjiy8n53eXKKEDydT5piYjjQDPgTB',
-  },
-
-  {
-    symbol: 'SBR',
-    name: 'Saber',
-    key: '8Td9VML1nHxQK6M8VVyzsHo32D7VBk72jSpa9U861z2A',
-  },
   {
     symbol: 'SCNSOL',
     name: 'Socean Staked Sol',
     key: '25yGzWV5okF7aLivSCE4xnjVUPowQcThhhx5Q2fgFhkm',
   },
-  {
-    symbol: 'SRM',
-    name: 'Serum',
-    key: '3NBReDRTLKMQEKiLD5tGcx4kXbTf88b7f2xLS9UuGjym',
-  },
+
   {
     symbol: 'SUI',
     name: 'Sui',
     key: '3Qub3HaAJaa2xNY7SUqPKd3vVwTqDfDDkEUMPjXD2c1q',
-  },
-
-  {
-    symbol: 'STSOL',
-    name: 'Lido Staked SOL',
-    key: 'Bt1hEbY62aMriY1SyQqbeZbm8VmSbQVGBFzSzMuVNWzN',
-  },
-  {
-    symbol: 'SLND',
-    name: 'Solend',
-    key: 'HkGEau5xY1e8REXUFbwvWWvyJGywkgiAZZFpryyraWqJ',
   },
   {
     symbol: 'SNY',
@@ -363,14 +292,24 @@ export const PYTH_COINS = [
     name: 'TerraClassicUSD',
     key: 'H8DvrfSaRfUyP1Ytse1exGf7VSinLWtmKNNaBhA4as9P',
   },
-  {
-    symbol: 'ZBC',
-    name: 'Zebec Protocol',
-    key: '3bNH7uDsap5nzwhCvv98i7VshjMagtx1NXTDBLbPYD66',
-  },
 ]
 
 export const MOON_COINS = [
+  {
+    symbol: 'Jelly',
+    name: 'Jelly',
+    key: '9WMwGcY6TcbSfy9XPpQymY3qNEsvEaYL3wivdwPG2fpp',
+  },
+  {
+    symbol: 'BRUV',
+    name: 'BRUV',
+    key: 'BRUV9DjBeDZRamtWjhzQEH5roosnBApPhfqS1HQ23Xgy',
+  },
+  {
+    symbol: 'FORGE',
+    name: 'Blocksmith Labs Forge',
+    key: 'FoRGERiW7odcCBGU1bztZi16osPBHjxharvDathL5eds',
+  },
   {
     symbol: 'FRONK',
     name: 'FRONK',
@@ -416,5 +355,65 @@ export const MOON_COINS = [
     symbol: 'DUST',
     name: 'DUST Protocol',
     key: 'DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ',
+  },
+  {
+    symbol: 'ATLAS',
+    name: 'Star Atlas',
+    key: 'ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx',
+  },
+  {
+    symbol: 'BONK',
+    name: 'Bonk',
+    key: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+  },
+  {
+    symbol: 'C98',
+    name: 'Coin98',
+    key: 'C98A4nkJXhpVZNAZdHUA95RpTF3T4whtQubL3YobiUX9',
+  },
+  {
+    symbol: 'FIDA',
+    name: 'Bonfida',
+    key: 'EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp',
+  },
+  {
+    symbol: 'HNT',
+    name: 'Helium Network Token',
+    key: 'hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux',
+  },
+  {
+    symbol: 'MSOL',
+    name: 'Marinade staked SOL',
+    key: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+  },
+  {
+    symbol: 'ORCA',
+    name: 'Orca',
+    key: 'orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE',
+  },
+  {
+    symbol: 'RAY',
+    name: 'Raydium',
+    key: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R',
+  },
+  {
+    symbol: 'SBR',
+    name: 'Saber',
+    key: 'Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1',
+  },
+  {
+    symbol: 'SRM',
+    name: 'Serum',
+    key: 'SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt',
+  },
+  {
+    symbol: 'STSOL',
+    name: 'Lido Staked SOL',
+    key: '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj',
+  },
+  {
+    symbol: 'ZBC',
+    name: 'Zebec Protocol',
+    key: 'zebeczgi5fSEtbpfQKVZKCJ3WgYXxjkMUkNNx7fLKAF',
   },
 ]
