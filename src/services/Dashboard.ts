@@ -108,7 +108,7 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: num
       const previousMonthStart = new Date()
       previousMonthStart.setMonth(previousMonthStart.getMonth() - 1)
       startOfPreviousDay = new Date(previousMonthStart.getFullYear(), previousMonthStart.getMonth(), 1, 0, 0, 0)
-      endOfPreviousDate = new Date(previousMonthStart.getFullYear(), previousMonthStart.getMonth() + 1, 0, 23, 59, 59)
+      endOfPreviousDate = new Date(previousMonthStart.getFullYear(), previousMonthStart.getMonth(), 0, 23, 59, 59)
     } else {
       throw new Error('Invalid time range type')
     }
