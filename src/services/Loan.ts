@@ -4,6 +4,7 @@ import {
   GetLoansArgs,
   HistoricalLoanResponse,
   HistoricalLoanStatus,
+  LoanCsv,
   LoanSortType,
   LoanType,
   PaginatedHistoricalLoanResponse,
@@ -36,6 +37,34 @@ const getPercentDaysProgress = (start: number, duration: number) => {
   const currentUnixTime = Math.floor(Date.now() / 1000)
 
   return ((currentUnixTime - start) / duration) * 100
+}
+
+const getHelloMoonLoanStatus = (loan: HistoricalLoanResponse) => {
+  let status = HistoricalLoanStatus.Repaid
+
+  if ((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) {
+    status = HistoricalLoanStatus.Active
+  }
+
+  if (loan.offerBlocktime && !loan.repayBlocktime) {
+    status = HistoricalLoanStatus.Offered
+  }
+
+  if (loan.takenBlocktime && !loan.repayBlocktime) {
+    status = HistoricalLoanStatus.Taken
+  }
+
+  const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
+
+  if (remainingDays < 1 && !loan.repayBlocktime) {
+    status = HistoricalLoanStatus.Foreclosed
+  }
+
+  if (loan.cancelBlocktime) {
+    status = HistoricalLoanStatus.Canceled
+  }
+
+  return status
 }
 
 const formatElapsedTime = (unixTime: number) => {
@@ -173,6 +202,154 @@ export const getTotalBorrowsByAddress = async (address: string): Promise<TotalLo
     total,
     interest: totalInterest,
   }
+}
+
+export const getLendHistoryCsv = async (address: string): Promise<LoanCsv[]> => {
+  let paginationToken = true
+  let loans: any[] = []
+  const currentUnixTime = Math.floor(Date.now() / 1000)
+
+  while (paginationToken) {
+    const { data }: { data: any } = await axios.post(
+      `${HELLO_MOON_URL}/sharky/loan-summary`,
+      {
+        takenBlocktime: {
+          operator: '<',
+          value: currentUnixTime,
+        },
+        lender: address,
+        paginationToken: paginationToken !== true ? paginationToken : null,
+        limit: 100,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    paginationToken = data.paginationToken
+    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+  }
+
+  const orderBookPubKeys = loans.map((loan) => loan.orderBook)
+  const orderBooks = await OrderBook.find({ select: ['pubKey', 'apy', 'feePermillicentage', 'duration'], where: { pubKey: In(orderBookPubKeys) }, relations: { nftList: true } })
+  const orderBooksByPubKey: Record<string, OrderBook> = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  const loanCollateralMints: string[] = loans.map((loan: any) => loan.collateralMint).filter((mint: string) => mint !== null)
+  let collateralMetadataByMint: Record<string, any> = []
+
+  if (loanCollateralMints.length) {
+    const { data } = await axios.post(
+      `${HELLO_MOON_URL}/nft/mint_information`,
+      {
+        nftMint: loanCollateralMints,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    if (data?.data?.length) {
+      collateralMetadataByMint = data.data.reduce((accumulator: any, metadata: any) => {
+        accumulator[metadata.nftMint] = metadata
+        return accumulator
+      }, {})
+    }
+  }
+
+  const data = loans.map((loan: HistoricalLoanResponse) => {
+    const orderBook: OrderBook = orderBooksByPubKey[loan.orderBook]
+
+    let status = getHelloMoonLoanStatus(loan)
+    let offerInterest = null
+
+    if (orderBook) {
+      offerInterest = calculateOfferInterest(loan.amountOffered, orderBook.duration, orderBook.apy, orderBook.feePermillicentage)
+    }
+
+    return {
+      collectionName: orderBook.nftList?.collectionName,
+      collateralName: collateralMetadataByMint[loan.collateralMint]?.nftMetadataJson?.name,
+      amountOffered: loan.amountOffered,
+      offerInterest,
+      apy: orderBook.apyAfterFee(),
+      status,
+    }
+  })
+
+  return data.filter((loan) => loan.status !== HistoricalLoanStatus.Canceled)
+}
+
+export const getBorrowHistoryCsv = async (address: string): Promise<LoanCsv[]> => {
+  let paginationToken = true
+  let loans: any[] = []
+  const currentUnixTime = Math.floor(Date.now() / 1000)
+
+  while (paginationToken) {
+    const { data }: { data: any } = await axios.post(
+      `${HELLO_MOON_URL}/sharky/loan-summary`,
+      {
+        takenBlocktime: {
+          operator: '<',
+          value: currentUnixTime,
+        },
+        borrower: address,
+        paginationToken: paginationToken !== true ? paginationToken : null,
+        limit: 100,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    paginationToken = data.paginationToken
+    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+  }
+
+  const orderBookPubKeys = loans.map((loan) => loan.orderBook)
+  const orderBooks = await OrderBook.find({ select: ['pubKey', 'apy', 'feePermillicentage', 'duration'], where: { pubKey: In(orderBookPubKeys) }, relations: { nftList: true } })
+  const orderBooksByPubKey: Record<string, OrderBook> = orderBooks.reduce((accumulator: any, orderBook) => {
+    accumulator[orderBook.pubKey] = orderBook
+    return accumulator
+  }, {})
+
+  const loanCollateralMints: string[] = loans.map((loan: any) => loan.collateralMint).filter((mint: string) => mint !== null)
+  let collateralMetadataByMint: Record<string, any> = []
+
+  if (loanCollateralMints.length) {
+    const { data } = await axios.post(
+      `${HELLO_MOON_URL}/nft/mint_information`,
+      {
+        nftMint: loanCollateralMints,
+      },
+      AXIOS_CONFIG_HELLO_MOON_KEY
+    )
+
+    if (data?.data?.length) {
+      collateralMetadataByMint = data.data.reduce((accumulator: any, metadata: any) => {
+        accumulator[metadata.nftMint] = metadata
+        return accumulator
+      }, {})
+    }
+  }
+
+  const data = loans.map((loan: HistoricalLoanResponse) => {
+    const orderBook: OrderBook = orderBooksByPubKey[loan.orderBook]
+
+    let status = getHelloMoonLoanStatus(loan)
+    let borrowInterest = null
+
+    if (orderBook) {
+      borrowInterest = calculateBorrowInterest(loan.amountOffered, orderBook.duration, orderBook.apy)
+    }
+
+    return {
+      collectionName: orderBook.nftList?.collectionName,
+      collateralName: collateralMetadataByMint[loan.collateralMint]?.nftMetadataJson?.name,
+      amountOffered: loan.amountOffered,
+      borrowInterest,
+      apy: orderBook.apyAfterFee(),
+      status,
+    }
+  })
+
+  return data.filter((loan) => loan.status !== HistoricalLoanStatus.Canceled)
 }
 
 export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanResponse> => {
@@ -340,30 +517,10 @@ export const getLoanSummary = async (borrower?: string, lender?: string, paginat
       borrowInterest = calculateBorrowInterest(loan.amountOffered, orderBook.duration, orderBook.apy)
     }
 
-    let status = HistoricalLoanStatus.Repaid
-
-    if ((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) {
-      status = HistoricalLoanStatus.Active
-    }
-
-    if (loan.offerBlocktime && !loan.repayBlocktime) {
-      status = HistoricalLoanStatus.Offered
-    }
-
-    if (loan.takenBlocktime && !loan.repayBlocktime) {
-      status = HistoricalLoanStatus.Taken
-    }
+    let status = getHelloMoonLoanStatus(loan)
 
     const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
     const daysPercentProgress = status === HistoricalLoanStatus.Active ? getPercentDaysProgress(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds) : null
-
-    if (remainingDays < 1 && !loan.repayBlocktime) {
-      status = HistoricalLoanStatus.Foreclosed
-    }
-
-    if (loan.cancelBlocktime) {
-      status = HistoricalLoanStatus.Canceled
-    }
 
     return {
       ...loan,

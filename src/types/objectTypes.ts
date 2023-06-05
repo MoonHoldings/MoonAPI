@@ -156,6 +156,24 @@ export class TotalLoanResponse {
 }
 
 @ObjectType()
+export class LoanCsv {
+  @Field(() => String)
+  collectionName?: string
+  @Field(() => String)
+  collateralName: string
+  @Field(() => Number)
+  amountOffered: number
+  @Field(() => Number, { nullable: true })
+  offerInterest?: number | null
+  @Field(() => Number, { nullable: true })
+  borrowInterest?: number | null
+  @Field(() => Number, { nullable: true })
+  apy: number
+  @Field(() => String)
+  status: string
+}
+
+@ObjectType()
 export class CoinResponse {
   @Field(() => [Coin], { nullable: true })
   coins: Coin[]
