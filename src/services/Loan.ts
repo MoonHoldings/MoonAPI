@@ -225,7 +225,14 @@ export const getLendHistoryCsv = async (address: string): Promise<LoanCsv[]> => 
     )
 
     paginationToken = data.paginationToken
-    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+    loans = [
+      ...loans,
+      ...data?.data?.filter((loan: any) => {
+        const status = getHelloMoonLoanStatus(loan)
+
+        return status !== HistoricalLoanStatus.Canceled
+      }),
+    ]
   }
 
   const orderBookPubKeys = loans.map((loan) => loan.orderBook)
@@ -275,7 +282,7 @@ export const getLendHistoryCsv = async (address: string): Promise<LoanCsv[]> => 
     }
   })
 
-  return data.filter((loan) => loan.status !== HistoricalLoanStatus.Canceled)
+  return data
 }
 
 export const getBorrowHistoryCsv = async (address: string): Promise<LoanCsv[]> => {
@@ -299,7 +306,14 @@ export const getBorrowHistoryCsv = async (address: string): Promise<LoanCsv[]> =
     )
 
     paginationToken = data.paginationToken
-    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+    loans = [
+      ...loans,
+      ...data?.data?.filter((loan: any) => {
+        const status = getHelloMoonLoanStatus(loan)
+
+        return status !== HistoricalLoanStatus.Canceled
+      }),
+    ]
   }
 
   const orderBookPubKeys = loans.map((loan) => loan.orderBook)
@@ -349,7 +363,7 @@ export const getBorrowHistoryCsv = async (address: string): Promise<LoanCsv[]> =
     }
   })
 
-  return data.filter((loan) => loan.status !== HistoricalLoanStatus.Canceled)
+  return data
 }
 
 export const getLoans = async (args: GetLoansArgs): Promise<PaginatedLoanResponse> => {
