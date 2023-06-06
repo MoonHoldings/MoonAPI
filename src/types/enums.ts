@@ -5,6 +5,7 @@ export enum OrderBookSortType {
   Apy = 'APY',
   Duration = 'Duration',
   Interest = 'Interest',
+  FloorPrice = 'Floor Price',
 }
 
 export enum LoanSortType {

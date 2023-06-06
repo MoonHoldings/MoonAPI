@@ -62,25 +62,28 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
 
   switch (args?.sort?.type) {
     case OrderBookSortType.Apy:
-      query.orderBy('apy', args?.sort?.order ?? SortOrder.Desc)
+      query.orderBy('apy', args?.sort?.order ?? SortOrder.Desc, 'NULLS LAST')
       break
     case OrderBookSortType.Collection:
-      query.orderBy('nftList.collectionName', args?.sort?.order ?? SortOrder.Desc)
+      query.orderBy('nftList.collectionName', args?.sort?.order ?? SortOrder.Desc, 'NULLS LAST')
       break
     case OrderBookSortType.Duration:
-      query.orderBy('duration', args?.sort?.order ?? SortOrder.Desc)
+      query.orderBy('duration', args?.sort?.order ?? SortOrder.Desc, 'NULLS LAST')
       break
     case OrderBookSortType.TotalPool:
-      query.orderBy('totalpool', args?.sort?.order ?? SortOrder.Desc)
+      query.orderBy('totalpool', args?.sort?.order ?? SortOrder.Desc, 'NULLS LAST')
       break
     case OrderBookSortType.BestOffer:
-      query.orderBy('bestoffer', args?.sort?.order ?? SortOrder.Desc)
+      query.orderBy('bestoffer', args?.sort?.order ?? SortOrder.Desc, 'NULLS LAST')
+      break
+    case OrderBookSortType.FloorPrice:
+      query.orderBy('nftList.floorPrice', args?.sort?.order ?? SortOrder.Desc, 'NULLS LAST')
       break
     case OrderBookSortType.Interest:
-      if (args?.isBorrowPage) query.orderBy('interest', args?.sort?.order ?? SortOrder.Desc)
+      if (args?.isBorrowPage) query.orderBy('interest', args?.sort?.order ?? SortOrder.Desc, 'NULLS LAST')
       break
     default:
-      query.orderBy('totalpool', args?.sort?.order ?? SortOrder.Desc)
+      query.orderBy('totalpool', args?.sort?.order ?? SortOrder.Desc, 'NULLS LAST')
       break
   }
 
