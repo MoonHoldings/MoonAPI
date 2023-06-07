@@ -105,7 +105,9 @@ export const getLoanById = async (id: number): Promise<Loan> => {
 export const getTotalLendsByAddress = async (address: string): Promise<TotalLoanResponse> => {
   let paginationToken = true
   let total = 0
+  let totalActive = 0
   let loans: any[] = []
+  let activeLoans: any[] = []
   const currentUnixTime = Math.floor(Date.now() / 1000)
 
   while (paginationToken) {
@@ -124,9 +126,16 @@ export const getTotalLendsByAddress = async (address: string): Promise<TotalLoan
     )
 
     paginationToken = data.paginationToken
-    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime)]
+    activeLoans = [...activeLoans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
 
     total += data?.data
+      ?.filter((loan: any) => loan.takenBlocktime)
+      ?.reduce((accumulator: number, loan: any) => {
+        return accumulator + loan.amountOffered
+      }, 0)
+
+    totalActive += data?.data
       ?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)
       ?.reduce((accumulator: number, loan: any) => {
         return accumulator + loan.amountOffered
@@ -141,15 +150,29 @@ export const getTotalLendsByAddress = async (address: string): Promise<TotalLoan
   }, {})
 
   let totalInterest = 0
+  let totalActiveInterest = 0
+  let foreclosedTotal = 0
 
   for (const loan of loans) {
+    const status = getHelloMoonLoanStatus(loan)
+
+    if (status === HistoricalLoanStatus.Foreclosed) foreclosedTotal++
+
     const orderBook = orderBooksByPubKey[loan.orderBook]
     totalInterest += calculateOfferInterest(loan.amountOffered, loan.loanDurationSeconds, orderBook.apy, orderBook.feePermillicentage)
   }
 
+  for (const activeLoan of activeLoans) {
+    const orderBook = orderBooksByPubKey[activeLoan.orderBook]
+    totalActiveInterest += calculateOfferInterest(activeLoan.amountOffered, activeLoan.loanDurationSeconds, orderBook.apy, orderBook.feePermillicentage)
+  }
+
   return {
     total,
+    totalActive,
     interest: totalInterest,
+    activeInterest: totalActiveInterest,
+    foreclosureRate: foreclosedTotal / loans.length,
   }
 }
 
