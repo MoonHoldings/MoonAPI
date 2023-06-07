@@ -151,8 +151,14 @@ export class PaginatedOrderBookResponse {
 export class TotalLoanResponse {
   @Field(() => Number)
   total: number
+  @Field(() => Number, { nullable: true })
+  totalActive?: number
   @Field(() => Number)
   interest: number
+  @Field(() => Number, { nullable: true })
+  activeInterest?: number
+  @Field(() => Number, { nullable: true })
+  foreclosureRate?: number
 }
 
 @ObjectType()
