@@ -4,7 +4,7 @@ import * as nftService from '../services/Nft'
 
 @Injectable()
 export class NftService {
-  @Interval(180000)
+  @Interval(120000) // Every 2 mins
   async saveNftCollectionFloorPrices() {
     await nftService.saveNftCollectionFloorPrices()
   }
