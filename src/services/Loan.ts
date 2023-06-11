@@ -167,12 +167,14 @@ export const getTotalLendsByAddress = async (address: string): Promise<TotalLoan
     totalActiveInterest += calculateOfferInterest(activeLoan.amountOffered, activeLoan.loanDurationSeconds, orderBook.apy, orderBook.feePermillicentage)
   }
 
+  const foreclosureRate = isNaN(foreclosedTotal / loans.length) ? 0 : foreclosedTotal / loans.length
+
   return {
     total,
     totalActive,
     interest: totalInterest,
     activeInterest: totalActiveInterest,
-    foreclosureRate: foreclosedTotal / loans.length,
+    foreclosureRate,
   }
 }
 
