@@ -15,7 +15,7 @@ const calculatePercentageChange = (previousValue: number, currentValue: number):
 }
 
 export const getNftTotal = async (user: User): Promise<number> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Auto } })
+  const userWallets = await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Auto, hidden: false } })
   const nfts = await Nft.find({ where: { owner: In(userWallets.map((wallet) => wallet.address)) }, relations: { collection: true } })
   const collectionsHash = nfts.reduce((hash: any, nft) => {
     if (nft.collection && nft.collection.floorPrice) {
@@ -56,7 +56,7 @@ export const getCryptoTotal = async (user: User): Promise<number> => {
 }
 
 export const getLoanTotal = async (user: User): Promise<number> => {
-  const verifiedWallets = (await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Auto } })).map((wallet) => wallet.address)
+  const verifiedWallets = (await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Auto, hidden: false } })).map((wallet) => wallet.address)
   const loans = await Loan.find({ where: { lenderWallet: In(verifiedWallets) }, relations: { orderBook: true } })
   let total = 0
 
@@ -74,7 +74,7 @@ export const getLoanTotal = async (user: User): Promise<number> => {
 }
 
 export const getBorrowTotal = async (user: User): Promise<number> => {
-  const verifiedWallets = (await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Auto } })).map((wallet) => wallet.address)
+  const verifiedWallets = (await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Auto, hidden: false } })).map((wallet) => wallet.address)
   const loans = await Loan.find({ where: { borrowerNoteMint: In(verifiedWallets) }, relations: { orderBook: true } })
   let total = 0
 
