@@ -42,10 +42,11 @@ export const addUserCoin = async (coinData: CoinData, userId: number) => {
     })
   }
 
-  const userWallet = await userWalletService.checkExistingWallet(user.id, UserWalletType.Manual, coinData.walletName)
+  const userWallet = await userWalletService.checkExistingWallet(user.id, coinData.type ?? UserWalletType.Manual, coinData.walletName, coinData.walletAddress)
 
   try {
-    return await coinService.saveCoinData(coinData, userWallet)
+    if (coinData.type == UserWalletType.Auto) return await coinService.updateCoinData(coinData, user)
+    else return await coinService.saveCoinData(coinData, userWallet)
   } catch (error) {
     throw new GraphQLError('', {
       extensions: {
