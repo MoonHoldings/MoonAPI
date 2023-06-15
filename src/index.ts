@@ -39,7 +39,7 @@ const main = async () => {
   const whitelist = process?.env?.CORS_ALLOW_ORIGIN?.split(',') ?? []
   const corsOptions = {
     origin: function (origin: any, callback: any) {
-      if (whitelist.indexOf(origin) !== -1) {
+      if (process?.env?.CORS_ALLOW_ALL_ORIGIN || whitelist.indexOf(origin) !== -1) {
         callback(null, true)
       } else {
         callback()
