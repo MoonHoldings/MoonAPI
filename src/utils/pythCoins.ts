@@ -279,7 +279,7 @@ export const PYTH_COINS = [
   },
   {
     symbol: 'USDC',
-    name: 'USDC',
+    name: 'USD Coin',
     key: 'Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD',
   },
   {
