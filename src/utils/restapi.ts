@@ -36,9 +36,9 @@ router.post('/api/refresh_token', async (req, res) => {
     return res.send({ ok: false })
   }
 
-  utils.setAccessCookie(res, user, 'aid')
+  const accessToken = utils.createAccessToken(user, '30d')
   utils.setWebflowCookie(res)
-  return res.send({ ok: true, username: user.username })
+  return res.send({ ok: true, username: user.username, access_token: accessToken })
 })
 
 router.get('/api/verify_email/:token', async (req, res) => {
