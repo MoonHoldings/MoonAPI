@@ -91,6 +91,8 @@ export class HistoricalLoanResponse {
   isRepayEscrow: boolean
   @Field({ nullable: true })
   isDefaultEscrow: boolean
+  @Field(() => Number, { nullable: true })
+  floorPriceSol?: number
 }
 
 @ObjectType()

@@ -675,6 +675,7 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
       apy: orderBook.apyAfterFee(),
       collectionName: orderBook.nftList?.collectionName,
       collectionImage: orderBook.nftList?.collectionImage,
+      floorPriceSol: orderBook.nftList?.floorPriceSol(),
       status,
       remainingDays: remainingDays ? remainingDays : null,
       daysPercentProgress,
