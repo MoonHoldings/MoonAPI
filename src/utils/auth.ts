@@ -67,7 +67,6 @@ export const setWebflowCookie = (res: Response) => {
 //Middleware for Authenticated routes
 export const isAuth: MiddlewareFn<Session> = ({ context }, next) => {
   const authorization = context.req.headers['access-token']
-  console.log(authorization)
   if (!authorization) {
     throw new Error('Not Authenticated')
   }
