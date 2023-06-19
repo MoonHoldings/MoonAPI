@@ -59,6 +59,8 @@ export const addUserWallet = async (wallet: string, verified: boolean, userId?: 
     userWallet.verified = true
     userWallet.hidden = false
     await userWallet.save()
+  } else if (verified && userWallet.verified) {
+    return true
   } else {
     return false
   }
