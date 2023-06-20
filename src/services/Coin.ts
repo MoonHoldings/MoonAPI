@@ -93,6 +93,21 @@ export const updateCoinData = async (editCoin: CoinData, user: User): Promise<Co
   return await coin.save()
 }
 
+export const updateCoinOnly = async (editCoin: CoinData, userWallet: UserWallet): Promise<Coin> => {
+  const coin = await Coin.findOne({
+    where: { symbol: editCoin.symbol, walletName: editCoin.walletName, walletAddress: editCoin.walletAddress },
+  })
+
+  console.log(coin)
+  console.log(userWallet)
+  if (!coin) {
+    return await saveCoinData(editCoin, userWallet)
+  }
+
+  coin.holdings = editCoin.holdings
+  return await coin.save()
+}
+
 export const saveCoinData = async (coinData: CoinData, userWallet: UserWallet): Promise<Coin> => {
   const newCoin = new Coin()
   newCoin.symbol = coinData.symbol
