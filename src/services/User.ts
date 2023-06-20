@@ -106,9 +106,10 @@ export const login = async (email: string, password: string, ctx: any) => {
   user.lastLoginTimestamp = new Date()
   await User.save(user)
 
-  utils.setAccessCookie(ctx.res, user, 'jid')
-  utils.setAccessCookie(ctx.res, user, 'aid')
+  //future implementation to use refresh
+  // utils.setAccessCookie(ctx.res, user, 'jid')
   utils.setWebflowCookie(ctx.res)
+  user.accessToken = utils.createAccessToken(user, '30d')
   return user
 }
 

@@ -8,7 +8,6 @@ import { ACCESS_TOKEN_SECRET, COOKIE_DOMAIN, REFRESH_TOKEN_SECRET, __prod__ } fr
 import oauth from './discord'
 const crypto = require('crypto')
 
-
 export const createAccessToken = (user: User, expiry: string) => {
   return sign({ userId: user.id, email: user.email }, `${ACCESS_TOKEN_SECRET}`, { expiresIn: expiry })
 }
@@ -27,8 +26,8 @@ export const setAccessCookie = (res: Response, user: User, cookieType: string, m
     Object.assign(cookieOptions, {
       secure: true,
       sameSite: 'none',
-      domain: COOKIE_DOMAIN
-    });
+      domain: COOKIE_DOMAIN,
+    })
   }
 
   res.cookie(cookieType, cookieType == 'aid' ? createAccessToken(user, '30d') : createRefreshToken(user), cookieOptions)
@@ -44,8 +43,8 @@ export const setMessageCookies = (res: Response, message: String, cookieType: st
     Object.assign(cookieOptions, {
       secure: true,
       sameSite: 'none',
-      domain: COOKIE_DOMAIN
-    });
+      domain: COOKIE_DOMAIN,
+    })
   }
 
   res.cookie(cookieType, message, cookieOptions)
@@ -58,8 +57,8 @@ export const setWebflowCookie = (res: Response) => {
 
   if (!__prod__) {
     Object.assign(cookieOptions, {
-      domain: COOKIE_DOMAIN
-    });
+      domain: COOKIE_DOMAIN,
+    })
   }
 
   res.cookie('wf', 'wf', cookieOptions)
@@ -67,23 +66,25 @@ export const setWebflowCookie = (res: Response) => {
 
 //Middleware for Authenticated routes
 export const isAuth: MiddlewareFn<Session> = ({ context }, next) => {
-  const authorization = context.req.cookies.aid
+  const authorization = context.req.headers['access-token']
   if (!authorization) {
     throw new Error('Not Authenticated')
   }
 
+  const token = (Array.isArray(authorization) ? authorization[0] : authorization).toString().split(' ')[1]
+
   try {
-    const payload = verify(authorization, `${ACCESS_TOKEN_SECRET}`)
+    const payload = verify(token, `${ACCESS_TOKEN_SECRET}`)
     context.payload = payload as any
   } catch (err) {
-    throw new Error('Not Authenticated')
+    throw new Error('Not Autahenticated')
   }
 
   return next()
 }
 
 export const generateDiscordUrl = async () => {
-  const state = crypto.randomBytes(16).toString('hex');
+  const state = crypto.randomBytes(16).toString('hex')
 
   const url = oauth.generateAuthUrl({
     scope: ['identify', 'email'],
