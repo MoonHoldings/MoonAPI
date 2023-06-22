@@ -10,7 +10,7 @@ export class UserWallet extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number
 
-  @Field(() => String, { nullable: false })
+  @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   address: string
 
