@@ -98,8 +98,6 @@ export const updateCoinOnly = async (editCoin: CoinData, userWallet: UserWallet)
     where: { symbol: editCoin.symbol, walletName: editCoin.walletName, walletAddress: editCoin.walletAddress },
   })
 
-  console.log(coin)
-  console.log(userWallet)
   if (!coin) {
     return await saveCoinData(editCoin, userWallet)
   }
