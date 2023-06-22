@@ -90,6 +90,10 @@ export const checkExistingWallet = async (userId: number, walletType: string, wa
       type: walletType,
     }).save()
   } else {
+    if (userWallet.hidden) {
+      userWallet.hidden = false
+      await userWallet.save()
+    }
     return userWallet
   }
 }
