@@ -148,3 +148,13 @@ export class CoinData {
   @Field()
   holdings: number
 }
+
+@InputType()
+export class ExchangeInfo {
+  @Field(() => [CoinData], { nullable: true })
+  coinData: CoinData[]
+  @Field({ nullable: true })
+  walletName: string
+  @Field({ nullable: true })
+  walletAddress: string
+}

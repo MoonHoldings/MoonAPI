@@ -1,11 +1,12 @@
 import { GraphQLError } from 'graphql'
 import { ApolloServerErrorCode } from '@apollo/server/errors'
-import { CoinData, CoinResponse, PortfolioType, UserWalletType } from '../types'
+import { CoinData, CoinResponse, ExchangeInfo, PortfolioType, UserWalletType } from '../types'
 import { Coin } from '../entities'
 import * as coinService from './Coin'
 import * as userService from './User'
 import * as userWalletService from './Wallet'
 import { getBorrowTotal, getCryptoTotal, getLoanTotal, getNftTotal } from './Dashboard'
+import { clearCoin } from './Coin'
 
 export const getUserPortfolioCoins = async (userId: number): Promise<Coin[]> => {
   const user = await userService.getUserById(userId)
@@ -45,8 +46,37 @@ export const addUserCoin = async (coinData: CoinData, userId: number) => {
   const userWallet = await userWalletService.checkExistingWallet(user.id, coinData.type ?? UserWalletType.Manual, coinData.walletName, coinData.walletAddress)
 
   try {
-    if (coinData.type == UserWalletType.Auto) return await coinService.updateCoinOnly(coinData, userWallet)
-    else return await coinService.saveCoinData(coinData, userWallet)
+    return await coinService.saveCoinData(coinData, userWallet)
+  } catch (error) {
+    throw new GraphQLError('', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
+  }
+}
+
+export const addExchangeCoins = async (exchangeInfo: ExchangeInfo, userId: number) => {
+  const user = await userService.getUserById(userId)
+  if (!user) {
+    throw new GraphQLError('User not found', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
+  }
+
+  const userWallet = await userWalletService.checkExistingWallet(user.id, UserWalletType.Auto, exchangeInfo.walletName, exchangeInfo.walletAddress)
+
+  try {
+    const deleteChecker = []
+
+    for (const coinData of exchangeInfo.coinData) {
+      deleteChecker.push(coinData.symbol)
+      await coinService.updateCoinOnly(coinData, userWallet)
+      await clearCoin(deleteChecker, exchangeInfo.walletAddress)
+    }
+    return false
   } catch (error) {
     throw new GraphQLError('', {
       extensions: {
