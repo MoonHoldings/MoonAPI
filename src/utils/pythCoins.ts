@@ -64,7 +64,7 @@ export async function getCoinPrices(userCoins: Coin[]) {
       }
     }
 
-    return coinsArray
+    return coinsArray.filter((obj) => parseFloat(obj.price) * obj.holdings >= 0.001)
   } catch (error) {
     return userCoins.map((myCoin) => {
       return { ...myCoin, price: 0 }
