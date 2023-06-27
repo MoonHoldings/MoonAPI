@@ -3,13 +3,17 @@ import express from 'express'
 
 import * as emailTokenService from '../services/EmailToken'
 import * as userService from '../services/User'
+import * as portfolioService from '../services/Porfolio'
 import { User } from '../entities'
 import * as utils from '../utils'
 import oauth from './discord'
 // import { memoryCache } from './cache'
-import { REFRESH_TOKEN_SECRET, WEBAPP_URL } from '../constants'
+import { REFRESH_TOKEN_SECRET, WEBAPP_URL, COINBASE_CLIENT, COINBASE_SECRET, COINBASE_URL, SERVER_URL } from '../constants'
 import { EmailTokenType } from '../enums'
-
+import axios from 'axios'
+import { PYTH_COINS } from './pythCoins'
+import { CoinData, ExchangeInfo } from '../types'
+import decrypt from './decrypt'
 const router = express.Router()
 
 router.post('/api/refresh_token', async (req, res) => {
@@ -110,6 +114,54 @@ router.get('/auth/discord', async (req, res) => {
     utils.setMessageCookies(res, error.message, 'message')
     return res.status(400).redirect(`${WEBAPP_URL}/redirect`)
   }
+})
+
+router.get('/auth/coinbase', async (req, res) => {
+  const code = req.query.code as string
+  const state = req.query.state as string
+
+  const [key, id] = decrypt(state)?.split(' ')
+
+  if (key !== 'HELLOMOON' || id == null || typeof id !== 'number' || state === null || code === null) {
+    return res.status(400).redirect(`${WEBAPP_URL}/redirect`)
+  }
+
+  const { data }: { data: any } = await axios.post(`${COINBASE_URL}/oauth/token`, {
+    grant_type: 'authorization_code',
+    code: code,
+    client_id: `${COINBASE_CLIENT}`,
+    client_secret: `${COINBASE_SECRET}`,
+    redirect_uri: `${SERVER_URL}/auth/coinbase`,
+  })
+
+  const token = data.access_token
+  const { data: accountsData }: { data: any } = await axios.get(`${COINBASE_URL}/v2/accounts`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  const filteredCoins = accountsData.data.filter((item: any) => item.currency.type === 'crypto' && PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.id))
+  const newCoins: CoinData[] = []
+
+  filteredCoins.forEach((test: any) =>
+    newCoins.push({
+      name: test.currency.name,
+      symbol: test.currency.code,
+      walletName: 'Coinbase',
+      type: 'Auto',
+      walletAddress: '',
+      holdings: parseFloat(test.balance.amount),
+    } as CoinData)
+  )
+
+  if (newCoins.length > 0) {
+    const exchangeInfo = new ExchangeInfo()
+    exchangeInfo.coinData = newCoins
+    exchangeInfo.walletName = 'Coinbase'
+    portfolioService.addExchangeCoins(exchangeInfo, id)
+  }
+
+  return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
 })
 
 router.get('/health_check', (_req, res) => {

@@ -20,6 +20,9 @@ export const SERVER_URL = process.env.SERVER_URL
 export const WEBAPP_URL = process.env.WEBAPP_URL
 export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN
 export const CRYPTO_SECRET = process.env.CRYPTO_SECRET
+export const COINBASE_URL = process.env.COINBASE_URL
+export const COINBASE_SECRET = process.env.COINBASE_SECRET
+export const COINBASE_CLIENT = process.env.COINBASE_CLIENT
 
 export const AXIOS_CONFIG_SHYFT_KEY = {
   headers: {
