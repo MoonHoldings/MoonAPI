@@ -4,7 +4,7 @@ import * as portfolioService from '../services/Porfolio'
 import * as walletService from '../services/Wallet'
 import * as nftService from '../services/Nft'
 import { isAuth } from '../utils'
-import { CoinData, CoinResponse, UserWalletType } from '../types'
+import { CoinData, CoinResponse, ExchangeInfo, UserWalletType } from '../types'
 
 @Resolver()
 export class PortfolioResolver {
@@ -42,6 +42,14 @@ export class PortfolioResolver {
   async addUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Ctx() context: any): Promise<Coin> {
     const { payload } = context
     return await portfolioService.addUserCoin(coinData, payload.userId)
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async addExchangeCoins(@Arg('exchangeInfo', { nullable: true }) exchangeInfo: ExchangeInfo, @Ctx() context: any): Promise<boolean> {
+    const { payload } = context
+
+    return await portfolioService.addExchangeCoins(exchangeInfo, payload.userId)
   }
 
   @Mutation(() => Boolean)
