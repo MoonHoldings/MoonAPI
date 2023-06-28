@@ -41,7 +41,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseMiddleware(isAuth)
+  // @UseMiddleware(isAuth)
   async logout(@Ctx() ctx: any): Promise<boolean> {
     if (ctx.res) {
       const cookieOptions = !__prod__
