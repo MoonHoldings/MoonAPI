@@ -42,7 +42,7 @@ const getPercentDaysProgress = (start: number, duration: number) => {
 const getHelloMoonLoanStatus = (loan: HistoricalLoanResponse) => {
   let status = HistoricalLoanStatus.Repaid
 
-  if ((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) {
+  if (loan.takenBlocktime && !loan.repayBlocktime) {
     status = HistoricalLoanStatus.Active
   }
 
@@ -54,9 +54,7 @@ const getHelloMoonLoanStatus = (loan: HistoricalLoanResponse) => {
     status = HistoricalLoanStatus.Taken
   }
 
-  const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
-
-  if (remainingDays < 1 && !loan.repayBlocktime && !loan.newLoan) {
+  if (loan.defaultBlocktime) {
     status = HistoricalLoanStatus.Foreclosed
   }
 
@@ -64,11 +62,15 @@ const getHelloMoonLoanStatus = (loan: HistoricalLoanResponse) => {
     status = HistoricalLoanStatus.Canceled
   }
 
+  if (loan.newLoan) {
+    status = HistoricalLoanStatus.Repaid
+  }
+
   return status
 }
 
-const formatElapsedTime = (unixTime: number) => {
-  const currentUnixTime = Math.floor(Date.now() / 1000)
+const formatElapsedTime = (unixTime: number, startDate?: Date) => {
+  const currentUnixTime = startDate ? Math.floor(startDate.getTime() / 1000) : Math.floor(Date.now() / 1000)
   let timePassed
   let unit
 
@@ -126,17 +128,22 @@ export const getTotalLendsByAddress = async (address: string): Promise<TotalLoan
     )
 
     paginationToken = data.paginationToken
-    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime)]
-    activeLoans = [...activeLoans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
 
+    // These are loans that have been taken including foreclosed
+    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime)]
+    // These are loans that are open (taken, not yet repaid back, not yet foreclosed)
+    activeLoans = [...activeLoans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime && !loan.newLoan && !loan.defaultBlocktime)]
+
+    // These are loans that have been taken including foreclosed
     total += data?.data
-      ?.filter((loan: any) => (loan.takenBlocktime && loan.repayBlocktime) || (loan.takenBlocktime && loan.newLoan))
+      ?.filter((loan: any) => loan.takenBlocktime)
       ?.reduce((accumulator: number, loan: any) => {
         return accumulator + loan.amountOffered
       }, 0)
 
+    // These are loans that are open (taken, not yet repaid back, not yet foreclosed)
     totalActive += data?.data
-      ?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)
+      ?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime && !loan.newLoan && !loan.defaultBlocktime)
       ?.reduce((accumulator: number, loan: any) => {
         return accumulator + loan.amountOffered
       }, 0)
@@ -156,10 +163,12 @@ export const getTotalLendsByAddress = async (address: string): Promise<TotalLoan
   for (const loan of loans) {
     const status = getHelloMoonLoanStatus(loan)
 
-    if (status === HistoricalLoanStatus.Foreclosed) foreclosedTotal++
-
-    const orderBook = orderBooksByPubKey[loan.orderBook]
-    totalInterest += calculateOfferInterest(loan.amountOffered, loan.loanDurationSeconds, orderBook.apy, orderBook.feePermillicentage)
+    if (status === HistoricalLoanStatus.Foreclosed) {
+      foreclosedTotal++
+    } else {
+      const orderBook = orderBooksByPubKey[loan.orderBook]
+      totalInterest += calculateOfferInterest(loan.amountOffered, loan.loanDurationSeconds, orderBook.apy, orderBook.feePermillicentage)
+    }
   }
 
   for (const activeLoan of activeLoans) {
@@ -179,53 +188,31 @@ export const getTotalLendsByAddress = async (address: string): Promise<TotalLoan
 }
 
 export const getTotalBorrowsByAddress = async (address: string): Promise<TotalLoanResponse> => {
-  let paginationToken = true
-  let total = 0
-  let loans: any[] = []
-  const currentUnixTime = Math.floor(Date.now() / 1000)
-
-  while (paginationToken) {
-    const { data }: { data: any } = await axios.post(
-      `${HELLO_MOON_URL}/sharky/loan-summary`,
-      {
-        takenBlocktime: {
-          operator: '<',
-          value: currentUnixTime,
-        },
-        borrower: address,
-        paginationToken: paginationToken !== true ? paginationToken : null,
-        limit: 100,
+  const loans = await Loan.find({
+    where: {
+      borrowerNoteMint: address,
+      state: 'taken',
+    },
+    relations: {
+      orderBook: {
+        nftList: true,
       },
-      AXIOS_CONFIG_HELLO_MOON_KEY
-    )
+    },
+  })
 
-    paginationToken = data.paginationToken
-    loans = [...loans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
+  const total = loans.reduce((amount, loan) => {
+    return amount + loan.principalLamports / LAMPORTS_PER_SOL
+  }, 0)
 
-    total += data?.data
-      ?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)
-      ?.reduce((accumulator: number, loan: any) => {
-        return accumulator + loan.amountOffered
-      }, 0)
-  }
-
-  const orderBookPubKeys = loans.map((loan) => loan.orderBook)
-  const orderBooks = await OrderBook.find({ select: ['pubKey', 'apy', 'feePermillicentage'], where: { pubKey: In(orderBookPubKeys) } })
-  const orderBooksByPubKey: Record<string, OrderBook> = orderBooks.reduce((accumulator: any, orderBook) => {
-    accumulator[orderBook.pubKey] = orderBook
-    return accumulator
-  }, {})
-
-  let totalInterest = 0
+  let interest = 0
 
   for (const loan of loans) {
-    const orderBook = orderBooksByPubKey[loan.orderBook]
-    totalInterest += calculateBorrowInterest(loan.amountOffered, loan.loanDurationSeconds, orderBook.apy)
+    interest += calculateBorrowInterest(loan.principalLamports / LAMPORTS_PER_SOL, loan?.orderBook?.duration, loan?.orderBook?.apy)
   }
 
   return {
     total,
-    interest: totalInterest,
+    interest,
   }
 }
 
@@ -559,7 +546,7 @@ export const getLoanSummary = async (borrower?: string, lender?: string, paginat
     let status = getHelloMoonLoanStatus(loan)
 
     const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
-    const daysPercentProgress = status === HistoricalLoanStatus.Active ? getPercentDaysProgress(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds) : null
+    const daysPercentProgress = status === HistoricalLoanStatus.Active ? getPercentDaysProgress(loan.takenBlocktime, loan.loanDurationSeconds) : null
 
     return {
       ...loan,
@@ -573,7 +560,7 @@ export const getLoanSummary = async (borrower?: string, lender?: string, paginat
       remainingDays: remainingDays ? remainingDays : null,
       daysPercentProgress,
       repayElapsedTime: status === HistoricalLoanStatus.Repaid ? formatElapsedTime(loan.repayBlocktime) : null,
-      foreclosedElapsedTime: status === HistoricalLoanStatus.Foreclosed ? formatElapsedTime(loan.takenBlocktime + loan.loanDurationSeconds) : null,
+      foreclosedElapsedTime: status === HistoricalLoanStatus.Foreclosed ? formatElapsedTime(loan.defaultBlocktime) : null,
       canceledElapsedTime: status === HistoricalLoanStatus.Canceled ? formatElapsedTime(loan.cancelBlocktime) : null,
     }
   })
@@ -603,9 +590,9 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
   let paginationToken = loans.paginationToken
 
   if (lender) {
-    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
+    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.takenBlocktime)
   } else if (borrower) {
-    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
+    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime || loan.newLoan)
   }
 
   // Check if filtered historical loans is less than 100, fetch more if it is
@@ -625,9 +612,9 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
     let filteredHistoricalLoans = []
 
     if (lender) {
-      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => (loan.takenBlocktime && !loan.repayBlocktime) || loan.repayBlocktime)
+      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => loan.takenBlocktime)
     } else if (borrower) {
-      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime)
+      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime || loan.newLoan)
     }
 
     if (filteredHistoricalLoans) {
@@ -653,20 +640,8 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
 
     let status = getHelloMoonLoanStatus(loan)
 
-    // if (((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) || (loan.offerBlocktime && !loan.repayBlocktime)) {
-    //   status = HistoricalLoanStatus.Active
-    // }
-
     const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
-    const daysPercentProgress = status === HistoricalLoanStatus.Active ? getPercentDaysProgress(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds) : null
-
-    // if (remainingDays < 1 && !loan.repayBlocktime) {
-    //   status = HistoricalLoanStatus.Foreclosed
-    // }
-
-    // if (loan.cancelBlocktime) {
-    //   status = HistoricalLoanStatus.Canceled
-    // }
+    const daysPercentProgress = status === HistoricalLoanStatus.Active ? getPercentDaysProgress(loan.takenBlocktime, loan.loanDurationSeconds) : null
 
     return {
       ...loan,
@@ -679,8 +654,8 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
       status,
       remainingDays: remainingDays ? remainingDays : null,
       daysPercentProgress,
-      repayElapsedTime: status === HistoricalLoanStatus.Repaid ? formatElapsedTime(loan.repayBlocktime) : null,
-      foreclosedElapsedTime: status === HistoricalLoanStatus.Foreclosed ? formatElapsedTime(loan.takenBlocktime + loan.loanDurationSeconds) : null,
+      repayElapsedTime: status === HistoricalLoanStatus.Repaid ? formatElapsedTime(loan.extendBlocktime ?? loan.repayBlocktime) : null,
+      foreclosedElapsedTime: status === HistoricalLoanStatus.Foreclosed ? formatElapsedTime(loan.defaultBlocktime) : null,
       canceledElapsedTime: status === HistoricalLoanStatus.Canceled ? formatElapsedTime(loan.cancelBlocktime) : null,
     }
   })
@@ -690,7 +665,7 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
   const foreclosed = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Foreclosed).sort((a: any, b: any) => b.takenBlocktime - a.takenBlocktime)
   // const canceled = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.status === HistoricalLoanStatus.Canceled).sort((a: any, b: any) => b.offerBlocktime - a.offerBlocktime)
 
-  return [...active, ...repaid, ...foreclosed]
+  return [...active, ...repaid, ...foreclosed].sort((a, b) => b.offerBlocktime - a.offerBlocktime)
 }
 
 export const createLoans = async (loans: CreateLoan[]): Promise<Loan[]> => {
