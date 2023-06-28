@@ -56,7 +56,7 @@ const getHelloMoonLoanStatus = (loan: HistoricalLoanResponse) => {
 
   const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
 
-  if (remainingDays < 1 && !loan.repayBlocktime) {
+  if (remainingDays < 1 && !loan.repayBlocktime && !loan.newLoan) {
     status = HistoricalLoanStatus.Foreclosed
   }
 
@@ -130,7 +130,7 @@ export const getTotalLendsByAddress = async (address: string): Promise<TotalLoan
     activeLoans = [...activeLoans, ...data?.data?.filter((loan: any) => loan.takenBlocktime && !loan.repayBlocktime)]
 
     total += data?.data
-      ?.filter((loan: any) => loan.takenBlocktime)
+      ?.filter((loan: any) => (loan.takenBlocktime && loan.repayBlocktime) || (loan.takenBlocktime && loan.newLoan))
       ?.reduce((accumulator: number, loan: any) => {
         return accumulator + loan.amountOffered
       }, 0)
@@ -651,22 +651,22 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
       borrowInterest = calculateBorrowInterest(loan.amountOffered, orderBook.duration, orderBook.apy)
     }
 
-    let status = HistoricalLoanStatus.Repaid
+    let status = getHelloMoonLoanStatus(loan)
 
-    if (((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) || (loan.offerBlocktime && !loan.repayBlocktime)) {
-      status = HistoricalLoanStatus.Active
-    }
+    // if (((loan.takenBlocktime || loan.extendBlocktime) && !loan.repayBlocktime) || (loan.offerBlocktime && !loan.repayBlocktime)) {
+    //   status = HistoricalLoanStatus.Active
+    // }
 
     const remainingDays = getRemainingDays(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds)
     const daysPercentProgress = status === HistoricalLoanStatus.Active ? getPercentDaysProgress(loan.extendBlocktime ? loan.extendBlocktime : loan.takenBlocktime, loan.loanDurationSeconds) : null
 
-    if (remainingDays < 1 && !loan.repayBlocktime) {
-      status = HistoricalLoanStatus.Foreclosed
-    }
+    // if (remainingDays < 1 && !loan.repayBlocktime) {
+    //   status = HistoricalLoanStatus.Foreclosed
+    // }
 
-    if (loan.cancelBlocktime) {
-      status = HistoricalLoanStatus.Canceled
-    }
+    // if (loan.cancelBlocktime) {
+    //   status = HistoricalLoanStatus.Canceled
+    // }
 
     return {
       ...loan,
