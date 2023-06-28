@@ -589,10 +589,13 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
   let historicalLoans = loans.data
   let paginationToken = loans.paginationToken
 
+  const isOffer = (loan: HistoricalLoanResponse) => loan.takenBlocktime
+  const isLoan = (loan: HistoricalLoanResponse) => loan.repayBlocktime || loan.newLoan || loan.defaultBlocktime
+
   if (lender) {
-    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.takenBlocktime)
+    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => isOffer(loan))
   } else if (borrower) {
-    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime || loan.newLoan)
+    historicalLoans = historicalLoans.filter((loan: HistoricalLoanResponse) => isLoan(loan))
   }
 
   // Check if filtered historical loans is less than 100, fetch more if it is
@@ -612,9 +615,9 @@ export const getHistoricalLoansByUser = async (borrower?: string, lender?: strin
     let filteredHistoricalLoans = []
 
     if (lender) {
-      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => loan.takenBlocktime)
+      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => isOffer(loan))
     } else if (borrower) {
-      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => loan.repayBlocktime || loan.newLoan)
+      filteredHistoricalLoans = data.data.filter((loan: HistoricalLoanResponse) => isLoan(loan))
     }
 
     if (filteredHistoricalLoans) {
@@ -828,19 +831,16 @@ export const saveLoans = async () => {
     const timeBeforeFetch = new Date()
     // Delete loans that are not in the new loans
     const loansForDelete = await sharkyClient.fetchAllLoans({ program })
-    console.log('loansForDelete')
     // We only delete loans that are created before we fetch the new loans so that it doesn't delete loans created while old data is fetching
     const loansForDeletePubKeys = loansForDelete.map((loan) => loan.pubKey.toBase58())
-    console.log('loansForDeletePubKeys', loansForDeletePubKeys.length)
     const loansForDeleteEntities = await loanRepository.find({ select: ['id'], where: { pubKey: Not(In(loansForDeletePubKeys)), updatedAt: LessThan(timeBeforeFetch) } })
-    console.log('loansForDeleteEntities', loansForDeleteEntities.length)
+
     await loanRepository
       .createQueryBuilder()
       .update(Loan)
       .set({ deletedAt: new Date() })
       .where('id IN (:...ids)', { ids: loansForDeleteEntities.map((loan) => loan.id) })
       .execute()
-    console.log('loanRepository.softRemove')
 
     console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
   } catch (error) {
