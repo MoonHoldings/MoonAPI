@@ -832,10 +832,10 @@
     "@sentry/types" "7.53.0"
     tslib "^1.9.3"
 
-"@sharkyfi/client@^6.1.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@sharkyfi/client/-/client-6.1.0.tgz#d17c7970b58e1132d817462569552b7666ec77ae"
-  integrity sha512-93RSyDclmgX5JhYWeJIK7I4nrfcJdtk2OPhjD8cIrWKbmKhsceSRLXzuu6ESlMroHItYGRySUCErJDQx9O/3Ag==
+"@sharkyfi/client@^6.3.2":
+  version "6.3.2"
+  resolved "https://registry.yarnpkg.com/@sharkyfi/client/-/client-6.3.2.tgz#1fa89e8b11844098a0883f8ddde52836f55dc7dc"
+  integrity sha512-MQB5LL13WfluLYsmWT6SZOQiF/ZvyyCtZncvyLCxMpFv69+4WxBsznNlwWLacxtyxfqBJbBahQCEHRFlu+ajiA==
   dependencies:
     "@cardinal/common" "5.0.7"
     "@cardinal/payment-manager" "2.2.0"
