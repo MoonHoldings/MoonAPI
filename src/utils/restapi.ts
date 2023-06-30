@@ -122,7 +122,7 @@ router.get('/auth/coinbase', async (req, res) => {
 
   const [key, id] = decrypt(state)?.split(' ')
 
-  if (key !== 'HELLOMOON' || id == null || typeof id !== 'number' || state === null || code === null) {
+  if (key !== 'HELLOMOON' && id == null && typeof id !== 'number' && state === null && code === null) {
     return res.status(400).redirect(`${WEBAPP_URL}/redirect`)
   }
 
@@ -133,14 +133,28 @@ router.get('/auth/coinbase', async (req, res) => {
     client_secret: `${COINBASE_SECRET}`,
     redirect_uri: `${SERVER_URL}/auth/coinbase`,
   })
-
   const token = data.access_token
-  const { data: accountsData }: { data: any } = await axios.get(`${COINBASE_URL}/v2/accounts`, {
+
+  const getUserPromise = axios.get(`${COINBASE_URL}/v2/user`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   })
-  const filteredCoins = accountsData.data.filter((item: any) => item.currency.type === 'crypto' && PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.id))
+
+  const getAccountsPromise = axios.get(`${COINBASE_URL}/v2/accounts`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  const [userData, accountsData] = await Promise.all([getUserPromise, getAccountsPromise])
+
+  const { data: userDataResponse }: { data: any } = userData
+  const { data: accountsDataResponse }: { data: any } = accountsData
+
+  const userId = userDataResponse.data.id
+
+  const filteredCoins = accountsDataResponse.data.filter((item: any) => item.currency.type === 'crypto' && PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.id))
   const newCoins: CoinData[] = []
 
   filteredCoins.forEach((test: any) =>
@@ -149,7 +163,7 @@ router.get('/auth/coinbase', async (req, res) => {
       symbol: test.currency.code,
       walletName: 'Coinbase',
       type: 'Auto',
-      walletAddress: '',
+      walletAddress: userId,
       holdings: parseFloat(test.balance.amount),
     } as CoinData)
   )
@@ -158,9 +172,10 @@ router.get('/auth/coinbase', async (req, res) => {
     const exchangeInfo = new ExchangeInfo()
     exchangeInfo.coinData = newCoins
     exchangeInfo.walletName = 'Coinbase'
+    exchangeInfo.walletAddress = userId
     portfolioService.addExchangeCoins(exchangeInfo, id)
   }
-
+  utils.setMessageCookies(res, `You have successfully linked your Coinbase`, 'message')
   return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
 })
 
