@@ -6,6 +6,11 @@ import * as nftService from '../services/Nft'
 import { isAuth } from '../utils'
 import { CoinData, CoinResponse, ExchangeInfo, UserWalletType } from '../types'
 
+import { AccountsGetRequest, CountryCode, Products } from 'plaid'
+import { client } from '../utils/plaid'
+import { GraphQLError } from 'graphql'
+import { ApolloServerErrorCode } from '@apollo/server/errors'
+
 @Resolver()
 export class PortfolioResolver {
   @Query(() => [Coin])
@@ -107,5 +112,60 @@ export class PortfolioResolver {
   getUserPortfolioTotalByType(@Ctx() context: any, @Arg('type') type: string): Promise<number> {
     const { payload } = context
     return portfolioService.getPortfolioTotalByType(payload?.userId, type)
+  }
+
+  @Query(() => String)
+  @UseMiddleware(isAuth)
+  async getPlaidLinkToken(@Ctx() context: any): Promise<string> {
+    const { payload } = context
+    try {
+      const response = await client.linkTokenCreate({
+        user: {
+          client_user_id: payload?.userId?.toString(),
+        },
+        client_name: 'Moon Holdings',
+        products: [Products.Auth],
+        country_codes: [CountryCode.Us],
+        language: 'en',
+      })
+
+      return response.data.link_token
+    } catch (error) {
+      throw new GraphQLError('Server error', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT,
+        },
+      })
+    }
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async connectPlaidDetails(@Arg('public_token') public_token: string): Promise<boolean> {
+    try {
+      const tokenExchangeResponse = await client.itemPublicTokenExchange({
+        public_token: public_token,
+      })
+
+      const access_token = tokenExchangeResponse.data.access_token
+      const request: AccountsGetRequest = {
+        access_token: access_token,
+      }
+      const accountBalancesResponse = await client.accountsBalanceGet(request)
+
+      accountBalancesResponse?.data?.accounts?.forEach((account) => {
+        console.log(account.balances)
+      })
+
+      //TODO: IMPLEMENT LINKING OF ACTUAL BALANCES
+
+      return true
+    } catch (error) {
+      throw new GraphQLError('Invalid Token', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT,
+        },
+      })
+    }
   }
 }

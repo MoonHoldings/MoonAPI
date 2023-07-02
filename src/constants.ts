@@ -27,6 +27,8 @@ export const GEMINI_URL = process.env.GEMINI_URL
 export const GEMINI_OAUTH_URL = process.env.GEMINI_OAUTH_URL
 export const GEMINI_SECRET = process.env.GEMINI_SECRET
 export const GEMINI_CLIENT = process.env.GEMINI_CLIENT
+export const PLAID_SECRET = process.env.PLAID_SECRET
+export const PLAID_CLIENT = process.env.PLAID_CLIENT
 
 export const AXIOS_CONFIG_SHYFT_KEY = {
   headers: {
