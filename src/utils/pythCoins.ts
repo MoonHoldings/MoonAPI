@@ -64,8 +64,7 @@ export async function getCoinPrices(userCoins: Coin[]) {
       }
     }
 
-    return coinsArray
-    // return coinsArray.filter((obj) => parseFloat(obj.price) * obj.holdings >= 0.001)
+    return coinsArray.filter((obj) => parseFloat(obj.price) * obj.holdings >= 0.001)
   } catch (error) {
     return userCoins.map((myCoin) => {
       return { ...myCoin, price: 0 }
@@ -93,8 +92,7 @@ export async function getCoinPrice(userCoins: any[], symbol: string) {
       price = (moonData[0].price / 1000000).toString()
     }
 
-    resp.coins = userCoins
-    // resp.coins = userCoins.filter((obj) => parseFloat(price) * obj.holdings >= 0.001)
+    resp.coins = userCoins.filter((obj) => parseFloat(price) * obj.holdings >= 0.001)
     resp.price = price
   } catch (error) {
     console.log(error.message)
