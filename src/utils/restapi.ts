@@ -153,11 +153,11 @@ router.get('/auth/coinbase', async (req, res) => {
   const { data: accountsDataResponse }: { data: any } = accountsData
 
   const userId = userDataResponse.data.id
-
+  console.log(accountsDataResponse.data)
+  console.log(userId)
   const filteredCoins = accountsDataResponse.data.filter((item: any) => item.currency.type === 'crypto' && PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.id))
   const newCoins: CoinData[] = []
 
-  console.log(accountsDataResponse)
   console.log(filteredCoins)
 
   filteredCoins.forEach((test: any) =>
