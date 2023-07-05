@@ -55,7 +55,7 @@
     "@pythnetwork/client": "^2.17.0",
     "@sendgrid/mail": "^7.7.0",
     "@sentry/node": "^7.53.0",
-    "@sharkyfi/client": "^6.1.0",
+    "@sharkyfi/client": "^6.3.2",
     "@shyft-to/js": "^0.2.11",
     "@solana/web3.js": "^1.75.0",
     "@types/cron": "^2.0.0",
