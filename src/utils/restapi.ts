@@ -157,6 +157,9 @@ router.get('/auth/coinbase', async (req, res) => {
   const filteredCoins = accountsDataResponse.data.filter((item: any) => item.currency.type === 'crypto' && PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.id))
   const newCoins: CoinData[] = []
 
+  console.log(accountsDataResponse)
+  console.log(filteredCoins)
+
   filteredCoins.forEach((test: any) =>
     newCoins.push({
       name: test.currency.name,
@@ -174,8 +177,10 @@ router.get('/auth/coinbase', async (req, res) => {
     exchangeInfo.walletName = 'Coinbase'
     exchangeInfo.walletAddress = userId
     portfolioService.addExchangeCoins(exchangeInfo, id)
+    utils.setMessageCookies(res, `You have successfully linked your Coinbase`, 'message')
+    return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
   }
-  utils.setMessageCookies(res, `You have successfully linked your Coinbase`, 'message')
+
   return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
 })
 
