@@ -153,21 +153,17 @@ router.get('/auth/coinbase', async (req, res) => {
   const { data: accountsDataResponse }: { data: any } = accountsData
 
   const userId = userDataResponse.data.id
-  console.log(accountsDataResponse.data)
-  console.log(userId)
-  const filteredCoins = accountsDataResponse.data.filter((item: any) => item.currency.type === 'crypto' && PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.id))
+  const filteredCoins = accountsDataResponse.data.filter((item: any) => PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.balance.currency))
   const newCoins: CoinData[] = []
 
-  console.log(filteredCoins)
-
-  filteredCoins.forEach((test: any) =>
+  filteredCoins.forEach((coinbaseCoin: any) =>
     newCoins.push({
-      name: test.currency.name,
-      symbol: test.currency.code,
+      name: coinbaseCoin.currency.name,
+      symbol: coinbaseCoin.currency.code,
       walletName: 'Coinbase',
       type: 'Auto',
       walletAddress: userId,
-      holdings: parseFloat(test.balance.amount),
+      holdings: parseFloat(coinbaseCoin.balance.amount),
     } as CoinData)
   )
 
@@ -180,7 +176,7 @@ router.get('/auth/coinbase', async (req, res) => {
     utils.setMessageCookies(res, `You have successfully linked your Coinbase`, 'message')
     return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
   }
-
+  utils.setMessageCookies(res, `You have successfully linked your Coinbase`, 'error')
   return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
 })
 
