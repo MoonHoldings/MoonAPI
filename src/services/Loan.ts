@@ -78,24 +78,24 @@ const formatElapsedTime = (unixTime: number, startDate?: Date) => {
 
   if (secondsPassed < 60) {
     timePassed = secondsPassed
-    unit = 'second'
+    unit = 's'
   } else if (secondsPassed < 3600) {
     timePassed = Math.floor(secondsPassed / 60)
-    unit = 'minute'
+    unit = 'm'
   } else if (secondsPassed < 86400) {
     timePassed = Math.floor(secondsPassed / 3600)
-    unit = 'hour'
+    unit = 'H'
   } else if (secondsPassed < 2592000) {
     timePassed = Math.floor(secondsPassed / 86400)
-    unit = 'day'
+    unit = 'D'
   } else {
     timePassed = Math.floor(secondsPassed / 2592000)
-    unit = 'month'
+    unit = 'M'
   }
 
-  if (timePassed !== 1) {
-    unit += 's'
-  }
+  // if (timePassed !== 1) {
+  //   unit += 's'
+  // }
 
   return `${timePassed} ${unit} ago`
 }
