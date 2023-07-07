@@ -8,7 +8,7 @@ import { User } from '../entities'
 import * as utils from '../utils'
 import oauth from './discord'
 // import { memoryCache } from './cache'
-import { REFRESH_TOKEN_SECRET, WEBAPP_URL, COINBASE_CLIENT, COINBASE_SECRET, COINBASE_URL, SERVER_URL } from '../constants'
+import { REFRESH_TOKEN_SECRET, WEBAPP_URL, COINBASE_CLIENT, COINBASE_SECRET, COINBASE_URL, SERVER_URL, GEMINI_CLIENT, GEMINI_URL, GEMINI_SECRET } from '../constants'
 import { EmailTokenType } from '../enums'
 import axios from 'axios'
 import { PYTH_COINS } from './pythCoins'
@@ -177,6 +177,71 @@ router.get('/auth/coinbase', async (req, res) => {
   }
   utils.setMessageCookies(res, `You have successfully linked your Coinbase`, 'message')
   return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
+})
+
+router.get('/auth/gemini', async (req, res) => {
+  const code = req.query.code as string
+  const state = req.query.state as string
+
+  const [key, id] = decrypt(state)?.split(' ')
+
+  if (key !== 'HELLOMOON' && id == null && typeof id !== 'number' && state === null && code === null) {
+    utils.setMessageCookies(res, 'Fail', 'message')
+    return res.status(200).redirect(`http://localhost:3000/redirect`)
+  }
+
+  const { data }: { data: any } = await axios.post(`${GEMINI_URL}/auth/token`, {
+    grant_type: 'authorization_code',
+    code: code,
+    client_id: `${GEMINI_CLIENT}`,
+    client_secret: `${GEMINI_SECRET}`,
+    redirect_uri: `${SERVER_URL}/auth/gemini`,
+  })
+  const token = data.access_token
+
+  // const getUserPromise = axios.get(`${GEMINI_URL}/v2/user`, {
+  //   headers: {
+  //     Authorization: `Bearer ${token}`,
+  //   },
+  // })
+
+  // const getAccountsPromise = axios.get(`${GEMINI_URL}/v1/balances`, {
+  //   headers: {
+  //     Authorization: `Bearer ${token}`,
+  //   },
+  // })
+
+  // const [userData, accountsData] = await Promise.all([getUserPromise, getAccountsPromise])
+
+  // const { data: userDataResponse }: { data: any } = userData
+  // const { data: accountsDataResponse }: { data: any } = accountsData
+
+  // const userId = userDataResponse.data.id
+  // const filteredCoins = accountsDataResponse.data.filter((item: any) => PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.balance.currency))
+  // const newCoins: CoinData[] = []
+
+  // filteredCoins.forEach((coinbaseCoin: any) =>
+  //   newCoins.push({
+  //     name: coinbaseCoin.currency.name,
+  //     symbol: coinbaseCoin.currency.code,
+  //     walletName: 'Gemini',
+  //     type: 'Auto',
+  //     walletAddress: userId,
+  //     holdings: parseFloat(coinbaseCoin.balance.amount),
+  //   } as CoinData)
+  // )
+
+  // if (newCoins.length > 0) {
+  //   const exchangeInfo = new ExchangeInfo()
+  //   exchangeInfo.coinData = newCoins
+  //   exchangeInfo.walletName = 'Gemini'
+  //   exchangeInfo.walletAddress = userId
+  //   portfolioService.addExchangeCoins(exchangeInfo, id)
+  //   utils.setMessageCookies(res, `You have successfully linked your Gemini`, 'message')
+  //   return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
+  // }
+  utils.setMessageCookies(res, token, 'message')
+  return res.status(200).redirect(`http://localhost:3000/redirect`)
 })
 
 router.get('/health_check', (_req, res) => {
