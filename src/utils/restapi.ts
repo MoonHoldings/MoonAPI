@@ -208,48 +208,50 @@ router.get('/auth/gemini', async (req, res) => {
   })
   const token = data.access_token
 
-  // const getUserPromise = axios.get(`${GEMINI_URL}/v2/user`, {
-  //   headers: {
-  //     Authorization: `Bearer ${token}`,
-  //   },
-  // })
+  const getAccountsPromise = axios.get(`${GEMINI_URL}/v1/balances`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
 
-  // const getAccountsPromise = axios.get(`${GEMINI_URL}/v1/balances`, {
-  //   headers: {
-  //     Authorization: `Bearer ${token}`,
-  //   },
-  // })
+  const [accountsData] = await Promise.all([getAccountsPromise])
 
-  // const [userData, accountsData] = await Promise.all([getUserPromise, getAccountsPromise])
+  const { data: accountsDataResponse }: { data: any } = accountsData
 
-  // const { data: userDataResponse }: { data: any } = userData
-  // const { data: accountsDataResponse }: { data: any } = accountsData
+  const filteredCoins = accountsDataResponse.filter((item: any) => PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.currency))
+  const newCoins: CoinData[] = []
 
-  // const userId = userDataResponse.data.id
-  // const filteredCoins = accountsDataResponse.data.filter((item: any) => PYTH_COINS.find((pythCoin) => pythCoin.symbol === item.balance.currency))
-  // const newCoins: CoinData[] = []
+  filteredCoins.forEach((geminiCoin: any) =>
+    newCoins.push({
+      name: geminiCoin.currency,
+      symbol: geminiCoin.currency,
+      walletName: 'Gemini',
+      type: 'Auto',
+      walletAddress: `GEMINI_${id}`,
+      holdings: parseFloat(geminiCoin.available),
+    } as CoinData)
+  )
 
-  // filteredCoins.forEach((coinbaseCoin: any) =>
-  //   newCoins.push({
-  //     name: coinbaseCoin.currency.name,
-  //     symbol: coinbaseCoin.currency.code,
-  //     walletName: 'Gemini',
-  //     type: 'Auto',
-  //     walletAddress: userId,
-  //     holdings: parseFloat(coinbaseCoin.balance.amount),
-  //   } as CoinData)
-  // )
+  if (newCoins.length > 0) {
+    const exchangeInfo = new ExchangeInfo()
+    exchangeInfo.coinData = newCoins
+    exchangeInfo.walletName = 'Gemini'
+    exchangeInfo.walletAddress = `GEMINI_${id}`
+    portfolioService.addExchangeCoins(exchangeInfo, id)
+    utils.setMessageCookies(res, `You have successfully linked your Gemini`, 'message')
+    return res.status(404).send(`
+    <html>
+      <head>
+        <title>404 Not Found</title>
+      </head>
+      <body>
+        <h1>404 Not Found</h1>
+        <p>The requested URL was not found on this server.</p>
+      </body>
+    </html>
+  `)
+  }
 
-  // if (newCoins.length > 0) {
-  //   const exchangeInfo = new ExchangeInfo()
-  //   exchangeInfo.coinData = newCoins
-  //   exchangeInfo.walletName = 'Gemini'
-  //   exchangeInfo.walletAddress = userId
-  //   portfolioService.addExchangeCoins(exchangeInfo, id)
-  //   utils.setMessageCookies(res, `You have successfully linked your Gemini`, 'message')
-  //   return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
-  // }
-  // utils.setMessageCookies(res, token, 'message')
   return res.status(404).send(`
   <html>
     <head>
@@ -257,7 +259,7 @@ router.get('/auth/gemini', async (req, res) => {
     </head>
     <body>
       <h1>404 Not Found</h1>
-      <p>The requested URL ${token} was not found on this server.</p>
+      <p>The requested URL was not found on this server.</p>
     </body>
   </html>
 `)
