@@ -208,7 +208,7 @@ router.get('/auth/gemini', async (req, res) => {
   })
   const token = data.access_token
 
-  const getAccountsPromise = axios.get(`${GEMINI_URL}/v1/balances`, {
+  const getAccountsPromise = axios.post(`${GEMINI_URL}/v1/balances`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
