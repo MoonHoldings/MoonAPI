@@ -158,8 +158,8 @@ router.get('/auth/coinbase', async (req, res) => {
   console.log(accountsDataResponse.data)
   filteredCoins.forEach((coinbaseCoin: any) =>
     newCoins.push({
-      name: coinbaseCoin.currency.name,
-      symbol: coinbaseCoin.currency.code,
+      name: coinbaseCoin.balance.currency,
+      symbol: coinbaseCoin.balance.currency,
       walletName: 'Coinbase',
       type: 'Auto',
       walletAddress: userId,
