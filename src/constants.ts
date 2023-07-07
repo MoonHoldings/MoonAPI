@@ -23,6 +23,9 @@ export const CRYPTO_SECRET = process.env.CRYPTO_SECRET
 export const COINBASE_URL = process.env.COINBASE_URL
 export const COINBASE_SECRET = process.env.COINBASE_SECRET
 export const COINBASE_CLIENT = process.env.COINBASE_CLIENT
+export const GEMINI_URL = process.env.GEMINI_URL
+export const GEMINI_SECRET = process.env.GEMINI_SECRET
+export const GEMINI_CLIENT = process.env.GEMINI_CLIENT
 
 export const AXIOS_CONFIG_SHYFT_KEY = {
   headers: {
