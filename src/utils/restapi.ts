@@ -186,8 +186,17 @@ router.get('/auth/gemini', async (req, res) => {
   const [key, id] = decrypt(state)?.split(' ')
 
   if (key !== 'HELLOMOON' && id == null && typeof id !== 'number' && state === null && code === null) {
-    utils.setMessageCookies(res, 'Fail', 'message')
-    return res.status(200).redirect(`http://localhost:3000/redirect`)
+    return res.status(404).send(`
+    <html>
+      <head>
+        <title>404 Not Found</title>
+      </head>
+      <body>
+        <h1>404 Not Found</h1>
+        <p>The requested URL fail was not found on this server.</p>
+      </body>
+    </html>
+  `)
   }
 
   const { data }: { data: any } = await axios.post(`${GEMINI_URL}/auth/token`, {
@@ -240,8 +249,18 @@ router.get('/auth/gemini', async (req, res) => {
   //   utils.setMessageCookies(res, `You have successfully linked your Gemini`, 'message')
   //   return res.status(200).redirect(`${WEBAPP_URL}/redirect`)
   // }
-  utils.setMessageCookies(res, token, 'message')
-  return res.status(200).redirect(`http://localhost:3000/redirect`)
+  // utils.setMessageCookies(res, token, 'message')
+  return res.status(404).send(`
+  <html>
+    <head>
+      <title>404 Not Found</title>
+    </head>
+    <body>
+      <h1>404 Not Found</h1>
+      <p>The requested URL ${token} was not found on this server.</p>
+    </body>
+  </html>
+`)
 })
 
 router.get('/health_check', (_req, res) => {
