@@ -24,6 +24,7 @@ export const COINBASE_URL = process.env.COINBASE_URL
 export const COINBASE_SECRET = process.env.COINBASE_SECRET
 export const COINBASE_CLIENT = process.env.COINBASE_CLIENT
 export const GEMINI_URL = process.env.GEMINI_URL
+export const GEMINI_OAUTH_URL = process.env.GEMINI_OAUTH_URL
 export const GEMINI_SECRET = process.env.GEMINI_SECRET
 export const GEMINI_CLIENT = process.env.GEMINI_CLIENT
 
