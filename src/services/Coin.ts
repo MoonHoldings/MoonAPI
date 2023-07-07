@@ -184,12 +184,15 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
     const balances = await shyft.wallet.getAllTokenBalance({ wallet: walletAddress })
     const solBalance = await shyft.wallet.getBalance({ wallet: walletAddress })
     const deleteChecker = []
+
     if (solBalance > 0) {
       deleteChecker.push('SOL')
       processCoin(walletAddress, 'SOL', 'Solana', solBalance)
     }
+
     for (const balance of balances) {
       let matchingCoin = PYTH_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase() && coin.name.toLowerCase() === balance.info.name.toLowerCase())
+
       if (!matchingCoin) {
         matchingCoin = MOON_COINS.find((coin) => coin.symbol.toLowerCase() === balance.info.symbol.toLowerCase() && coin.key === balance.address)
       }
@@ -199,7 +202,9 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
         await processCoin(walletAddress, matchingCoin.symbol, matchingCoin.name, balance.balance)
       }
     }
+
     await clearCoin(deleteChecker, walletAddress)
+
     return true
   } catch (error) {
     throw new GraphQLError('', {
@@ -241,13 +246,15 @@ export const processCoin = async (walletAddress: string, symbol: string, name: s
   }
 }
 
-//can remove in future
+// can remove in future
 export const clearCoin = async (deleteChecker: string[], walletAddress: string) => {
   const existingCoins = await Coin.find({ where: { walletAddress: walletAddress, symbol: Not(In(deleteChecker)) } })
+
   if (existingCoins && existingCoins.length > 0) {
     await Coin.remove(existingCoins)
   }
 }
+
 export const getMoonTokenPrice = async (mintAddress: [string]) => {
   const { data: tokenPrices }: { data: any } = await axios.post(
     `${HELLO_MOON_URL}/token/price/batched`,
