@@ -208,11 +208,15 @@ router.get('/auth/gemini', async (req, res) => {
   })
   const token = data.access_token
 
-  const getAccountsPromise = axios.post(`${GEMINI_URL}/v1/balances`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+  const getAccountsPromise = axios.post(
+    `${GEMINI_URL}/v1/balances`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
 
   const [accountsData] = await Promise.all([getAccountsPromise])
 
