@@ -8,7 +8,7 @@ import { User } from '../entities'
 import * as utils from '../utils'
 import oauth from './discord'
 // import { memoryCache } from './cache'
-import { REFRESH_TOKEN_SECRET, WEBAPP_URL, COINBASE_CLIENT, COINBASE_SECRET, COINBASE_URL, SERVER_URL, GEMINI_CLIENT, GEMINI_URL, GEMINI_SECRET } from '../constants'
+import { REFRESH_TOKEN_SECRET, WEBAPP_URL, COINBASE_CLIENT, COINBASE_SECRET, COINBASE_URL, SERVER_URL, GEMINI_CLIENT, GEMINI_URL, GEMINI_SECRET, GEMINI_OAUTH_URL } from '../constants'
 import { EmailTokenType } from '../enums'
 import axios from 'axios'
 import { PYTH_COINS } from './pythCoins'
@@ -199,7 +199,7 @@ router.get('/auth/gemini', async (req, res) => {
   `)
   }
 
-  const { data }: { data: any } = await axios.post(`${GEMINI_URL}/auth/token`, {
+  const { data }: { data: any } = await axios.post(`${GEMINI_OAUTH_URL}/auth/token`, {
     grant_type: 'authorization_code',
     code: code,
     client_id: `${GEMINI_CLIENT}`,
