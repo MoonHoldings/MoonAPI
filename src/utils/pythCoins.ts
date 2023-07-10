@@ -75,6 +75,7 @@ export async function getCoinPrices(userCoins: Coin[]) {
 export async function getCoinPrice(userCoins: any[], symbol: string) {
   let price = '0'
   let resp = new CoinResponse()
+
   try {
     const coinWithKey = PYTH_COINS.find((coin) => coin.symbol === symbol)
     if (coinWithKey) {
@@ -85,6 +86,7 @@ export async function getCoinPrice(userCoins: any[], symbol: string) {
     }
 
     const moonWithKey = MOON_COINS.find((coin) => coin.symbol === symbol)
+
     if (moonWithKey) {
       const moonCoins = [moonWithKey.key] as [string]
       const moonData = await getMoonTokenPrice(moonCoins)
@@ -92,7 +94,8 @@ export async function getCoinPrice(userCoins: any[], symbol: string) {
       price = (moonData[0].price / 1000000).toString()
     }
 
-    resp.coins = userCoins.filter((obj) => parseFloat(price) * obj.holdings >= 0.001)
+    resp.coins = userCoins.filter((obj) => parseFloat(price) * obj.holdings >= 0.001 || obj.symbol === 'BTC')
+
     resp.price = price
   } catch (error) {
     console.log(error.message)
