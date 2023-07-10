@@ -74,8 +74,8 @@ export const addExchangeCoins = async (exchangeInfo: ExchangeInfo, userId: numbe
     for (const coinData of exchangeInfo.coinData) {
       deleteChecker.push(coinData.symbol)
       await coinService.updateCoinOnly(coinData, userWallet)
-      await clearCoin(deleteChecker, exchangeInfo.walletAddress)
     }
+    await clearCoin(deleteChecker, exchangeInfo.walletAddress)
     return false
   } catch (error) {
     throw new GraphQLError('', {
