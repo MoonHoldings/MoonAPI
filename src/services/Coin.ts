@@ -56,13 +56,14 @@ export const getCoinsBySymbol = async (user: User, symbol: string): Promise<Coin
   })
 
   const autoWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Auto)
+
   coins.forEach((coin) => {
     const walletMatched = autoWallets.find((wallet) => wallet.address === coin.walletAddress)
+
     if (walletMatched) {
       coin.verified = walletMatched.verified
       coin.isConnected = true
     }
-    coin.holdings = parseFloat(parseFloat(coin.holdings.toString()).toFixed(2))
   })
 
   const finalCoins = await getCoinPrice(Object.values(coins), symbol)
