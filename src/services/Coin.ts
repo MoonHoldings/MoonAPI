@@ -14,6 +14,7 @@ export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
   const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false } })
   const manualWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Manual)
   const autoWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Auto)
+
   const coins = await Coin.find({
     where: [{ walletId: In(manualWallets.map((wallet) => wallet.id)) }, { walletAddress: In(autoWallets.map((wallet) => wallet.address)) }],
   })
@@ -29,9 +30,10 @@ export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
   try {
     coins.forEach((coin) => {
       const symbol = coin.symbol
+
       if (!mergedCoins[symbol]) {
         mergedCoins[symbol] = coin
-        mergedCoins[symbol].holdings = parseFloat(parseFloat(coin.holdings.toString()).toFixed(2))
+        mergedCoins[symbol].holdings = coin.holdings
       } else {
         mergedCoins[symbol].holdings = parseFloat(mergedCoins[symbol].holdings.toString()) + parseFloat(coin.holdings.toString())
       }
