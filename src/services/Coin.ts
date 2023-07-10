@@ -201,7 +201,7 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
     } else if (validBitcoinWallet(walletAddress)) {
       const btcBalanceResponse = await axios.get(`https://blockstream.info/api/address/${walletAddress}`)
       const chainStats = btcBalanceResponse.data?.chain_stats
-      const btcBalance = chainStats.funded_txo_sum / 100_000_000
+      const btcBalance = (chainStats.funded_txo_sum - chainStats.spent_txo_sum) / 100_000_000
 
       if (btcBalance > 0) {
         deleteChecker.push('BTC')
