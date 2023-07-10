@@ -7,6 +7,8 @@ import { getCoinPrice, getCoinPrices, MOON_COINS, PYTH_COINS } from '../utils/py
 import { In, Not } from 'typeorm'
 import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
 import axios from 'axios'
+import validSolanaWallet from '../utils/validSolanaWallet'
+import validBitcoinWallet from '../utils/validBitcoinWallet'
 
 export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
   const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false } })
@@ -181,13 +183,28 @@ export const deleteCoinDataBySymbol = async (symbol: string, user: User): Promis
 
 export const connectCoins = async (walletAddress: string): Promise<boolean> => {
   try {
-    const balances = await shyft.wallet.getAllTokenBalance({ wallet: walletAddress })
-    const solBalance = await shyft.wallet.getBalance({ wallet: walletAddress })
+    let balances: any[] = []
     const deleteChecker = []
 
-    if (solBalance > 0) {
-      deleteChecker.push('SOL')
-      processCoin(walletAddress, 'SOL', 'Solana', solBalance)
+    if (validSolanaWallet(walletAddress)) {
+      const shyftBalances = await shyft.wallet.getAllTokenBalance({ wallet: walletAddress })
+      balances = [...shyftBalances]
+
+      const solBalance = await shyft.wallet.getBalance({ wallet: walletAddress })
+
+      if (solBalance > 0) {
+        deleteChecker.push('SOL')
+        processCoin(walletAddress, 'SOL', 'Solana', solBalance)
+      }
+    } else if (validBitcoinWallet(walletAddress)) {
+      const btcBalanceResponse = await axios.get(`https://blockstream.info/api/address/${walletAddress}`)
+      const chainStats = btcBalanceResponse.data?.chain_stats
+      const btcBalance = chainStats.funded_txo_sum / 100_000_000
+
+      if (btcBalance > 0) {
+        deleteChecker.push('BTC')
+        processCoin(walletAddress, 'BTC', 'Bitcoin', btcBalance)
+      }
     }
 
     for (const balance of balances) {
@@ -199,11 +216,12 @@ export const connectCoins = async (walletAddress: string): Promise<boolean> => {
 
       if (matchingCoin && matchingCoin.symbol.toLowerCase() !== 'sol') {
         deleteChecker.push(matchingCoin.symbol)
+
         await processCoin(walletAddress, matchingCoin.symbol, matchingCoin.name, balance.balance)
       }
     }
 
-    await clearCoin(deleteChecker, walletAddress)
+    if (deleteChecker.length) await clearCoin(deleteChecker, walletAddress)
 
     return true
   } catch (error) {
@@ -229,14 +247,16 @@ export const processCoin = async (walletAddress: string, symbol: string, name: s
     existingCoin = existingCoins[0]
   }
 
-  if (existingCoin && balance > 0.009) {
+  const minimumChecker = symbol === 'BTC' ? 0 : 0.009
+
+  if (existingCoin && balance > minimumChecker) {
     existingCoin.symbol = symbol
     existingCoin.name = name
     existingCoin.holdings = balance
     await existingCoin.save()
-  } else if (existingCoin && balance < 0.009) {
+  } else if (existingCoin && balance == minimumChecker) {
     await existingCoin.remove()
-  } else if (balance > 0.009) {
+  } else {
     const newCoin = new Coin()
     newCoin.symbol = symbol
     newCoin.name = name
