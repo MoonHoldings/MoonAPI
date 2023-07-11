@@ -1,8 +1,8 @@
-# node-express-pg-graphql-template
+# MoonAPI
 
 ## Getting Started
 
-Run the development graphql server:
+Run the GraphQL server locally:
 
 Terminal 1:
 
