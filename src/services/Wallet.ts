@@ -134,16 +134,24 @@ export const removeUserWallet = async (wallet: string, userId?: number): Promise
   return false
 }
 
-export const removeAllUserWallets = async (userId?: number): Promise<boolean> => {
+export const removeAllUserWallets = async (userId?: number, isExchange?: boolean): Promise<boolean> => {
   const userWallets = await UserWallet.find({ where: { user: { id: userId }, type: UserWalletType.Auto } })
   const verifiedWallets: UserWallet[] = []
 
   userWallets.forEach(async (wallet) => {
     if (wallet.verified) {
-      wallet.hidden = true
+      if (isExchange) {
+        if (wallet.name && wallet.address) {
+          wallet.hidden = true
+        }
+      } else {
+        if (wallet.address && wallet.name === null) {
+          wallet.hidden = true
+        }
+      }
       verifiedWallets.push(wallet)
     } else {
-      await wallet.remove()
+      if (!isExchange) await wallet.remove()
     }
   })
 
