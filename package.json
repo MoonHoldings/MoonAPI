@@ -56,7 +56,7 @@
     "@sendgrid/mail": "^7.7.0",
     "@sentry/node": "^7.53.0",
     "@sharkyfi/client": "^6.3.2",
-    "@shyft-to/js": "^0.2.11",
+    "@shyft-to/js": "^0.2.17",
     "@solana/web3.js": "^1.75.0",
     "@types/cron": "^2.0.0",
     "argon2": "^0.28.5",
