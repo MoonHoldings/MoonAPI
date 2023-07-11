@@ -90,9 +90,10 @@ export class PortfolioResolver {
 
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
-  async removeAllUserWallets(@Ctx() context: any): Promise<Boolean> {
+  async removeAllUserWallets(@Ctx() context: any, @Arg('isExchange', { defaultValue: false }) isExchange: boolean): Promise<Boolean> {
     const { payload } = context
-    return await walletService.removeAllUserWallets(payload?.userId)
+
+    return await walletService.removeAllUserWallets(payload?.userId, isExchange)
   }
 
   @Mutation(() => Boolean)
