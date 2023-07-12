@@ -17,6 +17,7 @@ export class UserDashboard extends BaseEntity {
   @Column('numeric')
   total!: number
 
+  @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date
 
