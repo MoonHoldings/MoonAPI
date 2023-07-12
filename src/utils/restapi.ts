@@ -239,7 +239,7 @@ router.get('/auth/gemini', async (req, res) => {
     return res.status(404).send(`
     <html>
       <head>
-        <title>503 Message</title>
+        <title>503 ${error.message}Message</title>
       </head>
     </html>
   `)
