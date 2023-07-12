@@ -6,7 +6,7 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import calculateOfferInterest from '../utils/calculateOfferInterest'
 import calculateBorrowInterest from '../utils/calculateBorrowInterest'
 import { getUserPortfolioCoins } from './Porfolio'
-import { addDays } from 'date-fns'
+import { addDays, format } from 'date-fns'
 
 const calculatePercentageChange = (previousValue: number, currentValue: number): number => {
   const difference = currentValue - previousValue
@@ -107,6 +107,30 @@ export const getTimeSeries = async (userId: number, type: string, start: Date, e
     return dates.filter((date) => !existingDates.includes(date))
   }
 
+  const mergeDuplicateDates = (timeSeriesData: UserDashboard[]): UserDashboard[] => {
+    const mergedData: UserDashboard[] = []
+    const dateMap: Map<string, UserDashboard> = new Map()
+
+    for (const data of timeSeriesData) {
+      const dateString = format(new Date(data.createdAt), 'yyyy-MM-dd')
+
+      if (dateMap.has(dateString)) {
+        const existingData = dateMap.get(dateString)
+
+        if (existingData) {
+          let curTotal = parseFloat(existingData.total as any)
+          curTotal += parseFloat(data.total as any)
+          existingData.total = curTotal
+        }
+      } else {
+        dateMap.set(dateString, data)
+        mergedData.push(data)
+      }
+    }
+
+    return mergedData
+  }
+
   const user = await userService.getUserById(userId)
   if (!user) return []
 
@@ -123,7 +147,10 @@ export const getTimeSeries = async (userId: number, type: string, start: Date, e
     })
   })
 
-  return [...timeSeriesData, ...missingData].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+  const allData = [...timeSeriesData, ...missingData]
+  const mergedData = mergeDuplicateDates(allData)
+
+  return mergedData.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
 }
 
 export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: number): Promise<UserDashboardResponse> => {
