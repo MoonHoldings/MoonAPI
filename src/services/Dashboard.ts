@@ -6,6 +6,7 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import calculateOfferInterest from '../utils/calculateOfferInterest'
 import calculateBorrowInterest from '../utils/calculateBorrowInterest'
 import { getUserPortfolioCoins } from './Porfolio'
+import { addDays, format } from 'date-fns'
 
 const calculatePercentageChange = (previousValue: number, currentValue: number): number => {
   const difference = currentValue - previousValue
@@ -87,6 +88,71 @@ export const getBorrowTotal = async (user: User): Promise<number> => {
   return total
 }
 
+export const getTimeSeries = async (userId: number, type: string, start: Date, end: Date): Promise<UserDashboard[]> => {
+  const generateDatesInRange = (start: Date, end: Date): Date[] => {
+    const dates: Date[] = []
+    let currentDate = start
+
+    while (currentDate <= end) {
+      dates.push(currentDate)
+      currentDate = addDays(currentDate, 1)
+    }
+
+    return dates
+  }
+
+  const findMissingDates = (dates: Date[], timeSeriesData: UserDashboard[]): Date[] => {
+    const existingDates = timeSeriesData.map((data) => data.createdAt)
+
+    return dates.filter((date) => !existingDates.includes(date))
+  }
+
+  const mergeDuplicateDates = (timeSeriesData: UserDashboard[]): UserDashboard[] => {
+    const mergedData: UserDashboard[] = []
+    const dateMap: Map<string, UserDashboard> = new Map()
+
+    for (const data of timeSeriesData) {
+      const dateString = format(new Date(data.createdAt), 'yyyy-MM-dd')
+
+      if (dateMap.has(dateString)) {
+        const existingData = dateMap.get(dateString)
+
+        if (existingData) {
+          let curTotal = parseFloat(existingData.total as any)
+          curTotal += parseFloat(data.total as any)
+          existingData.total = curTotal
+        }
+      } else {
+        dateMap.set(dateString, data)
+        mergedData.push(data)
+      }
+    }
+
+    return mergedData
+  }
+
+  const user = await userService.getUserById(userId)
+  if (!user) return []
+
+  const timeSeriesData = await UserDashboard.find({ where: { user: { id: user.id }, createdAt: Between(start, end) } })
+  const datesInRange = generateDatesInRange(start, end)
+  const missingDates = findMissingDates(datesInRange, timeSeriesData)
+
+  const missingData = missingDates.map((date) => {
+    return UserDashboard.create({
+      user: user,
+      createdAt: date,
+      type,
+      total: 0,
+    })
+  })
+
+  const allData = [...timeSeriesData, ...missingData]
+  const mergedData = mergeDuplicateDates(allData)
+
+  return mergedData.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+}
+
 export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: number): Promise<UserDashboardResponse> => {
   const user = await userService.getUserById(userId)
 
@@ -122,7 +188,7 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: num
     const prevBorrow = previousDashboard.find((data) => data.type === 'borrow')
     const prevCrypto = previousDashboard.find((data) => data.type === 'crypto')
 
-    const cryptoTotalPromise = getCryptoTotal(user) // TODO: Crypto
+    const cryptoTotalPromise = getCryptoTotal(user)
     const nftTotalPromise = getNftTotal(user)
     const loanTotalPromise = getLoanTotal(user)
     const borrowTotalPromise = getBorrowTotal(user)
