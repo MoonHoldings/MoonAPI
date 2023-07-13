@@ -134,7 +134,7 @@ export const getTimeSeries = async (userId: number, type: string, start: Date, e
   const user = await userService.getUserById(userId)
   if (!user) return []
 
-  const timeSeriesData = await UserDashboard.find({ where: { user: { id: user.id }, createdAt: Between(start, end) } })
+  const timeSeriesData = await UserDashboard.find({ where: { user: { id: user.id }, type, createdAt: Between(start, end) } })
   const datesInRange = generateDatesInRange(start, end)
   const missingDates = findMissingDates(datesInRange, timeSeriesData)
 
