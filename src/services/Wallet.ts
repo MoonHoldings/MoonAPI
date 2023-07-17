@@ -28,41 +28,21 @@ export const refreshUserWallets = async (userId: number): Promise<boolean> => {
   return true
 }
 
-export const addUserWallet = async (wallet: string, verified: boolean, userId?: number): Promise<boolean> => {
-  // Check if user exists
-  const user = await User.findOne({ where: { id: userId } })
-
-  if (!user) return false
-
-  // Create user wallet
-  const userWallet = await UserWallet.findOne({ where: { user: { id: userId }, address: wallet } })
+export const addUserWallet = async (wallet: string, verified: boolean): Promise<boolean> => {
+  const userWallet = await UserWallet.findOne({ where: { address: wallet } })
+  const user = verified && !userWallet?.verified ? await User.create().save() : null
 
   if (!userWallet) {
-    // If the wallet is not yet added to the user
-    if (verified) {
-      // If attempting to add a verified wallet (connected a wallet), and it already exists, dont create
-      const walletEntity = await UserWallet.findOne({ where: { address: wallet, verified } })
-
-      if (walletEntity) return false
-    }
-
     await UserWallet.create({
       address: wallet,
       verified,
-      user: { id: userId },
+      user,
       type: UserWalletType.Auto,
     }).save()
-  } else if (userWallet.verified && userWallet.hidden) {
-    userWallet.hidden = false
+  } else if (!userWallet.verified) {
+    userWallet.verified = verified
+    userWallet.user = user
     await userWallet.save()
-  } else if (verified && !userWallet.verified) {
-    userWallet.verified = true
-    userWallet.hidden = false
-    await userWallet.save()
-  } else if (verified && userWallet.verified) {
-    return true
-  } else {
-    return false
   }
 
   // Call save nfts and coins, put inside background job

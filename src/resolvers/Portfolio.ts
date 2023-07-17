@@ -75,10 +75,8 @@ export class PortfolioResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseMiddleware(isAuth)
-  async addUserWallet(@Arg('wallet') wallet: string, @Arg('verified') verified: boolean, @Ctx() context: any): Promise<Boolean> {
-    const { payload } = context
-    return await walletService.addUserWallet(wallet, verified, payload?.userId)
+  async addUserWallet(@Arg('wallet') wallet: string, @Arg('verified') verified: boolean): Promise<Boolean> {
+    return await walletService.addUserWallet(wallet, verified)
   }
 
   @Mutation(() => Boolean)
