@@ -40,30 +40,16 @@ const getPercentDaysProgress = (start: number, duration: number) => {
 }
 
 const getHelloMoonLoanStatus = (loan: HistoricalLoanResponse) => {
-  let status = HistoricalLoanStatus.Repaid
+  let status = HistoricalLoanStatus.Offered
 
-  if (loan.takenBlocktime && !loan.repayBlocktime) {
-    status = HistoricalLoanStatus.Active
-  }
-
-  if (loan.offerBlocktime && !loan.repayBlocktime) {
-    status = HistoricalLoanStatus.Offered
-  }
-
-  if (loan.takenBlocktime && !loan.repayBlocktime) {
-    status = HistoricalLoanStatus.Taken
-  }
-
-  if (loan.defaultBlocktime) {
-    status = HistoricalLoanStatus.Foreclosed
-  }
-
-  if (loan.cancelBlocktime) {
-    status = HistoricalLoanStatus.Canceled
-  }
-
-  if (loan.newLoan) {
+  if (loan.extendBlocktime || loan.repayBlocktime) {
     status = HistoricalLoanStatus.Repaid
+  } else if (loan.defaultBlocktime) {
+    status = HistoricalLoanStatus.Foreclosed
+  } else if (loan.takenBlocktime) {
+    status = HistoricalLoanStatus.Active
+  } else if (loan.cancelBlocktime) {
+    status = HistoricalLoanStatus.Canceled
   }
 
   return status
