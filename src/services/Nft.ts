@@ -7,8 +7,8 @@ import { format } from 'date-fns'
 import fetchFloorPrice from '../utils/fetchFloorPrice'
 import fetchHelloMoonCollectionIds from '../utils/fetchHelloMoonCollectionIds'
 
-export const getUserNfts = async (userId: number): Promise<Nft[]> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: userId }, hidden: false, type: UserWalletType.Auto } })
+export const getUserNfts = async (wallets: string[]): Promise<Nft[]> => {
+  const userWallets = await UserWallet.find({ where: { address: In(wallets), hidden: false, type: UserWalletType.Auto } })
   const nfts = await Nft.find({ where: { owner: In(userWallets.map((wallet) => wallet.address)) }, relations: { collection: true } })
 
   return nfts

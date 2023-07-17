@@ -31,10 +31,8 @@ export class PortfolioResolver {
   }
 
   @Query(() => [Nft])
-  @UseMiddleware(isAuth)
-  getUserNfts(@Ctx() context: any): Promise<Nft[]> {
-    const { payload } = context
-    return nftService.getUserNfts(payload?.userId)
+  getUserNfts(@Arg('wallets', () => [String]) wallets: string[]): Promise<Nft[]> {
+    return nftService.getUserNfts(wallets)
   }
 
   @Mutation(() => Coin)
