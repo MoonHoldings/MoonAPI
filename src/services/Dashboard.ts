@@ -56,7 +56,7 @@ export const getCryptoTotal = async (wallets: string[]): Promise<number> => {
 }
 
 export const getLoanTotal = async (wallets: string[]): Promise<number> => {
-  const verifiedWallets = (await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false } })).map((wallet) => wallet.address)
+  const verifiedWallets = (await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false, verified: true } })).map((wallet) => wallet.address)
   const loans = await Loan.find({ where: { lenderWallet: In(verifiedWallets) }, relations: { orderBook: true } })
   let total = 0
 
@@ -74,7 +74,7 @@ export const getLoanTotal = async (wallets: string[]): Promise<number> => {
 }
 
 export const getBorrowTotal = async (wallets: string[]): Promise<number> => {
-  const verifiedWallets = (await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false } })).map((wallet) => wallet.address)
+  const verifiedWallets = (await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false, verified: true } })).map((wallet) => wallet.address)
   const loans = await Loan.find({ where: { borrowerNoteMint: In(verifiedWallets) }, relations: { orderBook: true } })
   let total = 0
 
