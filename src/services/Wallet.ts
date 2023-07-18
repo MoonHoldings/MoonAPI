@@ -1,15 +1,15 @@
+import { In } from 'typeorm'
 import { User, UserWallet } from '../entities'
 import { saveNfts } from './Nft'
 import { UserWalletType } from '../types'
-
 import { connectCoins } from './Coin'
 
 export const getUserWallets = async (type: UserWalletType, userId?: number): Promise<UserWallet[]> => {
   return await UserWallet.find({ where: { user: { id: userId }, hidden: false, type } })
 }
 
-export const refreshUserWallets = async (userId: number): Promise<boolean> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: userId }, hidden: false, type: UserWalletType.Auto } })
+export const refreshUserWallets = async (wallets: string[]): Promise<boolean> => {
+  const userWallets = await UserWallet.find({ where: { address: In(wallets), hidden: false, type: UserWalletType.Auto } })
 
   if (userWallets.length) {
     const saveNftsPromises = userWallets.map(async (wallet) => {

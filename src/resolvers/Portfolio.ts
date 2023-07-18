@@ -93,10 +93,8 @@ export class PortfolioResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseMiddleware(isAuth)
-  async refreshUserWallets(@Ctx() context: any): Promise<Boolean> {
-    const { payload } = context
-    return await walletService.refreshUserWallets(payload?.userId)
+  async refreshUserWallets(@Arg('wallets', () => [String]) wallets: string[]): Promise<Boolean> {
+    return await walletService.refreshUserWallets(wallets)
   }
 
   @Query(() => Number)
