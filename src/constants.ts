@@ -27,6 +27,7 @@ export const GEMINI_URL = process.env.GEMINI_URL
 export const GEMINI_OAUTH_URL = process.env.GEMINI_OAUTH_URL
 export const GEMINI_SECRET = process.env.GEMINI_SECRET
 export const GEMINI_CLIENT = process.env.GEMINI_CLIENT
+export const COIN_API_KEY = process.env.COIN_API_KEY
 
 export const AXIOS_CONFIG_SHYFT_KEY = {
   headers: {
@@ -37,5 +38,11 @@ export const AXIOS_CONFIG_SHYFT_KEY = {
 export const AXIOS_CONFIG_HELLO_MOON_KEY = {
   headers: {
     Authorization: `Bearer ${HELLO_MOON_KEY}`,
+  },
+}
+export const COIN_API_CONFIG = {
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CoinAPI-Key': COIN_API_KEY,
   },
 }

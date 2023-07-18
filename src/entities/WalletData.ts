@@ -1,17 +1,22 @@
 import { Field, ID, ObjectType } from 'type-graphql'
 import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
-import { User } from '.'
+import { UserWallet } from '.'
+import { WalletDataType } from '../types'
 
 @ObjectType()
 @Entity()
-export class UserDashboard extends BaseEntity {
+export class WalletData extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id!: number
 
   @Field(() => String, { nullable: false })
   @Column({ nullable: true })
-  type: string
+  type: WalletDataType
+
+  @Field(() => String, { nullable: false })
+  @Column({ nullable: false })
+  assetId: string
 
   @Field(() => Number)
   @Column('numeric')
@@ -24,7 +29,7 @@ export class UserDashboard extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date
 
-  @Field(() => User, { nullable: true })
-  @ManyToOne(() => User, (user) => user.dashboards, { nullable: true })
-  user?: Relation<User> | null
+  @Field(() => UserWallet, { nullable: true })
+  @ManyToOne(() => UserWallet, (wallet) => wallet.data, { nullable: true })
+  wallet?: Relation<UserWallet> | null
 }

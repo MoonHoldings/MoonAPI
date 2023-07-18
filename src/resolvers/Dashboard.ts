@@ -1,8 +1,8 @@
 import { Arg, Ctx, Query, Resolver, UseMiddleware } from 'type-graphql'
 import * as dashboardService from '../services/Dashboard'
-import { TimeRangeType, UserDashboardResponse } from '../types'
+import { TimeRangeType, UserDashboardResponse, WalletDataType } from '../types'
 import { isAuth } from '../utils'
-import { UserDashboard } from '../entities'
+import { WalletData } from '../entities'
 import { endOfMonth, endOfWeek, endOfYear, startOfMonth, startOfWeek, startOfYear } from 'date-fns'
 
 @Resolver()
@@ -14,9 +14,9 @@ export class DashboardResolver {
     return await dashboardService.getUserDashboard(timeRangeType, payload?.userId)
   }
 
-  @Query(() => [UserDashboard])
+  @Query(() => [WalletData])
   @UseMiddleware(isAuth)
-  async getTimeSeries(@Arg('timeRangeType') timeRangeType: string, @Arg('type') type: string, @Ctx() context: any): Promise<UserDashboard[]> {
+  async getTimeSeries(@Arg('timeRangeType') timeRangeType: string, @Arg('type') type: WalletDataType, @Ctx() context: any): Promise<WalletData[]> {
     const { payload } = context
 
     const now = new Date()

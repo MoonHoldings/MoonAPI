@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { BaseEntity, Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
-import { User } from '.'
+import { BaseEntity, Column, CreateDateColumn, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import { User, WalletData } from '.'
 
 @ObjectType()
 @Entity()
@@ -39,4 +39,10 @@ export class UserWallet extends BaseEntity {
   @Field(() => User, { nullable: true })
   @ManyToOne(() => User, (user) => user.wallets, { nullable: true })
   user?: Relation<User> | null
+
+  @OneToMany(() => WalletData, (data) => data.wallet, {
+    cascade: true,
+  })
+  @Field(() => [WalletData], { nullable: true })
+  data: Relation<WalletData>[]
 }

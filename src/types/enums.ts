@@ -41,6 +41,13 @@ export enum UserWalletType {
   Auto = 'Auto',
 }
 
+export enum WalletDataType {
+  Nft = 'nft',
+  Crypto = 'crypto',
+  Loan = 'loan',
+  Borrow = 'borrow',
+}
+
 export enum TimeRangeType {
   Day = 'Day',
   Week = 'Week',

@@ -10,8 +10,8 @@ import axios from 'axios'
 import validSolanaWallet from '../utils/validSolanaWallet'
 import validBitcoinWallet from '../utils/validBitcoinWallet'
 
-export const getCoinsByUser = async (user: User): Promise<Coin[]> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false } })
+export const getCoinsByWallet = async (wallets: string[]): Promise<Coin[]> => {
+  const userWallets = await UserWallet.find({ where: { address: In(wallets), hidden: false } })
   const manualWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Manual)
   const autoWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Auto)
 

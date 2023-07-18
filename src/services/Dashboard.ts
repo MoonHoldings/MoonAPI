@@ -1,7 +1,6 @@
 import { Between, In } from 'typeorm'
-import { Nft, User, UserDashboard, UserWallet, Loan } from '../entities'
-import { TimeRangeType, UserDashboardResponse, UserWalletType } from '../types'
-import * as userService from './User'
+import { Nft, WalletData, UserWallet, Loan } from '../entities'
+import { TimeRangeType, UserDashboardResponse, UserWalletType, WalletDataType } from '../types'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import calculateOfferInterest from '../utils/calculateOfferInterest'
 import calculateBorrowInterest from '../utils/calculateBorrowInterest'
@@ -15,8 +14,8 @@ const calculatePercentageChange = (previousValue: number, currentValue: number):
   return percentageChange
 }
 
-export const getNftTotal = async (user: User): Promise<number> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Auto, hidden: false } })
+export const getNftTotal = async (wallets: string[]): Promise<number> => {
+  const userWallets = await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false } })
   const nfts = await Nft.find({ where: { owner: In(userWallets.map((wallet) => wallet.address)) }, relations: { collection: true } })
   const collectionsHash = nfts.reduce((hash: any, nft) => {
     if (nft.collection && nft.collection.floorPrice) {
@@ -40,8 +39,8 @@ export const getNftTotal = async (user: User): Promise<number> => {
   return total
 }
 
-export const getCryptoTotal = async (user: User): Promise<number> => {
-  const portFolioCoins = await getUserPortfolioCoins(user.id)
+export const getCryptoTotal = async (wallets: string[]): Promise<number> => {
+  const portFolioCoins = await getUserPortfolioCoins(wallets)
   let totalPrice = 0
 
   portFolioCoins.forEach((coin) => {
@@ -56,8 +55,8 @@ export const getCryptoTotal = async (user: User): Promise<number> => {
   return totalPrice
 }
 
-export const getLoanTotal = async (user: User): Promise<number> => {
-  const verifiedWallets = (await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Auto, hidden: false } })).map((wallet) => wallet.address)
+export const getLoanTotal = async (wallets: string[]): Promise<number> => {
+  const verifiedWallets = (await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false } })).map((wallet) => wallet.address)
   const loans = await Loan.find({ where: { lenderWallet: In(verifiedWallets) }, relations: { orderBook: true } })
   let total = 0
 
@@ -74,8 +73,8 @@ export const getLoanTotal = async (user: User): Promise<number> => {
   return total
 }
 
-export const getBorrowTotal = async (user: User): Promise<number> => {
-  const verifiedWallets = (await UserWallet.find({ where: { user: { id: user.id }, type: UserWalletType.Auto, hidden: false } })).map((wallet) => wallet.address)
+export const getBorrowTotal = async (wallets: string[]): Promise<number> => {
+  const verifiedWallets = (await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false } })).map((wallet) => wallet.address)
   const loans = await Loan.find({ where: { borrowerNoteMint: In(verifiedWallets) }, relations: { orderBook: true } })
   let total = 0
 
@@ -88,7 +87,7 @@ export const getBorrowTotal = async (user: User): Promise<number> => {
   return total
 }
 
-export const getTimeSeries = async (userId: number, type: string, start: Date, end: Date): Promise<UserDashboard[]> => {
+export const getTimeSeries = async (wallets: string[], type: WalletDataType, start: Date, end: Date): Promise<WalletData[]> => {
   const generateDatesInRange = (start: Date, end: Date): Date[] => {
     const dates: Date[] = []
     let currentDate = start
@@ -101,15 +100,15 @@ export const getTimeSeries = async (userId: number, type: string, start: Date, e
     return dates
   }
 
-  const findMissingDates = (dates: Date[], timeSeriesData: UserDashboard[]): Date[] => {
+  const findMissingDates = (dates: Date[], timeSeriesData: WalletData[]): Date[] => {
     const existingDates = timeSeriesData.map((data) => data.createdAt)
 
     return dates.filter((date) => !existingDates.includes(date))
   }
 
-  const mergeDuplicateDates = (timeSeriesData: UserDashboard[]): UserDashboard[] => {
-    const mergedData: UserDashboard[] = []
-    const dateMap: Map<string, UserDashboard> = new Map()
+  const mergeDuplicateDates = (timeSeriesData: WalletData[]): WalletData[] => {
+    const mergedData: WalletData[] = []
+    const dateMap: Map<string, WalletData> = new Map()
 
     for (const data of timeSeriesData) {
       const dateString = format(new Date(data.createdAt), 'yyyy-MM-dd')
@@ -131,16 +130,12 @@ export const getTimeSeries = async (userId: number, type: string, start: Date, e
     return mergedData
   }
 
-  const user = await userService.getUserById(userId)
-  if (!user) return []
-
-  const timeSeriesData = await UserDashboard.find({ where: { user: { id: user.id }, type, createdAt: Between(start, end) } })
+  const timeSeriesData = await WalletData.find({ where: { wallet: { address: In(wallets) }, type, createdAt: Between(start, end) } })
   const datesInRange = generateDatesInRange(start, end)
   const missingDates = findMissingDates(datesInRange, timeSeriesData)
 
   const missingData = missingDates.map((date) => {
-    return UserDashboard.create({
-      user: user,
+    return WalletData.create({
       createdAt: date,
       type,
       total: 0,
@@ -153,96 +148,72 @@ export const getTimeSeries = async (userId: number, type: string, start: Date, e
   return mergedData.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
 }
 
-export const getUserDashboard = async (timeRangeType: TimeRangeType, userId: number): Promise<UserDashboardResponse> => {
-  const user = await userService.getUserById(userId)
+export const getUserDashboard = async (timeRangeType: TimeRangeType, wallets: string[]): Promise<UserDashboardResponse> => {
+  let startOfPreviousDay: Date
+  let endOfPreviousDate: Date
 
-  if (user) {
-    let startOfPreviousDay: Date
-    let endOfPreviousDate: Date
-
-    if (timeRangeType === TimeRangeType.Day) {
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      startOfPreviousDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0, 0, 0)
-      endOfPreviousDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59)
-    } else if (timeRangeType === TimeRangeType.Week) {
-      const previousWeekStart = new Date()
-      previousWeekStart.setDate(previousWeekStart.getDate() - 7)
-      startOfPreviousDay = new Date(previousWeekStart.getFullYear(), previousWeekStart.getMonth(), previousWeekStart.getDate(), 0, 0, 0)
-      endOfPreviousDate = new Date(previousWeekStart.getFullYear(), previousWeekStart.getMonth(), previousWeekStart.getDate(), 23, 59, 59)
-    } else if (timeRangeType === TimeRangeType.Month) {
-      const previousMonthStart = new Date()
-      previousMonthStart.setMonth(previousMonthStart.getMonth() - 1)
-      startOfPreviousDay = new Date(previousMonthStart.getFullYear(), previousMonthStart.getMonth(), 1, 0, 0, 0)
-      endOfPreviousDate = new Date(previousMonthStart.getFullYear(), previousMonthStart.getMonth(), 0, 23, 59, 59)
-    } else {
-      throw new Error('Invalid time range type')
-    }
-
-    const previousDashboard = await UserDashboard.find({
-      where: { user: { id: user.id }, createdAt: Between(startOfPreviousDay, endOfPreviousDate) },
-    })
-
-    const prevNft = previousDashboard.find((data) => data.type === 'nft')
-    const prevLoan = previousDashboard.find((data) => data.type === 'loan')
-    const prevBorrow = previousDashboard.find((data) => data.type === 'borrow')
-    const prevCrypto = previousDashboard.find((data) => data.type === 'crypto')
-
-    const cryptoTotalPromise = getCryptoTotal(user)
-    const nftTotalPromise = getNftTotal(user)
-    const loanTotalPromise = getLoanTotal(user)
-    const borrowTotalPromise = getBorrowTotal(user)
-    const totalResults = await Promise.all([cryptoTotalPromise, nftTotalPromise, loanTotalPromise, borrowTotalPromise])
-
-    const [cryptoTotal, nftTotal, loanTotal, borrowTotal] = totalResults
-
-    const prevCryptoTotal = prevCrypto ? prevCrypto.total : 0
-    const prevNftTotal = prevNft ? prevNft.total : 0
-    const prevLoanTotal = prevLoan ? prevLoan.total : 0
-    const prevBorrowTotal = prevBorrow ? prevBorrow.total : 0
-
-    const total = cryptoTotal + nftTotal + loanTotal + borrowTotal
-    const prevTotal = parseFloat(prevCryptoTotal as any) + parseFloat(prevNftTotal as any) + parseFloat(prevLoanTotal as any) + parseFloat(prevBorrowTotal as any)
-    const percentChangeTotal = prevTotal === 0 ? 0 : calculatePercentageChange(prevTotal, total)
-
-    return {
-      crypto: {
-        total: cryptoTotal,
-        percentChange: prevCrypto ? calculatePercentageChange(prevCryptoTotal, cryptoTotal) : 0,
-      },
-      nft: {
-        total: nftTotal,
-        percentChange: prevNft ? calculatePercentageChange(prevNftTotal, nftTotal) : 0,
-      },
-      loan: {
-        total: loanTotal,
-        percentChange: prevLoan ? calculatePercentageChange(prevLoanTotal, loanTotal) : 0,
-      },
-      borrow: {
-        total: borrowTotal,
-        percentChange: prevBorrow ? calculatePercentageChange(prevBorrowTotal, borrowTotal) : 0,
-      },
-      percentChangeTotal,
-    }
+  if (timeRangeType === TimeRangeType.Day) {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    startOfPreviousDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0, 0, 0)
+    endOfPreviousDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59)
+  } else if (timeRangeType === TimeRangeType.Week) {
+    const previousWeekStart = new Date()
+    previousWeekStart.setDate(previousWeekStart.getDate() - 7)
+    startOfPreviousDay = new Date(previousWeekStart.getFullYear(), previousWeekStart.getMonth(), previousWeekStart.getDate(), 0, 0, 0)
+    endOfPreviousDate = new Date(previousWeekStart.getFullYear(), previousWeekStart.getMonth(), previousWeekStart.getDate(), 23, 59, 59)
+  } else if (timeRangeType === TimeRangeType.Month) {
+    const previousMonthStart = new Date()
+    previousMonthStart.setMonth(previousMonthStart.getMonth() - 1)
+    startOfPreviousDay = new Date(previousMonthStart.getFullYear(), previousMonthStart.getMonth(), 1, 0, 0, 0)
+    endOfPreviousDate = new Date(previousMonthStart.getFullYear(), previousMonthStart.getMonth(), 0, 23, 59, 59)
+  } else {
+    throw new Error('Invalid time range type')
   }
+
+  const previousDashboard = await WalletData.find({
+    where: { wallet: { address: In(wallets) }, createdAt: Between(startOfPreviousDay, endOfPreviousDate) },
+  })
+
+  const prevNft = previousDashboard.find((data) => data.type === 'nft')
+  const prevLoan = previousDashboard.find((data) => data.type === 'loan')
+  const prevBorrow = previousDashboard.find((data) => data.type === 'borrow')
+  const prevCrypto = previousDashboard.find((data) => data.type === 'crypto')
+
+  const cryptoTotalPromise = getCryptoTotal(wallets)
+  const nftTotalPromise = getNftTotal(wallets)
+  const loanTotalPromise = getLoanTotal(wallets)
+  const borrowTotalPromise = getBorrowTotal(wallets)
+  const totalResults = await Promise.all([cryptoTotalPromise, nftTotalPromise, loanTotalPromise, borrowTotalPromise])
+
+  const [cryptoTotal, nftTotal, loanTotal, borrowTotal] = totalResults
+
+  const prevCryptoTotal = prevCrypto ? prevCrypto.total : 0
+  const prevNftTotal = prevNft ? prevNft.total : 0
+  const prevLoanTotal = prevLoan ? prevLoan.total : 0
+  const prevBorrowTotal = prevBorrow ? prevBorrow.total : 0
+
+  const total = cryptoTotal + nftTotal + loanTotal + borrowTotal
+  const prevTotal = parseFloat(prevCryptoTotal as any) + parseFloat(prevNftTotal as any) + parseFloat(prevLoanTotal as any) + parseFloat(prevBorrowTotal as any)
+  const percentChangeTotal = prevTotal === 0 ? 0 : calculatePercentageChange(prevTotal, total)
 
   return {
     crypto: {
-      total: 0,
-      percentChange: 0,
+      total: cryptoTotal,
+      percentChange: prevCrypto ? calculatePercentageChange(prevCryptoTotal, cryptoTotal) : 0,
     },
     nft: {
-      total: 0,
-      percentChange: 0,
+      total: nftTotal,
+      percentChange: prevNft ? calculatePercentageChange(prevNftTotal, nftTotal) : 0,
     },
     loan: {
-      total: 0,
-      percentChange: 0,
+      total: loanTotal,
+      percentChange: prevLoan ? calculatePercentageChange(prevLoanTotal, loanTotal) : 0,
     },
     borrow: {
-      total: 0,
-      percentChange: 0,
+      total: borrowTotal,
+      percentChange: prevBorrow ? calculatePercentageChange(prevBorrowTotal, borrowTotal) : 0,
     },
-    percentChangeTotal: 0,
+    percentChangeTotal,
   }
 }

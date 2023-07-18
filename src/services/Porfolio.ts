@@ -8,16 +8,8 @@ import * as userWalletService from './Wallet'
 import { getBorrowTotal, getCryptoTotal, getLoanTotal, getNftTotal } from './Dashboard'
 import { clearCoin } from './Coin'
 
-export const getUserPortfolioCoins = async (userId: number): Promise<Coin[]> => {
-  const user = await userService.getUserById(userId)
-  if (!user) {
-    throw new GraphQLError('User not found', {
-      extensions: {
-        code: ApolloServerErrorCode.BAD_USER_INPUT,
-      },
-    })
-  }
-  return await coinService.getCoinsByUser(user)
+export const getUserPortfolioCoins = async (wallets: string[]): Promise<Coin[]> => {
+  return await coinService.getCoinsByWallet(wallets)
 }
 
 export const getUserPortfolioCoinsBySymbol = async (userId: number, symbol: string): Promise<CoinResponse> => {
@@ -180,30 +172,21 @@ export const connectWalletCoins = async (walletAddress: string, userId: number) 
   }
 }
 
-export const getPortfolioTotalByType = async (userId: number, type: string): Promise<number> => {
-  const user = await userService.getUserById(userId)
-  if (!user) {
-    throw new GraphQLError('User not found', {
-      extensions: {
-        code: ApolloServerErrorCode.BAD_USER_INPUT,
-      },
-    })
-  }
-
+export const getPortfolioTotalByType = async (wallets: string[], type: string): Promise<number> => {
   let totalPortfolio = 0
 
   if (type === PortfolioType.NFT) {
-    totalPortfolio = await getNftTotal(user)
+    totalPortfolio = await getNftTotal(wallets)
   }
   if (type === PortfolioType.CRYPTO) {
     console.log('HEY')
-    totalPortfolio = await getCryptoTotal(user)
+    totalPortfolio = await getCryptoTotal(wallets)
   }
   if (type === PortfolioType.LOAN) {
-    totalPortfolio = await getLoanTotal(user)
+    totalPortfolio = await getLoanTotal(wallets)
   }
   if (type === PortfolioType.BORROW) {
-    totalPortfolio = await getBorrowTotal(user)
+    totalPortfolio = await getBorrowTotal(wallets)
   }
 
   return totalPortfolio
