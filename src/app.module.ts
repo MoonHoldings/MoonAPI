@@ -3,6 +3,7 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { BullModule } from '@nestjs/bull'
 import { TasksModule } from './tasks/tasks.module'
 import { DashboardModule } from './tasks/dashboard/dashboard.module'
+import { SharkifyModule } from './tasks/sharkify/sharkify.module'
 import 'reflect-metadata'
 
 @Module({
@@ -16,6 +17,7 @@ import 'reflect-metadata'
     }),
     TasksModule,
     DashboardModule,
+    SharkifyModule,
   ],
 })
 export class AppModule {}

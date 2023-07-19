@@ -1,6 +1,6 @@
 import { Process, Processor } from '@nestjs/bull'
 import { Logger } from '@nestjs/common'
-import { Queue, UserWalletType, WalletDataType } from '../../types/enums'
+import { QueueTypes, UserWalletType, WalletDataType } from '../../types/enums'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Loan, Nft, UserWallet, WalletData } from '../../entities'
 import { Repository } from 'typeorm'
@@ -11,7 +11,7 @@ import calculateBorrowInterest from '../../utils/calculateBorrowInterest'
 import { getCoinsByWallet } from '../../services/Coin'
 import * as Sentry from '@sentry/node'
 
-@Processor(Queue.Dashboard)
+@Processor(QueueTypes.Dashboard)
 export class DashboardProcessor {
   private readonly logger = new Logger(DashboardProcessor.name)
 
