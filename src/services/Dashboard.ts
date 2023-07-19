@@ -6,6 +6,7 @@ import calculateOfferInterest from '../utils/calculateOfferInterest'
 import calculateBorrowInterest from '../utils/calculateBorrowInterest'
 import { getUserPortfolioCoins } from './Porfolio'
 import { addDays, format } from 'date-fns'
+import getFXRate from '../utils/getFXRate'
 
 const calculatePercentageChange = (previousValue: number, currentValue: number): number => {
   const difference = currentValue - previousValue
@@ -14,9 +15,17 @@ const calculatePercentageChange = (previousValue: number, currentValue: number):
   return percentageChange
 }
 
+const getCurrentRate = async (base: string, quote: string): Promise<number> => {
+  const fxRate = await getFXRate(base, quote)
+  const rate: number = fxRate.rate
+
+  return rate
+}
+
 export const getNftTotal = async (wallets: string[]): Promise<number> => {
   const userWallets = await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false } })
   const nfts = await Nft.find({ where: { owner: In(userWallets.map((wallet) => wallet.address)) }, relations: { collection: true } })
+
   const collectionsHash = nfts.reduce((hash: any, nft) => {
     if (nft.collection && nft.collection.floorPrice) {
       if (nft.collection?.id in hash) {
@@ -179,6 +188,13 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, wallets: st
   const prevLoan = previousDashboard.find((data) => data.type === 'loan')
   const prevBorrow = previousDashboard.find((data) => data.type === 'borrow')
   const prevCrypto = previousDashboard.find((data) => data.type === 'crypto')
+
+  // try {
+  //   const rate = await getCurrentRate(base, 'USD')
+  //   const solRate = await getCurrentRate(base, 'SOL')
+  // } catch (e) {
+  //   console.log(e)
+  // }
 
   const cryptoTotalPromise = getCryptoTotal(wallets)
   const nftTotalPromise = getNftTotal(wallets)

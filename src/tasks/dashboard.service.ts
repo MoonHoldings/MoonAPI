@@ -73,14 +73,14 @@ export class DashboardService {
       })
 
       const walletsTotal = await Promise.all(walletLoansTotal)
-      const fxRate = await getFXRate('SOL', 'USD')
+      // const fxRate = await getFXRate('SOL', 'USD')
 
       const walletData = walletsTotal.map((walletData) =>
         this.walletDataRepository.create({
-          total: walletData.total * fxRate?.rate,
+          total: walletData.total,
           type: WalletDataType.Loan,
           wallet: walletData.wallet,
-          assetId: 'USD',
+          assetId: 'SOL',
         })
       )
 
@@ -115,14 +115,14 @@ export class DashboardService {
       })
 
       const walletsTotal = await Promise.all(walletBorrowTotal)
-      const fxRate = await getFXRate('SOL', 'USD')
+      // const fxRate = await getFXRate('SOL', 'USD')
 
       const walletData = walletsTotal.map((walletData) =>
         this.walletDataRepository.create({
-          total: walletData.total * fxRate.rate,
+          total: walletData.total,
           type: WalletDataType.Borrow,
           wallet: walletData.wallet,
-          assetId: 'USD',
+          assetId: 'SOL',
         })
       )
 
@@ -168,14 +168,14 @@ export class DashboardService {
       })
 
       const walletNftsTotal = await Promise.all(userNftValuePromises)
-      const fxRate = await getFXRate('SOL', 'USD')
+      // const fxRate = await getFXRate('SOL', 'USD')
 
       const walletData = walletNftsTotal.map((walletNftTotal) =>
         this.walletDataRepository.create({
-          total: walletNftTotal.total * fxRate.rate,
+          total: walletNftTotal.total,
           type: WalletDataType.Nft,
           wallet: walletNftTotal.wallet,
-          assetId: 'USD',
+          assetId: 'SOL',
         })
       )
 
