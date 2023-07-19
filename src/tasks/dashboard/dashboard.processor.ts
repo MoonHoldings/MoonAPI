@@ -1,55 +1,31 @@
-import { Injectable } from '@nestjs/common'
-import { Cron } from '@nestjs/schedule'
-import { Loan, Nft, WalletData, UserWallet, FXRate } from '../entities'
-import { Repository } from 'typeorm'
-import calculateOfferInterest from '../utils/calculateOfferInterest'
-import calculateBorrowInterest from '../utils/calculateBorrowInterest'
+import { Process, Processor } from '@nestjs/bull'
+import { Logger } from '@nestjs/common'
+import { Queue, UserWalletType, WalletDataType } from '../../types/enums'
 import { InjectRepository } from '@nestjs/typeorm'
+import { Loan, Nft, UserWallet, WalletData } from '../../entities'
+import { Repository } from 'typeorm'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { format } from 'date-fns'
-import { UserWalletType, WalletDataType } from '../types'
-import { getCoinsByWallet } from '../services/Coin'
+import calculateOfferInterest from '../../utils/calculateOfferInterest'
+import calculateBorrowInterest from '../../utils/calculateBorrowInterest'
+import { getCoinsByWallet } from '../../services/Coin'
 import * as Sentry from '@sentry/node'
-import getFXRate from '../utils/getFXRate'
 
-@Injectable()
-export class DashboardService {
+@Processor(Queue.Dashboard)
+export class DashboardProcessor {
+  private readonly logger = new Logger(DashboardProcessor.name)
+
   constructor(
-    // @ts-ignore
-    @InjectRepository(Loan)
-    private readonly loanRepository: Repository<Loan>,
-    // @ts-ignore
-    @InjectRepository(UserWallet)
-    private readonly userWalletRepository: Repository<UserWallet>,
-    // @ts-ignore
-    @InjectRepository(WalletData)
-    private readonly walletDataRepository: Repository<WalletData>,
-    // @ts-ignore
-    @InjectRepository(FXRate)
-    private readonly fxRateRepository: Repository<FXRate>
+    @InjectRepository(Loan) private readonly loanRepository: Repository<Loan>,
+    @InjectRepository(UserWallet) private readonly userWalletRepository: Repository<UserWallet>,
+    @InjectRepository(WalletData) private readonly walletDataRepository: Repository<WalletData>,
+    @InjectRepository(Nft) private readonly nftRepository: Repository<Nft>
   ) {}
 
-  @Cron('0 0 * * *')
-  async saveFXRate() {
-    const fxRate = await getFXRate('SOL', 'USD')
-
-    console.log('saveFXRate', new Date(), fxRate)
-
-    await this.fxRateRepository
-      .create({
-        assetIdBase: 'SOL',
-        assetIdQuote: 'USD',
-        pair: 'SOLUSD',
-        rate: fxRate?.rate,
-        time: fxRate?.time,
-      })
-      .save()
-  }
-
-  @Cron('0 0 * * *')
+  @Process('saveLoansDashboardData')
   async saveLoansDashboardData() {
     try {
-      console.log(format(new Date(), "'saveLoansDashboardData start:' MMMM d, yyyy h:mma"))
+      this.logger.log(format(new Date(), "'saveLoansDashboardData start:' MMMM d, yyyy h:mma"))
       const verifiedWallets = await this.userWalletRepository.find({ where: { type: UserWalletType.Auto, verified: true } })
 
       const walletLoansTotal = verifiedWallets.map(async (wallet) => {
@@ -86,16 +62,16 @@ export class DashboardService {
 
       if (walletData.length) await this.walletDataRepository.save(walletData)
 
-      console.log(format(new Date(), "'saveLoansDashboardData start:' MMMM d, yyyy h:mma"))
+      this.logger.log(format(new Date(), "'saveLoansDashboardData end:' MMMM d, yyyy h:mma"))
     } catch (error) {
       Sentry.captureException(error)
     }
   }
 
-  @Cron('5 0 * * *')
+  @Process('saveBorrowDashboardData')
   async saveBorrowDashboardData() {
     try {
-      console.log(format(new Date(), "'saveBorrowDashboardData start:' MMMM d, yyyy h:mma"))
+      this.logger.log(format(new Date(), "'saveBorrowDashboardData start:' MMMM d, yyyy h:mma"))
       const verifiedWallets = await this.userWalletRepository.find({ where: { type: UserWalletType.Auto, verified: true } })
 
       const walletBorrowTotal = verifiedWallets.map(async (wallet) => {
@@ -128,20 +104,20 @@ export class DashboardService {
 
       if (walletData.length) await this.walletDataRepository.save(walletData)
 
-      console.log(format(new Date(), "'saveBorrowDashboardData end:' MMMM d, yyyy h:mma"))
+      this.logger.log(format(new Date(), "'saveBorrowDashboardData end:' MMMM d, yyyy h:mma"))
     } catch (error) {
       Sentry.captureException(error)
     }
   }
 
-  @Cron('10 0 * * *')
+  @Process('saveNftDashboardData')
   async saveNftDashboardData() {
     try {
-      console.log(format(new Date(), "'saveNftDashboardData start:' MMMM d, yyyy h:mma"))
+      this.logger.log(format(new Date(), "'saveNftDashboardData start:' MMMM d, yyyy h:mma"))
       const userWallets = await this.userWalletRepository.find({ where: { type: UserWalletType.Auto } })
 
       const userNftValuePromises = userWallets.map(async (wallet) => {
-        const nfts = await Nft.find({ where: { owner: wallet.address }, relations: { collection: true } })
+        const nfts = await this.nftRepository.find({ where: { owner: wallet.address }, relations: { collection: true } })
         const collectionsHash = nfts.reduce((hash: any, nft) => {
           if (nft.collection && nft.collection.floorPrice) {
             if (nft.collection?.id in hash) {
@@ -181,16 +157,16 @@ export class DashboardService {
 
       if (walletData.length) await this.walletDataRepository.save(walletData)
 
-      console.log(format(new Date(), "'saveNftDashboardData end:' MMMM d, yyyy h:mma"))
+      this.logger.log(format(new Date(), "'saveNftDashboardData end:' MMMM d, yyyy h:mma"))
     } catch (error) {
       Sentry.captureException(error)
     }
   }
 
-  @Cron('15 0 * * *')
+  @Process('saveCryptoDashboardData')
   async saveCryptoDashboardData() {
     try {
-      console.log(format(new Date(), "'saveCryptoDashboardData start:' MMMM d, yyyy h:mma"))
+      this.logger.log(format(new Date(), "'saveCryptoDashboardData start:' MMMM d, yyyy h:mma"))
       const userWallets = await this.userWalletRepository.find()
 
       const userCryptoValuePromises = userWallets.map(async (wallet) => {
@@ -225,7 +201,7 @@ export class DashboardService {
 
       if (walletData.length) await this.walletDataRepository.save(walletData)
 
-      console.log(format(new Date(), "'saveCryptoDashboardData end:' MMMM d, yyyy h:mma"))
+      this.logger.log(format(new Date(), "'saveCryptoDashboardData end:' MMMM d, yyyy h:mma"))
     } catch (error) {
       Sentry.captureException(error)
     }

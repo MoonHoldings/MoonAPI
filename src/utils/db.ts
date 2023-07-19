@@ -4,14 +4,17 @@ import { User, NftList, Loan, OrderBook, EmailToken, SignInType, NftMint, Userna
 import dotenv from 'dotenv'
 dotenv.config()
 
-export const AppDataSource = new DataSource({
+export const entities = [Loan, OrderBook, NftList, NftMint, User, EmailToken, SignInType, Username, AuthToken, Coin, Nft, NftCollection, UserWallet, WalletData, FXRate]
+export const dataSourceConfig: any = {
   type: 'postgres',
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
+  host: process.env.DB_HOST as string,
+  database: process.env.DB_NAME as string,
+  username: process.env.DB_USER as string,
+  password: process.env.DB_PASS as string,
   port: 5432,
-  entities: [Loan, OrderBook, NftList, NftMint, User, EmailToken, SignInType, Username, AuthToken, Coin, Nft, NftCollection, UserWallet, WalletData, FXRate],
+  entities,
   synchronize: true,
   logging: true,
-})
+}
+
+export const AppDataSource = new DataSource(dataSourceConfig)

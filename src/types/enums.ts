@@ -60,3 +60,8 @@ export enum PortfolioType {
   LOAN = 'Loan',
   BORROW = 'Borrow',
 }
+
+export enum Queue {
+  Dashboard = 'dashboard',
+  Sharkify = 'sharkify',
+}

@@ -6,7 +6,7 @@ import calculateOfferInterest from '../utils/calculateOfferInterest'
 import calculateBorrowInterest from '../utils/calculateBorrowInterest'
 import { getUserPortfolioCoins } from './Porfolio'
 import { addDays, format } from 'date-fns'
-import getFXRate from '../utils/getFXRate'
+// import getFXRate from '../utils/getFXRate'
 
 const calculatePercentageChange = (previousValue: number, currentValue: number): number => {
   const difference = currentValue - previousValue
@@ -15,12 +15,12 @@ const calculatePercentageChange = (previousValue: number, currentValue: number):
   return percentageChange
 }
 
-const getCurrentRate = async (base: string, quote: string): Promise<number> => {
-  const fxRate = await getFXRate(base, quote)
-  const rate: number = fxRate.rate
+// const getCurrentRate = async (base: string, quote: string): Promise<number> => {
+//   const fxRate = await getFXRate(base, quote)
+//   const rate: number = fxRate.rate
 
-  return rate
-}
+//   return rate
+// }
 
 export const getNftTotal = async (wallets: string[]): Promise<number> => {
   const userWallets = await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false } })

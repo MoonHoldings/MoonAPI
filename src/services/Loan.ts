@@ -724,12 +724,10 @@ export const saveLoans = async () => {
 
     const { program } = sharkyClient
     let newLoans = await sharkyClient.fetchAllLoans({ program })
-    console.log('newLoans')
     let newLoansPubKeys = newLoans.map((loan) => loan.pubKey.toBase58())
 
     // Create new loans that are not yet created, and update existing ones
     const existingLoans = await loanRepository.find({ where: { pubKey: In(newLoansPubKeys) }, relations: { orderBook: true }, withDeleted: true })
-    console.log('existingLoans')
     const existingLoansByPubKey = existingLoans.reduce((accumulator: any, loan) => {
       accumulator[loan.pubKey] = loan
       return accumulator
@@ -811,8 +809,6 @@ export const saveLoans = async () => {
 
       await loanRepository.save([...newLoanEntities, ...updatedLoanEntities], { chunk: Math.ceil((newLoanEntities.length + updatedLoanEntities.length) / 10) })
     }
-
-    console.log('done saving loans')
 
     const timeBeforeFetch = new Date()
     // Delete loans that are not in the new loans

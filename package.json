@@ -45,7 +45,8 @@
   },
   "dependencies": {
     "@apollo/server": "^4.7.1",
-    "@nestjs/common": "^8.4.6",
+    "@nestjs/bull": "^10.0.1",
+    "@nestjs/common": "^10.1.0",
     "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^8.4.6",
     "@nestjs/platform-express": "^8.4.6",
@@ -64,6 +65,7 @@
     "bcrypt": "^5.1.0",
     "bitcoin-address-validation": "^2.2.1",
     "body-parser": "^1.20.2",
+    "bull": "^4.10.4",
     "cache-manager": "^5.2.0",
     "check-password-strength": "^2.0.7",
     "connect-redis": "^6.1.3",
