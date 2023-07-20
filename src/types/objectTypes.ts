@@ -194,7 +194,7 @@ export class UserDashboardData {
   @Field(() => Number)
   total: number
   @Field(() => Number)
-  percentChange: number
+  prevTotal: number
 }
 
 @ObjectType()
@@ -208,5 +208,7 @@ export class UserDashboardResponse {
   @Field()
   borrow: UserDashboardData
   @Field(() => Number)
-  percentChangeTotal: number
+  total: number
+  @Field(() => Number)
+  prevTotal: number
 }

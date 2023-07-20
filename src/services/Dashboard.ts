@@ -8,21 +8,6 @@ import calculateBorrowInterest from '../utils/calculateBorrowInterest'
 import { getUserPortfolioCoins } from './Porfolio'
 import { addDays, format } from 'date-fns'
 import { getCoinsByWallet } from './Coin'
-// import getFXRate from '../utils/getFXRate'
-
-const calculatePercentageChange = (previousValue: number, currentValue: number): number => {
-  const difference = currentValue - previousValue
-  const percentageChange = (difference / Math.abs(previousValue == 0 ? 1 : previousValue)) * 100
-
-  return percentageChange
-}
-
-// const getCurrentRate = async (base: string, quote: string): Promise<number> => {
-//   const fxRate = await getFXRate(base, quote)
-//   const rate: number = fxRate.rate
-
-//   return rate
-// }
 
 export const getNftTotal = async (wallets: string[]): Promise<number> => {
   const userWallets = await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false } })
@@ -191,13 +176,6 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, wallets: st
   const prevBorrow = previousDashboard.find((data) => data.type === 'borrow')
   const prevCrypto = previousDashboard.find((data) => data.type === 'crypto')
 
-  // try {
-  //   const rate = await getCurrentRate(base, 'USD')
-  //   const solRate = await getCurrentRate(base, 'SOL')
-  // } catch (e) {
-  //   console.log(e)
-  // }
-
   const cryptoTotalPromise = getCryptoTotal(wallets)
   const nftTotalPromise = getNftTotal(wallets)
   const loanTotalPromise = getLoanTotal(wallets)
@@ -213,26 +191,26 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, wallets: st
 
   const total = cryptoTotal + nftTotal + loanTotal + borrowTotal
   const prevTotal = parseFloat(prevCryptoTotal as any) + parseFloat(prevNftTotal as any) + parseFloat(prevLoanTotal as any) + parseFloat(prevBorrowTotal as any)
-  const percentChangeTotal = prevTotal === 0 ? 0 : calculatePercentageChange(prevTotal, total)
 
   return {
     crypto: {
       total: cryptoTotal,
-      percentChange: prevCrypto ? calculatePercentageChange(prevCryptoTotal, cryptoTotal) : 0,
+      prevTotal: prevCryptoTotal,
     },
     nft: {
       total: nftTotal,
-      percentChange: prevNft ? calculatePercentageChange(prevNftTotal, nftTotal) : 0,
+      prevTotal: prevNftTotal,
     },
     loan: {
       total: loanTotal,
-      percentChange: prevLoan ? calculatePercentageChange(prevLoanTotal, loanTotal) : 0,
+      prevTotal: prevLoanTotal,
     },
     borrow: {
       total: borrowTotal,
-      percentChange: prevBorrow ? calculatePercentageChange(prevBorrowTotal, borrowTotal) : 0,
+      prevTotal: prevBorrowTotal,
     },
-    percentChangeTotal,
+    total,
+    prevTotal,
   }
 }
 
