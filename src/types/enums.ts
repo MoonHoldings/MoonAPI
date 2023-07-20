@@ -39,6 +39,7 @@ export enum UserRole {
 export enum UserWalletType {
   Manual = 'Manual',
   Auto = 'Auto',
+  Exchange = 'Exchange',
 }
 
 export enum WalletDataType {

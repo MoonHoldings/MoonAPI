@@ -9,22 +9,16 @@ import { CoinData, CoinResponse, ExchangeInfo, UserWalletType } from '../types'
 @Resolver()
 export class PortfolioResolver {
   @Query(() => [Coin])
-  @UseMiddleware(isAuth)
-  getUserPortfolioCoins(@Ctx() context: any): Promise<Coin[]> {
-    const { payload } = context
-
-    return portfolioService.getUserPortfolioCoins(payload.userId)
+  getUserPortfolioCoins(@Arg('walletAddress', () => String) walletAddress: string): Promise<Coin[]> {
+    return portfolioService.getUserPortfolioCoins([walletAddress])
   }
 
   @Query(() => CoinResponse)
-  @UseMiddleware(isAuth)
-  getUserPortfolioCoinsBySymbol(@Ctx() context: any, @Arg('symbol', () => String) symbol: string): Promise<CoinResponse> {
-    const { payload } = context
-    return portfolioService.getUserPortfolioCoinsBySymbol(payload.userId, symbol)
+  getUserPortfolioCoinsBySymbol(@Arg('symbol', () => String) symbol: string, @Arg('walletAddress', () => String) walletAddress: string): Promise<CoinResponse> {
+    return portfolioService.getUserPortfolioCoinsBySymbol(walletAddress, symbol)
   }
 
   @Query(() => [UserWallet])
-  @UseMiddleware(isAuth)
   getUserWallets(@Arg('type') type: UserWalletType, @Ctx() context: any): Promise<UserWallet[]> {
     const { payload } = context
     return walletService.getUserWallets(type, payload?.userId)
@@ -36,10 +30,8 @@ export class PortfolioResolver {
   }
 
   @Mutation(() => Coin)
-  @UseMiddleware(isAuth)
-  async addUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Ctx() context: any): Promise<Coin> {
-    const { payload } = context
-    return await portfolioService.addUserCoin(coinData, payload.userId)
+  async addUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Arg('walletAddress', () => String) walletAddress: string): Promise<Coin> {
+    return await portfolioService.addUserCoin(coinData, walletAddress)
   }
 
   @Mutation(() => Boolean)
@@ -51,22 +43,15 @@ export class PortfolioResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseMiddleware(isAuth)
-  async deleteUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Ctx() context: any): Promise<boolean> {
-    const { payload } = context
-
-    return await portfolioService.deleteUserCoin(coinData, payload.userId)
+  async deleteUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Arg('walletAddress', () => String) walletAddress: string): Promise<boolean> {
+    return await portfolioService.deleteUserCoin(coinData, walletAddress)
   }
   @Mutation(() => Boolean)
-  @UseMiddleware(isAuth)
-  async deleteUserCoinBySymbol(@Arg('symbol', () => String) symbol: string, @Ctx() context: any): Promise<boolean> {
-    const { payload } = context
-
-    return await portfolioService.deleteUserCoinBySymbol(symbol, payload.userId)
+  async deleteUserCoinBySymbol(@Arg('symbol', () => String) symbol: string, @Arg('walletAddress', () => String) walletAddress: string): Promise<boolean> {
+    return await portfolioService.deleteUserCoinBySymbol(symbol, walletAddress)
   }
 
   @Mutation(() => Coin)
-  @UseMiddleware(isAuth)
   async editUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Ctx() context: any): Promise<Coin> {
     const { payload } = context
     return await portfolioService.editUserCoin(coinData, payload.userId)
@@ -98,9 +83,7 @@ export class PortfolioResolver {
   }
 
   @Query(() => Number)
-  @UseMiddleware(isAuth)
-  getUserPortfolioTotalByType(@Ctx() context: any, @Arg('type') type: string): Promise<number> {
-    const { payload } = context
-    return portfolioService.getPortfolioTotalByType(payload?.userId, type)
+  getUserPortfolioTotalByType(@Arg('wallets', () => [String]) wallets: string[], @Arg('type') type: string): Promise<number> {
+    return portfolioService.getPortfolioTotalByType(wallets, type)
   }
 }

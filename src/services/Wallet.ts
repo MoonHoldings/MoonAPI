@@ -52,9 +52,10 @@ export const addUserWallet = async (wallet: string, verified: boolean): Promise<
   return true
 }
 
-export const checkExistingWallet = async (userId: number, walletType: string, walletName?: string, walletAddress?: string): Promise<UserWallet> => {
+export const checkExistingWallet = async (userObject: User, walletType: string, walletName?: string, walletAddress?: string): Promise<UserWallet> => {
   const whereCondition = {
-    user: { id: userId },
+    user: { id: userObject.id },
+    type: walletType,
     ...(walletName ? { name: walletName } : {}),
     ...(walletAddress ? { address: walletAddress } : {}),
   }
@@ -66,7 +67,7 @@ export const checkExistingWallet = async (userId: number, walletType: string, wa
       ...(walletName ? { name: walletName } : {}),
       ...(walletAddress ? { address: walletAddress } : {}),
       verified: true,
-      user: { id: userId },
+      user: userObject,
       type: walletType,
     }).save()
   } else {

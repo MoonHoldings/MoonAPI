@@ -1,44 +1,60 @@
 import { GraphQLError } from 'graphql'
 import { ApolloServerErrorCode } from '@apollo/server/errors'
 import { CoinData, CoinResponse, ExchangeInfo, PortfolioType, UserWalletType } from '../types'
-import { Coin } from '../entities'
+import { Coin, User, UserWallet } from '../entities'
 import * as coinService from './Coin'
 import * as userService from './User'
 import * as userWalletService from './Wallet'
 import { getBorrowTotal, getCryptoTotal, getLoanTotal, getNftTotal } from './Dashboard'
 import { clearCoin } from './Coin'
 
+const getUserByAddress = async (address: string): Promise<User> => {
+  const userWallet = await UserWallet.findOne({ where: { address }, relations: ['user'] })
+
+  if (!userWallet) {
+    throw new GraphQLError('User Wallet not found', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
+  }
+
+  const user = await userService.getUserById(userWallet.user!.id)
+  if (!user) {
+    throw new GraphQLError('User not found', {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT,
+      },
+    })
+  }
+
+  return user
+}
+
 export const getUserPortfolioCoins = async (wallets: string[]): Promise<Coin[]> => {
   return await coinService.getCoinsByWallet(wallets)
 }
 
-export const getUserPortfolioCoinsBySymbol = async (userId: number, symbol: string): Promise<CoinResponse> => {
-  const user = await userService.getUserById(userId)
-  if (!user) {
-    throw new GraphQLError('User not found', {
-      extensions: {
-        code: ApolloServerErrorCode.BAD_USER_INPUT,
-      },
-    })
-  }
+export const getUserPortfolioCoinsBySymbol = async (walletAddress: string, symbol: string): Promise<CoinResponse> => {
+  const user = await getUserByAddress(walletAddress)
 
   return await coinService.getCoinsBySymbol(user, symbol)
 }
 
-export const addUserCoin = async (coinData: CoinData, userId: number) => {
-  const user = await userService.getUserById(userId)
-  if (!user) {
-    throw new GraphQLError('User not found', {
+export const addUserCoin = async (coinData: CoinData, walletAddress: string) => {
+  const user = await getUserByAddress(walletAddress)
+  const existingManualWallet = await userWalletService.checkExistingWallet(user, UserWalletType.Manual, coinData.walletName, undefined)
+
+  if (!existingManualWallet) {
+    throw new GraphQLError('User Wallet not found/created', {
       extensions: {
         code: ApolloServerErrorCode.BAD_USER_INPUT,
       },
     })
   }
 
-  const userWallet = await userWalletService.checkExistingWallet(user.id, coinData.type ?? UserWalletType.Manual, coinData.walletName, coinData.walletAddress)
-
   try {
-    return await coinService.saveCoinData(coinData, userWallet)
+    return await coinService.saveCoinData(coinData, existingManualWallet)
   } catch (error) {
     throw new GraphQLError('', {
       extensions: {
@@ -49,23 +65,14 @@ export const addUserCoin = async (coinData: CoinData, userId: number) => {
 }
 
 export const addExchangeCoins = async (exchangeInfo: ExchangeInfo, userId: number) => {
-  const user = await userService.getUserById(userId)
-  if (!user) {
-    throw new GraphQLError('User not found', {
-      extensions: {
-        code: ApolloServerErrorCode.BAD_USER_INPUT,
-      },
-    })
-  }
-
-  const userWallet = await userWalletService.checkExistingWallet(user.id, UserWalletType.Auto, exchangeInfo.walletName, exchangeInfo.walletAddress)
-
+  const userWallet = await UserWallet.findOne({ where: { address: 'walletAddress' } })
+  console.log(userId)
   try {
     const deleteChecker = []
 
     for (const coinData of exchangeInfo.coinData) {
       deleteChecker.push(coinData.symbol)
-      await coinService.updateCoinOnly(coinData, userWallet)
+      await coinService.updateCoinOnly(coinData, userWallet!)
     }
     await clearCoin(deleteChecker, exchangeInfo.walletAddress)
     return false
@@ -78,15 +85,8 @@ export const addExchangeCoins = async (exchangeInfo: ExchangeInfo, userId: numbe
   }
 }
 
-export const deleteUserCoin = async (coinData: CoinData, userId: number) => {
-  const user = await userService.getUserById(userId)
-  if (!user) {
-    throw new GraphQLError('User not found', {
-      extensions: {
-        code: ApolloServerErrorCode.BAD_USER_INPUT,
-      },
-    })
-  }
+export const deleteUserCoin = async (coinData: CoinData, walletAddress: string) => {
+  const user = await getUserByAddress(walletAddress)
 
   try {
     return coinService.deleteCoinData(coinData, user)
@@ -99,15 +99,8 @@ export const deleteUserCoin = async (coinData: CoinData, userId: number) => {
   }
 }
 
-export const deleteUserCoinBySymbol = async (symbol: string, userId: number) => {
-  const user = await userService.getUserById(userId)
-  if (!user) {
-    throw new GraphQLError('User not found', {
-      extensions: {
-        code: ApolloServerErrorCode.BAD_USER_INPUT,
-      },
-    })
-  }
+export const deleteUserCoinBySymbol = async (symbol: string, walletAddress: string) => {
+  const user = await getUserByAddress(walletAddress)
 
   try {
     return coinService.deleteCoinDataBySymbol(symbol, user)
@@ -179,7 +172,6 @@ export const getPortfolioTotalByType = async (wallets: string[], type: string): 
     totalPortfolio = await getNftTotal(wallets)
   }
   if (type === PortfolioType.CRYPTO) {
-    console.log('HEY')
     totalPortfolio = await getCryptoTotal(wallets)
   }
   if (type === PortfolioType.LOAN) {

@@ -11,12 +11,13 @@ import validSolanaWallet from '../utils/validSolanaWallet'
 import validBitcoinWallet from '../utils/validBitcoinWallet'
 
 export const getCoinsByWallet = async (wallets: string[]): Promise<Coin[]> => {
-  const userWallets = await UserWallet.find({ where: { address: In(wallets), hidden: false } })
-  const manualWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Manual)
-  const autoWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Auto)
+  const autoWallets = await UserWallet.find({ where: { address: In(wallets), hidden: false }, relations: ['user'] })
+  const userIds = autoWallets.map((wallet) => wallet.user?.id)
+
+  const otherWallets = await UserWallet.find({ where: { type: In([UserWalletType.Manual, UserWalletType.Exchange]), user: { id: In(userIds) }, hidden: false }, relations: ['user'] })
 
   const coins = await Coin.find({
-    where: [{ walletId: In(manualWallets.map((wallet) => wallet.id)) }, { walletAddress: In(autoWallets.map((wallet) => wallet.address)) }],
+    where: [{ walletId: In(otherWallets.map((wallet) => wallet.id)) }, { walletAddress: In(autoWallets.map((wallet) => wallet.address)) }],
   })
 
   coins.forEach((coin) => {
