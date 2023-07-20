@@ -6,9 +6,10 @@ import * as loanService from '../../services/Loan'
 import * as nftListService from '../../services/NftList'
 import * as nftMintService from '../../services/NftMint'
 import * as orderBookService from '../../services/OrderBook'
+import { BaseProcessor } from '../common/BaseProcessor'
 
 @Processor(QueueTypes.Sharkify)
-export class SharkifyProcessor {
+export class SharkifyProcessor extends BaseProcessor {
   private readonly logger = new Logger(SharkifyProcessor.name)
 
   @Process('saveLoans')

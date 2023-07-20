@@ -3,9 +3,10 @@ import { Logger } from '@nestjs/common'
 import { QueueTypes } from '../../types/enums'
 import { format } from 'date-fns'
 import { saveBorrowDashboardData, saveCryptoDashboardData, saveLoansDashboardData, saveNftDashboardData } from '../../services/Dashboard'
+import { BaseProcessor } from '../common/BaseProcessor'
 
 @Processor(QueueTypes.Dashboard)
-export class DashboardProcessor {
+export class DashboardProcessor extends BaseProcessor {
   private readonly logger = new Logger(DashboardProcessor.name)
 
   @Process('saveLoansDashboardData')
