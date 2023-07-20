@@ -15,7 +15,7 @@ import {
 import { Loan, OrderBook } from '../entities'
 import axios from 'axios'
 import { In, LessThan, Not } from 'typeorm'
-import { addSeconds, differenceInSeconds, format } from 'date-fns'
+import { addSeconds, differenceInSeconds } from 'date-fns'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { AXIOS_CONFIG_HELLO_MOON_KEY, HELLO_MOON_URL } from '../constants'
 import calculateOfferInterest from '../utils/calculateOfferInterest'

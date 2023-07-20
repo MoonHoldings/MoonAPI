@@ -1,4 +1,3 @@
-import { format } from 'date-fns'
 import sharkyClient from '../utils/sharkyClient'
 import { In, IsNull } from 'typeorm'
 import { NftList } from '../entities'
