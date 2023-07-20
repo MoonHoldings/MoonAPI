@@ -8,6 +8,7 @@ import calculateBorrowInterest from '../utils/calculateBorrowInterest'
 import { getUserPortfolioCoins } from './Porfolio'
 import { addDays, format } from 'date-fns'
 import { getCoinsByWallet } from './Coin'
+import getFXRatePyth from '../utils/getFXRatePyth'
 
 export const getNftTotal = async (wallets: string[]): Promise<number> => {
   const userWallets = await UserWallet.find({ where: { address: In(wallets), type: UserWalletType.Auto, hidden: false } })
@@ -189,7 +190,9 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, wallets: st
   const prevLoanTotal = prevLoan ? prevLoan.total : 0
   const prevBorrowTotal = prevBorrow ? prevBorrow.total : 0
 
-  const total = cryptoTotal + nftTotal + loanTotal + borrowTotal
+  const fxRate = (await getFXRatePyth('SOL', 'USD')) ?? 1
+
+  const total = cryptoTotal + nftTotal * fxRate + loanTotal * fxRate + borrowTotal * fxRate
   const prevTotal = parseFloat(prevCryptoTotal as any) + parseFloat(prevNftTotal as any) + parseFloat(prevLoanTotal as any) + parseFloat(prevBorrowTotal as any)
 
   return {
@@ -198,15 +201,15 @@ export const getUserDashboard = async (timeRangeType: TimeRangeType, wallets: st
       prevTotal: prevCryptoTotal,
     },
     nft: {
-      total: nftTotal,
+      total: nftTotal * fxRate,
       prevTotal: prevNftTotal,
     },
     loan: {
-      total: loanTotal,
+      total: loanTotal * fxRate,
       prevTotal: prevLoanTotal,
     },
     borrow: {
-      total: borrowTotal,
+      total: borrowTotal * fxRate,
       prevTotal: prevBorrowTotal,
     },
     total,
@@ -239,14 +242,14 @@ export const saveLoansDashboardData = async () => {
     })
 
     const walletsTotal = await Promise.all(walletLoansTotal)
-    // const fxRate = await getFXRate('SOL', 'USD')
+    const fxRate = (await getFXRatePyth('SOL', 'USD')) ?? 1
 
     const walletData = walletsTotal.map((walletData) =>
       WalletData.create({
-        total: walletData.total,
+        total: walletData.total * fxRate,
         type: WalletDataType.Loan,
         wallet: walletData.wallet,
-        assetId: 'SOL',
+        assetId: 'USD',
       })
     )
 
@@ -277,14 +280,14 @@ export const saveBorrowDashboardData = async () => {
     })
 
     const walletsTotal = await Promise.all(walletBorrowTotal)
-    // const fxRate = await getFXRate('SOL', 'USD')
+    const fxRate = (await getFXRatePyth('SOL', 'USD')) ?? 1
 
     const walletData = walletsTotal.map((walletData) =>
       WalletData.create({
-        total: walletData.total,
+        total: walletData.total * fxRate,
         type: WalletDataType.Borrow,
         wallet: walletData.wallet,
-        assetId: 'SOL',
+        assetId: 'USD',
       })
     )
 
@@ -326,14 +329,14 @@ export const saveNftDashboardData = async () => {
     })
 
     const walletNftsTotal = await Promise.all(userNftValuePromises)
-    // const fxRate = await getFXRate('SOL', 'USD')
+    const fxRate = (await getFXRatePyth('SOL', 'USD')) ?? 1
 
     const walletData = walletNftsTotal.map((walletNftTotal) =>
       WalletData.create({
-        total: walletNftTotal.total,
+        total: walletNftTotal.total * fxRate,
         type: WalletDataType.Nft,
         wallet: walletNftTotal.wallet,
-        assetId: 'SOL',
+        assetId: 'USD',
       })
     )
 

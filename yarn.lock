@@ -264,12 +264,12 @@
     "@solana/spl-token" "^0.3.6"
     "@solana/web3.js" "^1.34.0"
 
-"@coral-xyz/anchor@^0.26.0":
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.26.0.tgz#c8e4f7177e93441afd030f22d777d54d0194d7d1"
-  integrity sha512-PxRl+wu5YyptWiR9F2MBHOLLibm87Z4IMUBPreX+DYBtPM+xggvcPi0KAN7+kIL4IrIhXI8ma5V0MCXxSN1pHg==
+"@coral-xyz/anchor@^0.27.0":
+  version "0.27.0"
+  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.27.0.tgz#621e5ef123d05811b97e49973b4ed7ede27c705c"
+  integrity sha512-+P/vPdORawvg3A9Wj02iquxb4T0C5m4P6aZBVYysKl4Amk+r6aMPZkUhilBkD6E4Nuxnoajv3CFykUfkGE0n5g==
   dependencies:
-    "@coral-xyz/borsh" "^0.26.0"
+    "@coral-xyz/borsh" "^0.27.0"
     "@solana/web3.js" "^1.68.0"
     base64-js "^1.5.1"
     bn.js "^5.1.2"
@@ -285,12 +285,12 @@
     superstruct "^0.15.4"
     toml "^3.0.0"
 
-"@coral-xyz/anchor@^0.27.0":
-  version "0.27.0"
-  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.27.0.tgz#621e5ef123d05811b97e49973b4ed7ede27c705c"
-  integrity sha512-+P/vPdORawvg3A9Wj02iquxb4T0C5m4P6aZBVYysKl4Amk+r6aMPZkUhilBkD6E4Nuxnoajv3CFykUfkGE0n5g==
+"@coral-xyz/anchor@^0.28.1-beta.1":
+  version "0.28.1-beta.1"
+  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.28.1-beta.1.tgz#0f71a3b62e38527f50d4a80e1fb4d20ba95926e2"
+  integrity sha512-JdKr4IQqY719wts0wzhHIffpAo4fdJ25gPLfFN75d6LMfCKvwPupyDUigaT+ac6UWTw/bDdBbJFY6QSRvlTnrA==
   dependencies:
-    "@coral-xyz/borsh" "^0.27.0"
+    "@coral-xyz/borsh" "^0.28.0"
     "@solana/web3.js" "^1.68.0"
     base64-js "^1.5.1"
     bn.js "^5.1.2"
@@ -318,6 +318,14 @@
   version "0.27.0"
   resolved "https://registry.yarnpkg.com/@coral-xyz/borsh/-/borsh-0.27.0.tgz#700c647ea5262b1488957ac7fb4e8acf72c72b63"
   integrity sha512-tJKzhLukghTWPLy+n8K8iJKgBq1yLT/AxaNd10yJrX8mI56ao5+OFAKAqW/h0i79KCvb4BK0VGO5ECmmolFz9A==
+  dependencies:
+    bn.js "^5.1.2"
+    buffer-layout "^1.2.0"
+
+"@coral-xyz/borsh@^0.28.0":
+  version "0.28.0"
+  resolved "https://registry.yarnpkg.com/@coral-xyz/borsh/-/borsh-0.28.0.tgz#fa368a2f2475bbf6f828f4657f40a52102e02b6d"
+  integrity sha512-/u1VTzw7XooK7rqeD7JLUSwOyRSesPUk0U37BV9zK0axJc1q0nRbKFGFLYCQ16OtdOJTTwGfGp11Lx9B45bRCQ==
   dependencies:
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
@@ -800,13 +808,13 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
 
-"@pythnetwork/client@^2.17.0":
-  version "2.17.0"
-  resolved "https://registry.yarnpkg.com/@pythnetwork/client/-/client-2.17.0.tgz#b155af06958f4b729bfee1c07130c556598cf168"
-  integrity sha512-hv285vehmLH6N762Z4jqvPTM+hCYnXQaUp6DMgLUpDHvE0mTbwW9PvlxYoUJZGtyeCDkgn9HrTWXPtnaXTRr+Q==
+"@pythnetwork/client@^2.19.0":
+  version "2.19.0"
+  resolved "https://registry.yarnpkg.com/@pythnetwork/client/-/client-2.19.0.tgz#4b3b4fccb402d93ff00c01beec633e6f2bac94fe"
+  integrity sha512-0VSQ0NqBOa5EtloXbOVYZ6Wpu8CLP3oaOKVTaUMSX/HXbB00S6G+xdwF7stxo6emgrAMopotx3icEVug5Lpomg==
   dependencies:
-    "@coral-xyz/anchor" "^0.26.0"
-    "@coral-xyz/borsh" "^0.26.0"
+    "@coral-xyz/anchor" "^0.28.1-beta.1"
+    "@coral-xyz/borsh" "^0.28.0"
     buffer "^6.0.1"
 
 "@redis/bloom@1.0.2":
