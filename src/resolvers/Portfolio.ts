@@ -52,9 +52,8 @@ export class PortfolioResolver {
   }
 
   @Mutation(() => Coin)
-  async editUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Ctx() context: any): Promise<Coin> {
-    const { payload } = context
-    return await portfolioService.editUserCoin(coinData, payload.userId)
+  async editUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Arg('walletAddress', () => String) walletAddress: string): Promise<Coin> {
+    return await portfolioService.editUserCoin(coinData, walletAddress)
   }
 
   @Mutation(() => Boolean)

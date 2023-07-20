@@ -113,15 +113,8 @@ export const deleteUserCoinBySymbol = async (symbol: string, walletAddress: stri
   }
 }
 
-export const editUserCoin = async (coinData: CoinData, userId: number) => {
-  const user = await userService.getUserById(userId)
-  if (!user) {
-    throw new GraphQLError('User not found', {
-      extensions: {
-        code: ApolloServerErrorCode.BAD_USER_INPUT,
-      },
-    })
-  }
+export const editUserCoin = async (coinData: CoinData, walletAddress: string) => {
+  const user = await getUserByAddress(walletAddress)
 
   if (!coinData.walletName) {
     throw new GraphQLError('Connected coins cannot be deleted', {
