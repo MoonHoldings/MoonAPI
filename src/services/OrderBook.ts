@@ -163,8 +163,6 @@ export const getOrderBooks = async (args: GetOrderBooksArgs): Promise<PaginatedO
 
 export const saveOrderBooks = async () => {
   try {
-    console.log(format(new Date(), "'saveOrderBooks start:' MMMM d, yyyy h:mma"))
-
     const orderBookRepository = OrderBook.getRepository()
     const nftListRepository = NftList.getRepository()
 
@@ -207,8 +205,6 @@ export const saveOrderBooks = async () => {
 
       await orderBookRepository.save(orderBookEntities)
     }
-
-    console.log(format(new Date(), "'saveOrderBooks end:' MMMM d, yyyy h:mma"))
   } catch (error) {
     Sentry.captureException(error)
   }

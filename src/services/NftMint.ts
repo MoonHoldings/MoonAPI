@@ -3,8 +3,6 @@ import sharkyClient from '../utils/sharkyClient'
 import { NftMint, NftList } from '../entities'
 
 export const saveNftMints = async () => {
-  console.log(format(new Date(), "'saveNftMints start:' MMMM d, yyyy h:mma"))
-
   const nftMintRepository = NftMint.getRepository()
   const nftListRepository = NftList.getRepository()
 
@@ -49,6 +47,4 @@ export const saveNftMints = async () => {
   } catch (e) {
     console.log('ERROR', e)
   }
-
-  console.log(format(new Date(), "'saveNftMints end:' MMMM d, yyyy h:mma"))
 }

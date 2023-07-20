@@ -10,8 +10,6 @@ import * as Sentry from '@sentry/node'
 
 export const saveNftList = async () => {
   try {
-    console.log(format(new Date(), "'saveNftList start:' MMMM d, yyyy h:mma"))
-
     const nftListRepository = NftList.getRepository()
 
     try {
@@ -47,8 +45,6 @@ export const saveNftList = async () => {
     } catch (e) {
       console.log('ERROR', e)
     }
-
-    console.log(format(new Date(), "'saveNftList end:' MMMM d, yyyy h:mma"))
   } catch (error) {
     Sentry.captureException(error)
   }
@@ -56,8 +52,6 @@ export const saveNftList = async () => {
 
 export const saveNftListImages = async () => {
   try {
-    console.log(format(new Date(), "'saveNftListImages start:' MMMM d, yyyy h:mma"))
-
     const nftListRepository = NftList.getRepository()
 
     try {
@@ -88,8 +82,6 @@ export const saveNftListImages = async () => {
     } catch (e) {
       console.log('ERROR', e)
     }
-
-    console.log(format(new Date(), "'saveNftListImages end:' MMMM d, yyyy h:mma"))
   } catch (error) {
     Sentry.captureException(error)
   }
@@ -97,8 +89,6 @@ export const saveNftListImages = async () => {
 
 export const saveNftListFloorPrices = async () => {
   try {
-    console.log(format(new Date(), "'saveNftListPrices start:' MMMM d, yyyy h:mma"))
-
     const nftListRepository = NftList.getRepository()
 
     try {
@@ -154,8 +144,6 @@ export const saveNftListFloorPrices = async () => {
     } catch (e) {
       console.log('ERROR', e)
     }
-
-    console.log(format(new Date(), "'saveNftListPrices end:' MMMM d, yyyy h:mma"))
   } catch (error) {
     Sentry.captureException(error)
   }

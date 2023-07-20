@@ -717,8 +717,6 @@ export const deleteLoanByPubKey = async (pubKey: string): Promise<string | null>
 
 export const saveLoans = async () => {
   try {
-    console.log(format(new Date(), "'saveLoans start:' MMMM d, yyyy h:mma"))
-
     const loanRepository = Loan.getRepository()
     const orderBookRepository = OrderBook.getRepository()
 
@@ -823,8 +821,6 @@ export const saveLoans = async () => {
       .set({ deletedAt: new Date() })
       .where('id IN (:...ids)', { ids: loansForDeleteEntities.map((loan) => loan.id) })
       .execute()
-
-    console.log(format(new Date(), "'saveLoans end:' MMMM d, yyyy h:mma"))
   } catch (error) {
     Sentry.captureException(error)
   }
