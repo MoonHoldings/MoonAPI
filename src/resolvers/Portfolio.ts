@@ -9,8 +9,8 @@ import { CoinData, CoinResponse, ExchangeInfo, UserWalletType } from '../types'
 @Resolver()
 export class PortfolioResolver {
   @Query(() => [Coin])
-  getUserPortfolioCoins(@Arg('walletAddress', () => String) walletAddress: string): Promise<Coin[]> {
-    return portfolioService.getUserPortfolioCoins([walletAddress])
+  getUserPortfolioCoins(@Arg('wallets', () => [String]) wallets: string[]): Promise<Coin[]> {
+    return portfolioService.getUserPortfolioCoins(wallets)
   }
 
   @Query(() => CoinResponse)
