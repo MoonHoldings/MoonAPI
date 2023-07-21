@@ -5,8 +5,9 @@ import { AppModule } from './app.module'
 
 const main = async () => {
   const nest = await NestFactory.create(AppModule)
-
-  nest.listen(80, () => {
+  const port = process?.env?.WORKER_PORT ?? 80
+  
+  nest.listen(port, () => {
     console.log('nest started at http://localhost')
   })
 }
