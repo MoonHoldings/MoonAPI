@@ -46,17 +46,18 @@ export const getCoinsByWallet = async (wallets: string[]): Promise<Coin[]> => {
   return await getCoinPrices(Object.values(mergedCoins))
 }
 
-export const getCoinsBySymbol = async (user: User, symbol: string): Promise<CoinResponse> => {
-  const userWallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false } })
+export const getCoinsBySymbol = async (wallets: string[], symbol: string): Promise<CoinResponse> => {
+  const autoWallets = await UserWallet.find({ where: { address: In(wallets), hidden: false }, relations: ['user'] })
+  const userIds = autoWallets.map((wallet) => wallet.user?.id)
+
+  const otherWallets = await UserWallet.find({ where: { type: In([UserWalletType.Manual, UserWalletType.Exchange]), user: { id: In(userIds) }, hidden: false }, relations: ['user'] })
 
   const coins = await Coin.find({
     where: [
-      { walletId: In(userWallets.map((wallet) => wallet.id)), symbol },
-      { walletAddress: In(userWallets.map((wallet) => wallet.address)), symbol },
+      { walletId: In(otherWallets.map((wallet) => wallet.id)), symbol },
+      { walletAddress: In(autoWallets.map((wallet) => wallet.address)), symbol },
     ],
   })
-
-  const autoWallets = userWallets.filter((wallet) => wallet.type === UserWalletType.Auto)
 
   coins.forEach((coin) => {
     const walletMatched = autoWallets.find((wallet) => wallet.address === coin.walletAddress)

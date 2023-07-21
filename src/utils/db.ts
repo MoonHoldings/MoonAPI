@@ -14,7 +14,7 @@ export const dataSourceConfig: any = {
   port: 5432,
   entities,
   synchronize: true,
-  logging: true,
+  logging: false,
 }
 
 export const AppDataSource = new DataSource(dataSourceConfig)

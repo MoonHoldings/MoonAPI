@@ -35,10 +35,8 @@ export const getUserPortfolioCoins = async (wallets: string[]): Promise<Coin[]> 
   return await coinService.getCoinsByWallet(wallets)
 }
 
-export const getUserPortfolioCoinsBySymbol = async (walletAddress: string, symbol: string): Promise<CoinResponse> => {
-  const user = await getUserByAddress(walletAddress)
-
-  return await coinService.getCoinsBySymbol(user, symbol)
+export const getUserPortfolioCoinsBySymbol = async (walletAddress: string[], symbol: string): Promise<CoinResponse> => {
+  return await coinService.getCoinsBySymbol(walletAddress, symbol)
 }
 
 export const addUserCoin = async (coinData: CoinData, walletAddress: string) => {

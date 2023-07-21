@@ -14,8 +14,8 @@ export class PortfolioResolver {
   }
 
   @Query(() => CoinResponse)
-  getUserPortfolioCoinsBySymbol(@Arg('symbol', () => String) symbol: string, @Arg('walletAddress', () => String) walletAddress: string): Promise<CoinResponse> {
-    return portfolioService.getUserPortfolioCoinsBySymbol(walletAddress, symbol)
+  getUserPortfolioCoinsBySymbol(@Arg('symbol', () => String) symbol: string, @Arg('wallets', () => [String]) wallets: string[]): Promise<CoinResponse> {
+    return portfolioService.getUserPortfolioCoinsBySymbol(wallets, symbol)
   }
 
   @Query(() => [UserWallet])
