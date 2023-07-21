@@ -122,7 +122,7 @@ router.get('/auth/coinbase', async (req, res) => {
 
   const [key, id] = decrypt(state)?.split(' ')
 
-  if (key !== 'HELLOMOON' && id == null && typeof id !== 'number' && state === null && code === null) {
+  if (key !== 'HELLOMOON' && id == null && typeof id !== 'string' && state === null && code === null) {
     return res.status(400).redirect(`${WEBAPP_URL}/redirect`)
   }
 

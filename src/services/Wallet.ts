@@ -3,9 +3,51 @@ import { User, UserWallet } from '../entities'
 import { saveNfts } from './Nft'
 import { UserWalletType } from '../types'
 import { connectCoins } from './Coin'
+import { getUserByAddress } from './Porfolio'
+import { GraphQLError } from 'graphql'
+import { ApolloServerErrorCode } from '@apollo/server/errors'
 
 export const getUserWallets = async (type: UserWalletType, userId?: number): Promise<UserWallet[]> => {
   return await UserWallet.find({ where: { user: { id: userId }, hidden: false, type } })
+}
+
+export const getExchangeWallets = async (walletAddress: string): Promise<UserWallet[]> => {
+  const user = await getUserByAddress(walletAddress)
+
+  return await UserWallet.find({ where: { user: { id: user.id }, hidden: false, type: UserWalletType.Exchange } })
+}
+
+//hide exchange wallet if existing
+export const removeExchangeWallet = async (walletAddress: string, exchangeAddress?: string): Promise<boolean> => {
+  const user = await getUserByAddress(walletAddress)
+  const verifiedWallets: UserWallet[] = []
+  if (typeof exchangeAddress != null) {
+    const wallet = await UserWallet.findOne({ where: { user: { id: user.id }, hidden: false, type: UserWalletType.Exchange, address: exchangeAddress } })
+    if (!wallet) {
+      throw new GraphQLError('Wallet not found', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT,
+        },
+      })
+    }
+
+    if (!wallet.hidden) {
+      wallet.hidden = true
+      await wallet.save()
+    }
+  } else {
+    const wallets = await UserWallet.find({ where: { user: { id: user.id }, hidden: false, type: UserWalletType.Exchange } })
+
+    wallets.forEach(async (wallet) => {
+      if (!wallet.hidden) {
+        wallet.hidden = true
+      }
+      verifiedWallets.push(wallet)
+    })
+
+    if (verifiedWallets.length) await UserWallet.save(verifiedWallets)
+  }
+  return true
 }
 
 export const refreshUserWallets = async (wallets: string[]): Promise<boolean> => {

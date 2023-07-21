@@ -24,22 +24,29 @@ export class PortfolioResolver {
     return walletService.getUserWallets(type, payload?.userId)
   }
 
+  @Mutation(() => Boolean)
+  removeExchangeWallet(@Arg('walletAddress', () => String) walletAddress: string, @Arg('exchangeAddress', () => String) exchangeAddress: string): Promise<Boolean> {
+    return walletService.removeExchangeWallet(walletAddress, exchangeAddress)
+  }
+
+  @Query(() => [UserWallet])
+  getExchangeWallets(@Arg('walletAddress', () => String) walletAddress: string): Promise<UserWallet[]> {
+    return walletService.getExchangeWallets(walletAddress)
+  }
+
   @Query(() => [Nft])
   getUserNfts(@Arg('wallets', () => [String]) wallets: string[]): Promise<Nft[]> {
     return nftService.getUserNfts(wallets)
   }
 
   @Mutation(() => Coin)
-  async addUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Arg('walletAddress', () => String) walletAddress: string): Promise<Coin> {
+  async addUserCoin(@Arg('coinData', () => CoinData) coinData: CoinData, @Arg('walletAddress', () => String, { nullable: true }) walletAddress: string): Promise<Coin> {
     return await portfolioService.addUserCoin(coinData, walletAddress)
   }
 
   @Mutation(() => Boolean)
-  @UseMiddleware(isAuth)
-  async addExchangeCoins(@Arg('exchangeInfo', { nullable: true }) exchangeInfo: ExchangeInfo, @Ctx() context: any): Promise<boolean> {
-    const { payload } = context
-
-    return await portfolioService.addExchangeCoins(exchangeInfo, payload.userId)
+  async addExchangeCoins(@Arg('exchangeInfo', { nullable: true }) exchangeInfo: ExchangeInfo, @Arg('walletAddress', () => String, { nullable: true }) walletAddress: string): Promise<boolean> {
+    return await portfolioService.addExchangeCoins(exchangeInfo, walletAddress)
   }
 
   @Mutation(() => Boolean)
